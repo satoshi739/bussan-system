@@ -1,0 +1,154 @@
+import { NextRequest, NextResponse } from "next/server";
+import { stripe } from "@/lib/stripe";
+import { prisma } from "@/lib/prisma";
+import type Stripe from "stripe";
+
+export async function POST(req: NextRequest) {
+  const body = await req.text();
+  const sig = req.headers.get("stripe-signature");
+
+  if (!sig) {
+    return NextResponse.json({ error: "No signature" }, { status: 400 });
+  }
+
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err);
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
+
+  try {
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        await handleCheckoutCompleted(session);
+        break;
+      }
+      case "customer.subscription.updated": {
+        const sub = event.data.object as Stripe.Subscription;
+        await handleSubscriptionUpdated(sub);
+        break;
+      }
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as Stripe.Subscription;
+        await handleSubscriptionDeleted(sub);
+        break;
+      }
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        await handlePaymentFailed(invoice);
+        break;
+      }
+    }
+  } catch (err) {
+    console.error("Webhook handler error:", err);
+    return NextResponse.json({ error: "Handler failed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ received: true });
+}
+
+// SubscriptionItem に current_period_end がある
+function getPeriodEnd(sub: Stripe.Subscription): Date | null {
+  const item = sub.items.data[0];
+  if (item?.current_period_end) {
+    return new Date(item.current_period_end * 1000);
+  }
+  return null;
+}
+
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const userId = session.metadata?.userId;
+  if (!userId) return;
+
+  const stripeSubId = session.subscription as string;
+  const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
+  const priceId = stripeSub.items.data[0].price.id;
+  const plan = getPlanFromPriceId(priceId);
+  const periodEnd = getPeriodEnd(stripeSub);
+
+  await prisma.subscription.upsert({
+    where: { userId },
+    create: {
+      userId,
+      stripeCustomerId: session.customer as string,
+      stripeSubscriptionId: stripeSubId,
+      stripePriceId: priceId,
+      plan,
+      status: "ACTIVE",
+      currentPeriodEnd: periodEnd,
+    },
+    update: {
+      stripeCustomerId: session.customer as string,
+      stripeSubscriptionId: stripeSubId,
+      stripePriceId: priceId,
+      plan,
+      status: "ACTIVE",
+      currentPeriodEnd: periodEnd,
+    },
+  });
+}
+
+async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
+  const priceId = sub.items.data[0].price.id;
+  const plan = getPlanFromPriceId(priceId);
+  const status = mapStripeStatus(sub.status);
+  const periodEnd = getPeriodEnd(sub);
+
+  await prisma.subscription.updateMany({
+    where: { stripeSubscriptionId: sub.id },
+    data: {
+      plan,
+      status,
+      stripePriceId: priceId,
+      currentPeriodEnd: periodEnd,
+    },
+  });
+}
+
+async function handleSubscriptionDeleted(sub: Stripe.Subscription) {
+  await prisma.subscription.updateMany({
+    where: { stripeSubscriptionId: sub.id },
+    data: {
+      plan: "FREE",
+      status: "CANCELED",
+      stripeSubscriptionId: null,
+      stripePriceId: null,
+    },
+  });
+}
+
+async function handlePaymentFailed(invoice: Stripe.Invoice) {
+  const customerId = invoice.customer as string;
+  await prisma.subscription.updateMany({
+    where: { stripeCustomerId: customerId },
+    data: { status: "PAST_DUE" },
+  });
+}
+
+function getPlanFromPriceId(priceId: string) {
+  if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "PRO" as const;
+  if (priceId === process.env.STRIPE_BUSINESS_PRICE_ID) return "BUSINESS" as const;
+  return "FREE" as const;
+}
+
+function mapStripeStatus(status: Stripe.Subscription.Status) {
+  const map: Record<string, "ACTIVE" | "INACTIVE" | "CANCELED" | "PAST_DUE" | "TRIALING"> = {
+    active: "ACTIVE",
+    trialing: "TRIALING",
+    canceled: "CANCELED",
+    incomplete: "INACTIVE",
+    incomplete_expired: "INACTIVE",
+    past_due: "PAST_DUE",
+    unpaid: "PAST_DUE",
+    paused: "INACTIVE",
+  };
+  return map[status] ?? "INACTIVE";
+}
