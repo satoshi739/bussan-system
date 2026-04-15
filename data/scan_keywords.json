@@ -1,0 +1,162 @@
+[
+  {
+    "keyword": "LEGO レゴ",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 12000.0,
+    "min_profit_rate": 20.0,
+    "memo": "廃番品が高値",
+    "added_at": "2026-04-13T15:38:10.959189",
+    "last_scanned": "2026-04-14T12:26:17.814578",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "ポケモンカード",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 5000.0,
+    "min_profit_rate": 20.0,
+    "memo": "海外需要 No.1",
+    "added_at": "2026-04-13T15:51:10.527707",
+    "last_scanned": "2026-04-14T12:26:20.841461",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "ドラゴンボール フィギュア",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 8000.0,
+    "min_profit_rate": 20.0,
+    "memo": "DBZ 高需要",
+    "added_at": "2026-04-13T15:51:25.340174",
+    "last_scanned": "2026-04-14T12:26:23.779478",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "ブランド 財布",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 50000.0,
+    "min_profit_rate": 20.0,
+    "memo": "高利益率",
+    "added_at": "2026-04-13T15:51:51.441925",
+    "last_scanned": "2026-04-14T12:26:26.724645",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "ノートパソコン 中古",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 30000.0,
+    "min_profit_rate": 20.0,
+    "memo": "北米需要が高い",
+    "added_at": "2026-04-14T12:23:28.293299",
+    "last_scanned": "2026-04-14T12:26:29.547643",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "フィルムカメラ 中古",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 15000.0,
+    "min_profit_rate": 20.0,
+    "memo": "ヴィンテージ復活",
+    "added_at": "2026-04-14T12:23:52.067088",
+    "last_scanned": "2026-04-14T12:26:32.382148",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "レコード LP 中古",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 5000.0,
+    "min_profit_rate": 20.0,
+    "memo": "アナログ人気再燃",
+    "added_at": "2026-04-14T12:24:06.446685",
+    "last_scanned": "2026-04-14T12:26:35.313719",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "初版本 漫画 希少",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 5000.0,
+    "min_profit_rate": 20.0,
+    "memo": "希少本は高値",
+    "added_at": "2026-04-14T12:24:13.517884",
+    "last_scanned": "2026-04-14T12:26:38.052750",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "VHS ビデオ レトロ",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 3000.0,
+    "min_profit_rate": 20.0,
+    "memo": "レトロ需要あり",
+    "added_at": "2026-04-14T12:24:18.858984",
+    "last_scanned": "2026-04-14T12:26:40.765739",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "腕時計 セイコー 中古",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 20000.0,
+    "min_profit_rate": 20.0,
+    "memo": "SEIKOは海外評価高",
+    "added_at": "2026-04-14T12:25:38.251600",
+    "last_scanned": "2026-04-14T12:26:43.703965",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "ミニカー トミカ 旧車",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 5000.0,
+    "min_profit_rate": 20.0,
+    "memo": "旧車ミニカー高値",
+    "added_at": "2026-04-14T12:25:42.847141",
+    "last_scanned": "2026-04-14T12:26:46.438249",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "ブランド 財布 中古",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 50000.0,
+    "min_profit_rate": 20.0,
+    "memo": "高利益率",
+    "added_at": "2026-04-14T12:25:47.737299",
+    "last_scanned": "2026-04-14T12:26:49.287486",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "美顔器 美容機器 中古",
+    "target_sell_platform": "Shopee_SG",
+    "max_buy_price": 8000.0,
+    "min_profit_rate": 20.0,
+    "memo": "アジア女性需要高",
+    "added_at": "2026-04-14T12:25:56.624739",
+    "last_scanned": "2026-04-14T12:26:51.879393",
+    "best_profit_rate": 27.6
+  },
+  {
+    "keyword": "日本酒 ウイスキー 希少",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 10000.0,
+    "min_profit_rate": 20.0,
+    "memo": "和酒は海外高値",
+    "added_at": "2026-04-14T12:26:01.133259",
+    "last_scanned": "2026-04-14T12:26:55.763275",
+    "best_profit_rate": null
+  },
+  {
+    "keyword": "アイドル グッズ 限定品",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 5000.0,
+    "min_profit_rate": 20.0,
+    "memo": "限定品は稀少価値",
+    "added_at": "2026-04-14T12:26:58.781050",
+    "last_scanned": null,
+    "best_profit_rate": null
+  },
+  {
+    "keyword": "フィギュア アニメ 限定",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 8000.0,
+    "min_profit_rate": 20.0,
+    "memo": "コレクター需要高",
+    "added_at": "2026-04-14T12:27:02.794703",
+    "last_scanned": null,
+    "best_profit_rate": null
+  }
+]

@@ -1,0 +1,229 @@
+from typing import Dict
+
+# ===== Amazon.co.jp =====
+
+AMAZON_REFERRAL_FEES = {
+    '家電・カメラ': 0.08,
+    'パソコン・周辺機器': 0.08,
+    'スマートフォン・タブレット': 0.08,
+    'おもちゃ・ゲーム': 0.10,
+    'スポーツ・アウトドア': 0.10,
+    'ホーム&キッチン': 0.10,
+    'アパレル・ファッション': 0.15,
+    '本・音楽・DVD': 0.15,
+    'ビューティー・コスメ': 0.10,
+    'ペット用品': 0.10,
+    'コレクター商品': 0.12,
+    'その他': 0.10,
+}
+
+CATEGORIES = AMAZON_REFERRAL_FEES
+
+FBA_FEES = {
+    '小型': 257,
+    '標準': 396,
+    '大型': 780,
+}
+
+# ===== 販売プラットフォーム手数料率 =====
+# fee_rate: 手数料率（None=カテゴリー別）
+# fixed_fee: 固定手数料（円）
+# note: 説明
+# emoji: アイコン
+# category: 国内/海外
+
+SELLING_PLATFORMS = {
+    # ===== 国内フリマ =====
+    'メルカリ':           {'fee_rate': 0.10,   'fixed_fee': 0,   'note': '販売手数料10%',              'emoji': '🏪', 'area': '国内'},
+    'ラクマ':             {'fee_rate': 0.06,   'fixed_fee': 0,   'note': '販売手数料6%（最安水準）',    'emoji': '🛍️', 'area': '国内'},
+    'PayPayフリマ':       {'fee_rate': 0.05,   'fixed_fee': 0,   'note': '販売手数料5%（最安クラス）',  'emoji': '💛', 'area': '国内'},
+    'Yahoo!オークション':  {'fee_rate': 0.088,  'fixed_fee': 0,   'note': '落札手数料8.8%',             'emoji': '🔨', 'area': '国内'},
+    'ジモティー':          {'fee_rate': 0.0,    'fixed_fee': 0,   'note': '手数料0円！（地元取引）',     'emoji': '📍', 'area': '国内'},
+
+    # ===== 国内EC =====
+    'Amazon':             {'fee_rate': None,    'fixed_fee': 0,   'note': 'カテゴリー別（8〜15%）',     'emoji': '📦', 'area': '国内'},
+    'ヤフーショッピング':   {'fee_rate': 0.074,  'fixed_fee': 0,   'note': 'ストア手数料7.4%',           'emoji': '🟡', 'area': '国内'},
+    '楽天市場':            {'fee_rate': 0.10,   'fixed_fee': 0,   'note': '手数料約10%（ジャンル別）',   'emoji': '🔴', 'area': '国内'},
+    'BASE':               {'fee_rate': 0.03,   'fixed_fee': 40,  'note': '3%＋40円/件',                'emoji': '🛒', 'area': '国内'},
+    'STORES':             {'fee_rate': 0.05,   'fixed_fee': 0,   'note': '販売手数料5%',                'emoji': '🏬', 'area': '国内'},
+
+    # ===== 専門フリマ =====
+    'メルカリShops':       {'fee_rate': 0.10,   'fixed_fee': 0,   'note': '販売手数料10%（ショップ版）', 'emoji': '🏪', 'area': '国内'},
+    'ZOZOTOWN':           {'fee_rate': 0.35,   'fixed_fee': 0,   'note': '手数料約35%（アパレル特化）', 'emoji': '👗', 'area': '国内'},
+    'オタマート':          {'fee_rate': 0.10,   'fixed_fee': 0,   'note': '販売手数料10%（オタク向け）', 'emoji': '🎮', 'area': '国内'},
+    '駿河屋':             {'fee_rate': 0.0,    'fixed_fee': 0,   'note': '買取依頼（買取価格が収入）',  'emoji': '🎲', 'area': '国内'},
+
+    # ===== 海外 =====
+    'eBay（輸出）':        {'fee_rate': 0.1325, 'fixed_fee': 0,   'note': '手数料13.25%・世界190カ国', 'emoji': '🌏', 'area': '海外'},
+    'Etsy（輸出）':        {'fee_rate': 0.065,  'fixed_fee': 28,  'note': '6.5%＋出品料約28円',         'emoji': '🎨', 'area': '海外'},
+    'Amazon.com（米国）':  {'fee_rate': 0.15,   'fixed_fee': 0,   'note': '手数料約15%・米国向け',      'emoji': '🇺🇸', 'area': '海外'},
+    'Lazada':              {'fee_rate': 0.02,   'fixed_fee': 0,   'note': '手数料約2〜4%・東南アジア6カ国', 'emoji': '🛒', 'area': '海外'},
+}
+
+
+# ===== Amazon手数料計算 =====
+
+def calculate_fba_fee(size: str = '標準', weight_g: float = 500) -> float:
+    base = FBA_FEES.get(size, 396)
+    extra = max(0, (weight_g - 1000) / 500 * 60) if weight_g > 1000 else 0
+    return base + extra
+
+
+def calculate_amazon_fees(
+    selling_price: float,
+    category: str,
+    use_fba: bool = False,
+    fba_size: str = '標準',
+    fba_weight_g: float = 500,
+) -> Dict:
+    referral_rate = AMAZON_REFERRAL_FEES.get(category, 0.10)
+    referral_fee = selling_price * referral_rate
+    fba_fee = calculate_fba_fee(fba_size, fba_weight_g) if use_fba else 0
+    total_fees = referral_fee + fba_fee
+
+    return {
+        'referral_fee': referral_fee,
+        'referral_rate': referral_rate,
+        'fba_fee': fba_fee,
+        'total_fees': total_fees,
+        'net_after_fees': selling_price - total_fees,
+    }
+
+
+# ===== 汎用プラットフォーム手数料計算 =====
+
+def calculate_platform_fees(
+    selling_price: float,
+    platform: str,
+    # Amazonのみ使用
+    category: str = 'その他',
+    use_fba: bool = False,
+    fba_size: str = '標準',
+    fba_weight_g: float = 500,
+) -> Dict:
+    """
+    各販売プラットフォームの手数料を計算する
+    """
+    if platform == 'Amazon':
+        return calculate_amazon_fees(selling_price, category, use_fba, fba_size, fba_weight_g)
+
+    info = SELLING_PLATFORMS.get(platform, SELLING_PLATFORMS['メルカリ'])
+    fee_rate = info['fee_rate']
+    fixed_fee = info['fixed_fee']
+    platform_fee = selling_price * fee_rate + fixed_fee
+
+    return {
+        'referral_fee': platform_fee,
+        'referral_rate': fee_rate,
+        'fba_fee': 0,
+        'total_fees': platform_fee,
+        'net_after_fees': selling_price - platform_fee,
+    }
+
+
+# ===== 利益計算（マルチプラットフォーム対応） =====
+
+def calculate_profit(
+    purchase_price: float,
+    selling_price: float,
+    category: str = 'その他',
+    shipping_to_platform: float = 0,
+    purchase_shipping: float = 0,
+    use_fba: bool = False,
+    fba_size: str = '標準',
+    fba_weight_g: float = 500,
+    selling_platform: str = 'Amazon',
+) -> Dict:
+    """
+    純利益を計算する（複数の販売プラットフォーム対応）
+
+    Args:
+        purchase_price:       仕入れ価格（円）
+        selling_price:        販売価格（円）
+        category:             Amazonカテゴリー（Amazon以外は無視）
+        shipping_to_platform: 販売プラットフォームへの送料
+        purchase_shipping:    仕入れ時の送料
+        use_fba:              FBA利用（Amazonのみ）
+        selling_platform:     販売先プラットフォーム
+    """
+    purchase_total = purchase_price + purchase_shipping
+    fees = calculate_platform_fees(
+        selling_price, selling_platform, category, use_fba, fba_size, fba_weight_g
+    )
+    gross_profit = selling_price - purchase_total - fees['total_fees'] - shipping_to_platform
+    profit_rate = (gross_profit / selling_price * 100) if selling_price > 0 else 0
+    roi = (gross_profit / purchase_total * 100) if purchase_total > 0 else 0
+
+    return {
+        'purchase_total': purchase_total,
+        'selling_price': selling_price,
+        'platform_fees': fees['total_fees'],
+        'amazon_fees': fees['total_fees'],  # 後方互換
+        'shipping_cost': shipping_to_platform,
+        'gross_profit': gross_profit,
+        'profit_rate': profit_rate,
+        'roi': roi,
+        'breakdown': fees,
+        'selling_platform': selling_platform,
+    }
+
+
+def calculate_profit_all_platforms(
+    purchase_price: float,
+    purchase_shipping: float = 0,
+    selling_prices: Dict[str, float] = None,
+    category: str = 'その他',
+    shipping: float = 0,
+) -> Dict[str, Dict]:
+    """
+    全プラットフォームの利益を一括計算する
+
+    Args:
+        selling_prices: {'Amazon': 5000, 'メルカリ': 4800, ...} のような辞書
+                        Noneの場合は全プラットフォームに同じ価格を使う
+    """
+    if selling_prices is None:
+        return {}
+
+    results = {}
+    for platform, price in selling_prices.items():
+        if price and price > 0:
+            results[platform] = calculate_profit(
+                purchase_price, price, category,
+                shipping, purchase_shipping,
+                selling_platform=platform,
+            )
+    return results
+
+
+def find_breakeven_price(
+    purchase_price: float,
+    category: str = 'その他',
+    purchase_shipping: float = 0,
+    shipping_to_platform: float = 0,
+    use_fba: bool = False,
+    selling_platform: str = 'Amazon',
+) -> float:
+    total_cost = purchase_price + purchase_shipping + shipping_to_platform
+
+    if selling_platform == 'Amazon':
+        referral_rate = AMAZON_REFERRAL_FEES.get(category, 0.10)
+        fba_fee = calculate_fba_fee() if use_fba else 0
+        return (total_cost + fba_fee) / (1 - referral_rate)
+    else:
+        info = SELLING_PLATFORMS.get(selling_platform, {'fee_rate': 0.10})
+        rate = info['fee_rate']
+        return total_cost / (1 - rate)
+
+
+def max_purchase_price(
+    selling_price: float,
+    category: str = 'その他',
+    target_profit_rate: float = 0.20,
+    shipping_to_platform: float = 0,
+    use_fba: bool = False,
+    selling_platform: str = 'Amazon',
+) -> float:
+    fees = calculate_platform_fees(selling_price, selling_platform, category, use_fba)
+    result = selling_price * (1 - target_profit_rate) - fees['total_fees'] - shipping_to_platform
+    return max(0, result)

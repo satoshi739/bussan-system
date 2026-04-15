@@ -1,0 +1,13 @@
+[server]
+maxUploadSize = 50
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"
+backgroundColor = "#010d04"
+secondaryBackgroundColor = "#0a1a0e"
+primaryColor = "#00ff80"
+textColor = "#c8ffd4"

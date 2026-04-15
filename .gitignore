@@ -1,0 +1,11 @@
+# シークレット（パスワードが入っているので絶対にGitHubに上げない）
+.streamlit/secrets.toml
+
+# データベース（ローカルのデータはサーバーと分けて管理）
+data/bussan.db
+
+# Mac系のゴミファイル
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
