@@ -22,7 +22,11 @@ app = FastAPI(title="物販チェッカー API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+    allow_origins=[
+        "http://localhost:3000", "http://localhost:3001", "http://localhost:3002",
+        "https://frontend-one-steel-loaau9zmao.vercel.app",
+        "https://*.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1816,3 +1820,362 @@ def set_budget(body: BudgetRequest):
     """月次予算を設定する"""
     db.save_settings({"monthly_budget": str(body.budget)})
     return {"ok": True}
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 価格変動アラート
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@app.get("/api/alerts/price-changes")
+def get_price_change_alerts(days: int = 7, threshold: float = 5.0):
+    """
+    直近 days 日間の価格変化を検出してアラートを返す。
+    threshold: 変化率の閾値（%、デフォルト5%）
+    """
+    from datetime import datetime, timedelta
+
+    db.conn.execute("""
+        CREATE TABLE IF NOT EXISTS price_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            keyword TEXT NOT NULL,
+            source TEXT NOT NULL,
+            price INTEGER NOT NULL,
+            checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    now = datetime.today()
+    cutoff_recent = (now - timedelta(days=days)).isoformat()
+    cutoff_old = (now - timedelta(days=days * 2)).isoformat()
+
+    rows = db.conn.execute("""
+        SELECT keyword, source,
+               AVG(CASE WHEN checked_at >= ? THEN price END) as recent_avg,
+               AVG(CASE WHEN checked_at < ? AND checked_at >= ? THEN price END) as old_avg,
+               COUNT(CASE WHEN checked_at >= ? THEN 1 END) as recent_count,
+               MIN(CASE WHEN checked_at >= ? THEN price END) as recent_min
+        FROM price_history
+        WHERE checked_at >= ?
+        GROUP BY keyword, source
+        HAVING recent_avg IS NOT NULL AND old_avg IS NOT NULL
+    """, (cutoff_recent, cutoff_recent, cutoff_old, cutoff_recent, cutoff_recent, cutoff_old)).fetchall()
+
+    alerts = []
+    for r in rows:
+        change_rate = (r['recent_avg'] - r['old_avg']) / r['old_avg'] * 100
+        if abs(change_rate) >= threshold:
+            alerts.append({
+                'keyword': r['keyword'],
+                'source': r['source'],
+                'old_avg': round(r['old_avg']),
+                'recent_avg': round(r['recent_avg']),
+                'recent_min': round(r['recent_min']) if r['recent_min'] else None,
+                'change_rate': round(change_rate, 1),
+                'direction': 'up' if change_rate > 0 else 'down',
+                'recent_count': r['recent_count'],
+            })
+
+    alerts.sort(key=lambda x: abs(x['change_rate']), reverse=True)
+
+    watchlist = db.get_watchlist()
+    watchlist_kws = {w['keyword'] for w in watchlist}
+    for a in alerts:
+        a['in_watchlist'] = a['keyword'] in watchlist_kws
+
+    return {
+        'alerts': alerts,
+        'total': len(alerts),
+        'checked_at': now.isoformat(),
+        'period_days': days,
+    }
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 売れ筋トレンド分析
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@app.get("/api/analytics/trends")
+def get_sales_trends(months: int = 6):
+    """過去 N ヶ月の売れ筋トレンドを返す"""
+    monthly_by_platform = db.conn.execute("""
+        SELECT strftime('%Y-%m', s.sale_date) as month,
+               l.selling_platform,
+               COUNT(*) as count,
+               ROUND(SUM(s.net_profit)) as total_profit,
+               ROUND(AVG(s.net_profit)) as avg_profit
+        FROM sales s
+        JOIN listings l ON s.listing_id = l.id
+        WHERE s.sale_date >= date('now', ?)
+        GROUP BY month, l.selling_platform
+        ORDER BY month, total_profit DESC
+    """, (f'-{months} months',)).fetchall()
+
+    trending_products = db.conn.execute("""
+        SELECT p.product_name,
+               COUNT(*) as sale_count,
+               ROUND(SUM(s.net_profit)) as total_profit,
+               ROUND(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100), 1) as avg_rate,
+               MAX(s.sale_date) as last_sold
+        FROM sales s
+        JOIN listings l ON s.listing_id = l.id
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE s.sale_date >= date('now', ?)
+        GROUP BY p.product_name
+        ORDER BY total_profit DESC
+        LIMIT 10
+    """, (f'-{months} months',)).fetchall()
+
+    monthly_totals = db.conn.execute("""
+        SELECT strftime('%Y-%m', sale_date) as month,
+               COUNT(*) as count,
+               ROUND(SUM(net_profit)) as profit
+        FROM sales
+        WHERE sale_date >= date('now', ?)
+        GROUP BY month
+        ORDER BY month
+    """, (f'-{months} months',)).fetchall()
+
+    return {
+        'monthly_by_platform': [dict(r) for r in monthly_by_platform],
+        'trending_products': [dict(r) for r in trending_products],
+        'monthly_totals': [dict(r) for r in monthly_totals],
+    }
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 競合セラー分析
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@app.get("/api/analytics/competition")
+def get_competition_analysis():
+    """出品中商品の市場相場と自分の価格を比較する"""
+    import time as _t
+    from scrapers import search_all_buy_sites
+
+    listings = db.conn.execute("""
+        SELECT l.id, p.product_name, l.listing_price, l.selling_platform,
+               p.purchase_price, p.purchase_shipping
+        FROM listings l
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE l.status = 'active'
+        ORDER BY l.id DESC
+        LIMIT 10
+    """).fetchall()
+
+    results = []
+    for listing in listings:
+        try:
+            market = search_all_buy_sites(listing['product_name'], 6)
+            prices = [r['price'] for r in market if r.get('price', 0) > 0]
+            if prices:
+                avg_market = round(sum(prices) / len(prices))
+                min_market = min(prices)
+                your_price = listing['listing_price']
+                diff_pct = round((your_price - avg_market) / avg_market * 100, 1) if avg_market else 0
+
+                status = 'competitive'
+                if diff_pct > 15:
+                    status = 'high'
+                elif diff_pct < -15:
+                    status = 'low'
+
+                results.append({
+                    'product_name': listing['product_name'],
+                    'selling_platform': listing['selling_platform'],
+                    'your_price': your_price,
+                    'market_avg': avg_market,
+                    'market_min': min_market,
+                    'diff_pct': diff_pct,
+                    'status': status,
+                    'market_items': len(prices),
+                    'cost': round(listing['purchase_price'] + listing['purchase_shipping']),
+                })
+            _t.sleep(0.3)
+        except Exception as e:
+            print(f'[Competition] {listing["product_name"]}: {e}')
+
+    return {'results': results}
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# AIリサーチアシスタント
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+class AIResearchRequest(BaseModel):
+    message: str
+    include_data: bool = True
+
+@app.post("/api/ai/research")
+def ai_research(body: AIResearchRequest):
+    """物販AIリサーチアシスタント"""
+    settings = db.get_settings()
+    api_key = settings.get("anthropic_api_key", "").strip()
+    if not api_key:
+        raise HTTPException(400, "Anthropic APIキーが設定されていません（設定ページで登録してください）")
+
+    context_data = ""
+    if body.include_data:
+        try:
+            recent = db.conn.execute("""
+                SELECT p.product_name, p.platform as buy_platform, l.selling_platform,
+                       s.net_profit, ROUND(s.net_profit / NULLIF(s.sale_price, 0) * 100, 1) as profit_rate
+                FROM sales s
+                JOIN listings l ON s.listing_id = l.id
+                JOIN purchases p ON l.purchase_id = p.id
+                ORDER BY s.sale_date DESC LIMIT 5
+            """).fetchall()
+            if recent:
+                context_data += "【あなたの直近売上】\n"
+                for r in recent:
+                    context_data += f"・{r['product_name']} {r['buy_platform']}→{r['selling_platform']} 利益¥{int(r['net_profit']):,}({r['profit_rate']}%)\n"
+
+            active = db.conn.execute(
+                "SELECT COUNT(*) as c FROM purchases WHERE status='purchased'"
+            ).fetchone()
+            if active and active['c'] > 0:
+                context_data += f"\n現在仕入れ済み・未販売: {active['c']}件\n"
+        except Exception:
+            pass
+
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+
+        system = """あなたは日本の物販（メルカリ・ヤフオク・eBay・Shopee等）のプロフェッショナルAIアシスタントです。
+仕入れ戦略、価格設定、需要分析、利益最大化について実践的なアドバイスを提供します。
+ユーザーの実際のデータを踏まえて、具体的で実用的な回答を日本語で行ってください。"""
+
+        user_msg = body.message
+        if context_data:
+            user_msg = f"【ユーザーデータ】\n{context_data}\n\n【質問】\n{body.message}"
+
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1000,
+            system=system,
+            messages=[{"role": "user", "content": user_msg}]
+        )
+
+        return {"ok": True, "response": msg.content[0].text}
+    except ImportError:
+        raise HTTPException(500, "pip install anthropic を実行してください")
+    except Exception as e:
+        raise HTTPException(500, f"AIエラー: {str(e)}")
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 月次レポート自動生成
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@app.get("/api/reports/monthly")
+def get_monthly_report(month: Optional[str] = None):
+    """月次レポートを生成して返す"""
+    from datetime import datetime, timedelta
+
+    if not month:
+        month = datetime.today().strftime('%Y-%m')
+
+    prev_dt = datetime.strptime(month + '-01', '%Y-%m-%d') - timedelta(days=1)
+    prev_month = prev_dt.strftime('%Y-%m')
+
+    summary = db.conn.execute("""
+        SELECT COUNT(*) as sale_count,
+               COALESCE(SUM(s.net_profit), 0) as total_profit,
+               COALESCE(AVG(s.net_profit), 0) as avg_profit,
+               COALESCE(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100), 0) as avg_rate,
+               COALESCE(SUM(s.sale_price), 0) as total_revenue
+        FROM sales s
+        WHERE strftime('%Y-%m', s.sale_date) = ?
+    """, (month,)).fetchone()
+
+    prev = db.conn.execute("""
+        SELECT COUNT(*) as sale_count,
+               COALESCE(SUM(net_profit), 0) as total_profit
+        FROM sales WHERE strftime('%Y-%m', sale_date) = ?
+    """, (prev_month,)).fetchone()
+
+    purchases = db.conn.execute("""
+        SELECT COUNT(*) as count,
+               COALESCE(SUM(purchase_price + purchase_shipping), 0) as invested
+        FROM purchases WHERE strftime('%Y-%m', purchase_date) = ?
+    """, (month,)).fetchone()
+
+    by_platform = db.conn.execute("""
+        SELECT l.selling_platform, COUNT(*) as count,
+               ROUND(SUM(s.net_profit)) as profit,
+               ROUND(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100), 1) as avg_rate
+        FROM sales s JOIN listings l ON s.listing_id = l.id
+        WHERE strftime('%Y-%m', s.sale_date) = ?
+        GROUP BY l.selling_platform ORDER BY profit DESC
+    """, (month,)).fetchall()
+
+    best = db.conn.execute("""
+        SELECT p.product_name, p.platform as buy_platform,
+               l.selling_platform, ROUND(s.net_profit) as net_profit,
+               ROUND(s.net_profit / NULLIF(s.sale_price, 0) * 100, 1) as profit_rate
+        FROM sales s JOIN listings l ON s.listing_id = l.id
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE strftime('%Y-%m', s.sale_date) = ?
+        ORDER BY s.net_profit DESC LIMIT 5
+    """, (month,)).fetchall()
+
+    goal_row = db.conn.execute(
+        "SELECT value FROM settings WHERE key = ?", (f"goal_{month}",)
+    ).fetchone()
+    goal = float(goal_row['value']) if goal_row else 0
+
+    growth = 0.0
+    if prev['total_profit'] and prev['total_profit'] > 0:
+        growth = round((summary['total_profit'] - prev['total_profit']) / prev['total_profit'] * 100, 1)
+
+    return {
+        'month': month,
+        'summary': {
+            'sale_count': summary['sale_count'],
+            'total_profit': round(summary['total_profit']),
+            'avg_profit': round(summary['avg_profit']),
+            'avg_rate': round(summary['avg_rate'], 1),
+            'total_revenue': round(summary['total_revenue']),
+        },
+        'prev_month': {
+            'month': prev_month,
+            'sale_count': prev['sale_count'],
+            'total_profit': round(prev['total_profit']),
+        },
+        'purchases': {'count': purchases['count'], 'invested': round(purchases['invested'])},
+        'goal': goal,
+        'goal_achievement': round(summary['total_profit'] / goal * 100, 1) if goal > 0 else None,
+        'profit_growth': growth,
+        'by_platform': [dict(r) for r in by_platform],
+        'best_products': [dict(r) for r in best],
+    }
+
+
+@app.post("/api/reports/monthly/line")
+def send_monthly_report_line(month: Optional[str] = None):
+    """月次レポートをLINEに送信"""
+    from datetime import datetime
+    if not month:
+        month = datetime.today().strftime('%Y-%m')
+
+    settings = db.get_settings()
+    token = settings.get('line_token', '')
+    if not token:
+        raise HTTPException(400, 'LINE tokenが設定されていません')
+
+    r = get_monthly_report(month)
+    s = r['summary']
+
+    msg = f'\n📋 {month} 月次レポート\n\n'
+    msg += f'販売件数: {s["sale_count"]}件\n総利益: ¥{s["total_profit"]:,}\n平均利益率: {s["avg_rate"]}%\n'
+    if r['goal'] > 0:
+        msg += f'\n目標達成率: {r["goal_achievement"]}%\n'
+    if r['profit_growth']:
+        msg += f'前月比: {r["profit_growth"]:+.1f}%\n'
+    if r['best_products']:
+        msg += '\nベスト商品:\n'
+        for p in r['best_products'][:3]:
+            msg += f'・{p["product_name"]} ¥{int(p["net_profit"]):,}\n'
+
+    ok = _send_line(token, msg)
+    return {'ok': ok}
