@@ -8,8 +8,8 @@ import { Search, ExternalLink, TrendingDown, TrendingUp, Minus, Camera, X, Refre
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-const card: React.CSSProperties = { background: "rgba(0,14,5,0.9)", border: "1px solid rgba(0,255,80,0.15)", borderRadius: 14, padding: "20px 24px" };
-const inp: React.CSSProperties = { background: "rgba(0,12,4,0.95)", border: "1px solid rgba(0,255,80,0.3)", borderRadius: 8, color: "#e8f5eb", padding: "10px 14px", fontSize: 15, width: "100%", outline: "none" };
+const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
+const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "10px 14px", fontSize: 15, width: "100%", outline: "none" };
 
 type MarketResult = { source: string; name: string; price: number; url: string; image: string; condition: string };
 type Stats = { min: number; max: number; avg: number; count: number };
@@ -104,14 +104,14 @@ function SearchPageContent() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#e8f5eb", marginBottom: 6 }}>相場検索</h1>
-      <div style={{ fontSize: 12, color: "#4a8a5a", marginBottom: 20 }}>メルカリ・ラクマ・Yahoo!オークションの現在価格を一括取得します</div>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 6 }}>相場検索</h1>
+      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20 }}>メルカリ・ラクマ・Yahoo!オークションの現在価格を一括取得します</div>
 
       {/* 画像アップロード */}
       <div
         onDrop={handleDrop}
         onDragOver={e => e.preventDefault()}
-        style={{ marginBottom: 16, border: "1px dashed rgba(0,255,80,0.25)", borderRadius: 10, padding: "14px 16px", background: "rgba(0,12,4,0.7)", cursor: "pointer", position: "relative" }}
+        style={{ marginBottom: 16, border: "1px dashed rgba(212,175,55,0.25)", borderRadius: 10, padding: "14px 16px", background: "rgba(10,10,11,0.7)", cursor: "pointer", position: "relative" }}
         onClick={() => !imagePreview && fileRef.current?.click()}
       >
         <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0])} />
@@ -121,12 +121,12 @@ function SearchPageContent() {
             <div style={{ flex: 1 }}>
               {imgLoading && <div style={{ fontSize: 12, color: "#66ccff" }}>AI識別中...</div>}
               {imgError && <div style={{ fontSize: 12, color: "#ff6666" }}>{imgError}</div>}
-              {!imgLoading && !imgError && keyword && <div style={{ fontSize: 12, color: "#00ff80" }}>識別完了: {keyword}</div>}
+              {!imgLoading && !imgError && keyword && <div style={{ fontSize: 12, color: "#D4AF37" }}>識別完了: {keyword}</div>}
             </div>
-            <button onClick={e => { e.stopPropagation(); clearImage(); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#8ab89a", padding: 4 }}><X size={16} /></button>
+            <button onClick={e => { e.stopPropagation(); clearImage(); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#8A8278", padding: 4 }}><X size={16} /></button>
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#4a8a5a" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#8A8278" }}>
             <Camera size={18} />
             <span style={{ fontSize: 12 }}>商品画像をドロップ、またはクリックしてアップロード（AIが商品名を識別します）</span>
           </div>
@@ -136,10 +136,10 @@ function SearchPageContent() {
       {/* 検索バー */}
       <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
         <div style={{ position: "relative", flex: 1 }}>
-          <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#4a8a5a" }} />
+          <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#8A8278" }} />
           <input style={{ ...inp, paddingLeft: 38 }} value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={handleKeyDown} placeholder="例: Nintendo Switch、iPhone 15、エアジョーダン..." autoFocus />
         </div>
-        <button onClick={() => doSearch(keyword)} disabled={loading || !keyword} style={{ background: "linear-gradient(135deg,#004d1f,#006629)", border: "1px solid rgba(0,255,80,0.4)", borderRadius: 10, color: "#00ff80", padding: "10px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer", opacity: loading || !keyword ? 0.5 : 1, whiteSpace: "nowrap" }}>
+        <button onClick={() => doSearch(keyword)} disabled={loading || !keyword} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "10px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer", opacity: loading || !keyword ? 0.5 : 1, whiteSpace: "nowrap" }}>
           {loading ? "検索中..." : "検索"}
         </button>
       </div>
@@ -147,13 +147,13 @@ function SearchPageContent() {
       {stats && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 20 }}>
           {[
-            { label: "最安値", value: `¥${stats.min.toLocaleString()}`, color: "#00ff80" },
+            { label: "最安値", value: `¥${stats.min.toLocaleString()}`, color: "#D4AF37" },
             { label: "最高値", value: `¥${stats.max.toLocaleString()}`, color: "#ff9966" },
             { label: "平均価格", value: `¥${stats.avg.toLocaleString()}`, color: "#66ccff" },
-            { label: "取得件数", value: `${stats.count} 件`, color: "#e8f5eb" },
+            { label: "取得件数", value: `${stats.count} 件`, color: "#F5F0E8" },
           ].map(({ label, value, color }) => (
             <div key={label} style={card}>
-              <div style={{ fontSize: 11, color: "#8ab89a", marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>{label}</div>
               <div style={{ fontSize: 22, fontWeight: 900, color, fontFamily: "monospace" }}>{value}</div>
             </div>
           ))}
@@ -164,26 +164,26 @@ function SearchPageContent() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
           {/* 最大仕入れ価格の逆算 */}
           <div style={{ ...card }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#b8dcc4", marginBottom: 12 }}>🎯 最大仕入れ価格（相場から逆算）</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 12 }}>🎯 最大仕入れ価格（相場から逆算）</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 11, color: "#8ab89a", marginBottom: 4 }}>販売プラットフォーム</div>
+                <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>販売プラットフォーム</div>
                 <select style={{ ...inp, fontSize: 13, padding: "7px 10px" }} value={sellPlatform} onChange={e => setSellPlatform(e.target.value)}>
                   {SELL_PLATFORMS.map(p => <option key={p}>{p}</option>)}
                 </select>
               </div>
               <div>
-                <div style={{ fontSize: 11, color: "#8ab89a", marginBottom: 4 }}>目標利益率 (%)</div>
+                <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>目標利益率 (%)</div>
                 <input type="number" style={{ ...inp, fontSize: 13, padding: "7px 10px" }} value={targetRate} onChange={e => setTargetRate(e.target.value)} />
               </div>
             </div>
-            <button onClick={calcMax} style={{ width: "100%", background: "rgba(0,60,20,0.7)", border: "1px solid rgba(0,255,80,0.3)", borderRadius: 8, color: "#4ddc80", padding: "9px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+            <button onClick={calcMax} style={{ width: "100%", background: "rgba(0,60,20,0.7)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#9A7D25", padding: "9px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
               平均価格({`¥${stats.avg.toLocaleString()}`})で計算
             </button>
             {maxPrice !== null && (
               <div style={{ marginTop: 14, textAlign: "center" }}>
-                <div style={{ fontSize: 12, color: "#8ab89a", marginBottom: 4 }}>これより安く仕入れればOK</div>
-                <div style={{ fontSize: 36, fontWeight: 900, color: "#00ff80", fontFamily: "monospace" }}>¥{Math.floor(maxPrice).toLocaleString()}</div>
+                <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 4 }}>これより安く仕入れればOK</div>
+                <div style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>¥{Math.floor(maxPrice).toLocaleString()}</div>
               </div>
             )}
           </div>
@@ -191,28 +191,28 @@ function SearchPageContent() {
           {/* 価格履歴グラフ */}
           <div style={card}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#b8dcc4" }}>📈 価格履歴</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0" }}>📈 価格履歴</div>
               {priceChange !== null && (
                 <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-                  {priceChange > 0 ? <TrendingUp size={14} color="#ff6666" /> : priceChange < 0 ? <TrendingDown size={14} color="#00ff80" /> : <Minus size={14} color="#8ab89a" />}
-                  <span style={{ color: priceChange > 0 ? "#ff6666" : priceChange < 0 ? "#00ff80" : "#8ab89a", fontWeight: 700 }}>
+                  {priceChange > 0 ? <TrendingUp size={14} color="#ff6666" /> : priceChange < 0 ? <TrendingDown size={14} color="#D4AF37" /> : <Minus size={14} color="#8A8278" />}
+                  <span style={{ color: priceChange > 0 ? "#ff6666" : priceChange < 0 ? "#D4AF37" : "#8A8278", fontWeight: 700 }}>
                     {priceChange > 0 ? "+" : ""}{priceChange.toLocaleString()}円
                   </span>
                 </div>
               )}
             </div>
             {history.length === 0 ? (
-              <div style={{ color: "#4a8a5a", textAlign: "center", padding: 30, fontSize: 12 }}>
+              <div style={{ color: "#8A8278", textAlign: "center", padding: 30, fontSize: 12 }}>
                 検索するたびに価格が記録されます<br />履歴が溜まるとグラフが表示されます
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={160}>
                 <LineChart data={[...history].reverse()}>
-                  <XAxis dataKey="date" tick={{ fill: "#8ab89a", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#8ab89a", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `¥${(v/1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={{ background: "#060f08", border: "1px solid rgba(0,255,80,0.3)", borderRadius: 8, color: "#e8f5eb", fontSize: 12 }} formatter={(v) => [`¥${Number(v).toLocaleString()}`, "平均"]} />
-                  <Line type="monotone" dataKey="avg_price" stroke="#00ff80" strokeWidth={2} dot={{ fill: "#00ff80", r: 3 }} />
-                  <Line type="monotone" dataKey="min_price" stroke="#4ddc80" strokeWidth={1} strokeDasharray="3 3" dot={false} />
+                  <XAxis dataKey="date" tick={{ fill: "#8A8278", fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#8A8278", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `¥${(v/1000).toFixed(0)}k`} />
+                  <Tooltip contentStyle={{ background: "#0a0a0b", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", fontSize: 12 }} formatter={(v) => [`¥${Number(v).toLocaleString()}`, "平均"]} />
+                  <Line type="monotone" dataKey="avg_price" stroke="#D4AF37" strokeWidth={2} dot={{ fill: "#D4AF37", r: 3 }} />
+                  <Line type="monotone" dataKey="min_price" stroke="#9A7D25" strokeWidth={1} strokeDasharray="3 3" dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             )}
@@ -223,20 +223,20 @@ function SearchPageContent() {
       {/* 検索結果 */}
       {results.length > 0 && (
         <div style={card}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#b8dcc4", marginBottom: 14 }}>検索結果（安い順）</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 14 }}>検索結果（安い順）</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {results.map((r, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", background: i === 0 ? "rgba(0,255,80,0.05)" : "transparent", borderRadius: 8, border: i === 0 ? "1px solid rgba(0,255,80,0.15)" : "1px solid transparent" }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", background: i === 0 ? "rgba(212,175,55,0.05)" : "transparent", borderRadius: 8, border: i === 0 ? "1px solid rgba(212,175,55,0.15)" : "1px solid transparent" }}>
                 {r.image && <img src={r.image} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 6, flexShrink: 0 }} onError={e => (e.currentTarget.style.display = "none")} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: "#e8f5eb", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
-                  <div style={{ fontSize: 11, color: "#4a8a5a", marginTop: 2 }}>{r.source}{r.condition && ` · ${r.condition}`}</div>
+                  <div style={{ fontSize: 13, color: "#F5F0E8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
+                  <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>{r.source}{r.condition && ` · ${r.condition}`}</div>
                 </div>
-                <div style={{ fontFamily: "monospace", fontWeight: 800, fontSize: 16, color: i === 0 ? "#00ff80" : "#e8f5eb", flexShrink: 0 }}>
+                <div style={{ fontFamily: "monospace", fontWeight: 800, fontSize: 16, color: i === 0 ? "#D4AF37" : "#F5F0E8", flexShrink: 0 }}>
                   ¥{r.price.toLocaleString()}
                 </div>
                 {r.url && (
-                  <a href={r.url} target="_blank" rel="noreferrer" style={{ color: "#4a8a5a", flexShrink: 0 }}><ExternalLink size={14} /></a>
+                  <a href={r.url} target="_blank" rel="noreferrer" style={{ color: "#8A8278", flexShrink: 0 }}><ExternalLink size={14} /></a>
                 )}
               </div>
             ))}
@@ -245,7 +245,7 @@ function SearchPageContent() {
       )}
 
       {!loading && results.length === 0 && keyword && (
-        <div style={{ ...card, textAlign: "center", padding: 40, color: "#4a8a5a" }}>商品名を入力してEnterまたは検索ボタンを押してください</div>
+        <div style={{ ...card, textAlign: "center", padding: 40, color: "#8A8278" }}>商品名を入力してEnterまたは検索ボタンを押してください</div>
       )}
 
       {!keyword && (

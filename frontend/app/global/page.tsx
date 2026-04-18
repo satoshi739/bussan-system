@@ -25,17 +25,17 @@ type SearchResult = { keyword: string; buy_price: number | null; platforms: Plat
 // ─── スタイル ─────────────────────────────────────────────────
 
 const card: React.CSSProperties = {
-  background: "rgba(0,14,5,0.9)", border: "1px solid rgba(0,255,80,0.15)",
+  background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)",
   borderRadius: 14, padding: "20px 24px",
 };
 const inp: React.CSSProperties = {
-  background: "rgba(0,12,4,0.95)", border: "1px solid rgba(0,255,80,0.3)",
-  borderRadius: 8, color: "#e8f5eb", padding: "10px 14px",
+  background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)",
+  borderRadius: 8, color: "#F5F0E8", padding: "10px 14px",
   fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box",
 };
 
 const RATING_COLOR: Record<string, string> = {
-  excellent: "#00ff80", good: "#66ffaa", ok: "#ffcc44", marginal: "#ff9944", loss: "#ff4444",
+  excellent: "#D4AF37", good: "#F0D060", ok: "#ffcc44", marginal: "#ff9944", loss: "#ff4444",
 };
 const RATING_LABEL: Record<string, string> = {
   excellent: "優秀", good: "良い", ok: "まあまあ", marginal: "ギリギリ", loss: "赤字",
@@ -56,8 +56,8 @@ function fmtPrice(price: number, currency: string, decimals = 0) {
 function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; hasBuyPrice: boolean }) {
   const [open, setOpen] = useState(false);
   const profitColor = p.profit
-    ? (RATING_COLOR[p.profit.rating ?? (p.profit.is_profitable ? "ok" : "loss")] ?? "#e8f5eb")
-    : "#4a8a5a";
+    ? (RATING_COLOR[p.profit.rating ?? (p.profit.is_profitable ? "ok" : "loss")] ?? "#F5F0E8")
+    : "#8A8278";
 
   return (
     <>
@@ -66,13 +66,13 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
         onClick={() => p.items.length > 0 && setOpen(!open)}
         style={{
           cursor: p.items.length > 0 ? "pointer" : "default",
-          borderBottom: "1px solid rgba(0,255,80,0.07)",
-          background: open ? "rgba(0,255,80,0.03)" : "transparent",
+          borderBottom: "1px solid rgba(212,175,55,0.07)",
+          background: open ? "rgba(212,175,55,0.03)" : "transparent",
           transition: "background 0.12s",
         }}
       >
         {/* 順位 */}
-        <td style={{ padding: "14px 10px", textAlign: "center", fontWeight: 700, color: rank <= 3 && hasBuyPrice ? "#00ff80" : "#3a6a4a", width: 40 }}>
+        <td style={{ padding: "14px 10px", textAlign: "center", fontWeight: 700, color: rank <= 3 && hasBuyPrice ? "#D4AF37" : "#3a6a4a", width: 40 }}>
           {hasBuyPrice ? (rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank) : rank}
         </td>
 
@@ -81,8 +81,8 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 18 }}>{p.flag}</span>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#e8f5eb" }}>{p.name}</div>
-              <div style={{ fontSize: 11, color: "#4a8a5a" }}>{p.area} · {(p.fee_rate * 100).toFixed(1)}%手数料</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>{p.name}</div>
+              <div style={{ fontSize: 11, color: "#8A8278" }}>{p.area} · {(p.fee_rate * 100).toFixed(1)}%手数料</div>
             </div>
           </div>
         </td>
@@ -93,7 +93,7 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
             {fmtPrice(p.min_price_local, p.currency)}
           </div>
           {p.currency !== "JPY" && (
-            <div style={{ fontSize: 11, color: "#4a8a5a" }}>
+            <div style={{ fontSize: 11, color: "#8A8278" }}>
               ≈ ¥{Math.round(p.items.find(i => i.price_local === p.min_price_local)?.price_jpy ?? 0).toLocaleString()}
             </div>
           )}
@@ -101,13 +101,13 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
 
         {/* 平均価格 */}
         <td style={{ padding: "14px 10px", textAlign: "right" }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#e8f5eb" }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#F5F0E8" }}>
             {fmtPrice(p.avg_price_local, p.currency)}
           </div>
           {p.currency !== "JPY" && (
-            <div style={{ fontSize: 11, color: "#4a8a5a" }}>≈ ¥{p.avg_price_jpy.toLocaleString()}</div>
+            <div style={{ fontSize: 11, color: "#8A8278" }}>≈ ¥{p.avg_price_jpy.toLocaleString()}</div>
           )}
-          <div style={{ fontSize: 11, color: "#4a8a5a", marginTop: 2 }}>{p.item_count}件</div>
+          <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>{p.item_count}件</div>
         </td>
 
         {/* 最高値 */}
@@ -149,7 +149,7 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
       {/* 展開: 実際の商品リスト */}
       {open && (
         <tr>
-          <td colSpan={hasBuyPrice ? 7 : 6} style={{ padding: "0 10px 16px", background: "rgba(0,255,80,0.02)" }}>
+          <td colSpan={hasBuyPrice ? 7 : 6} style={{ padding: "0 10px 16px", background: "rgba(212,175,55,0.02)" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 10 }}>
               {p.items.map((item, idx) => (
                 <a
@@ -159,25 +159,25 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
                   rel="noopener noreferrer"
                   style={{
                     display: "flex", alignItems: "center", gap: 10,
-                    background: "rgba(0,12,4,0.7)", borderRadius: 8, padding: "8px 12px",
-                    textDecoration: "none", border: "1px solid rgba(0,255,80,0.08)",
+                    background: "rgba(10,10,11,0.7)", borderRadius: 8, padding: "8px 12px",
+                    textDecoration: "none", border: "1px solid rgba(212,175,55,0.08)",
                   }}
                 >
                   {item.image && (
                     <img src={item.image} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, color: "#e8f5eb", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: 13, color: "#F5F0E8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {item.name}
                     </div>
-                    {item.condition && <div style={{ fontSize: 11, color: "#4a8a5a" }}>{item.condition}</div>}
+                    {item.condition && <div style={{ fontSize: 11, color: "#8A8278" }}>{item.condition}</div>}
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 700, color: "#66aaff" }}>
                       {fmtPrice(item.price_local, p.currency)}
                     </div>
                     {p.currency !== "JPY" && (
-                      <div style={{ fontSize: 11, color: "#4a8a5a" }}>≈ ¥{Math.round(item.price_jpy).toLocaleString()}</div>
+                      <div style={{ fontSize: 11, color: "#8A8278" }}>≈ ¥{Math.round(item.price_jpy).toLocaleString()}</div>
                     )}
                   </div>
                   <ExternalLink size={12} color="#3a6a4a" style={{ flexShrink: 0 }} />
@@ -276,12 +276,12 @@ function GlobalPageContent() {
       {/* ヘッダー */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-          <Globe size={24} color="#00ff80" />
-          <h1 style={{ fontSize: 24, fontWeight: 900, color: "#e8f5eb", margin: 0 }}>
+          <Globe size={24} color="#D4AF37" />
+          <h1 style={{ fontSize: 24, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>
             全プラットフォーム相場比較
           </h1>
         </div>
-        <p style={{ fontSize: 13, color: "#4a8a5a", margin: 0 }}>
+        <p style={{ fontSize: 13, color: "#8A8278", margin: 0 }}>
           商品名を入れると、日本・海外の全プラットフォームで「今いくらで売れるか」を一発で比較
         </p>
       </div>
@@ -290,8 +290,8 @@ function GlobalPageContent() {
       <div style={{ ...card, marginBottom: 24 }}>
         {/* 画像アップロードエリア */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, color: "#4a8a5a", fontWeight: 600, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-            <Camera size={13} color="#4a8a5a" />
+          <div style={{ fontSize: 12, color: "#8A8278", fontWeight: 600, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+            <Camera size={13} color="#8A8278" />
             写真から商品を識別（AI自動認識）
             <span style={{ fontWeight: 400, color: "#3a6a4a" }}>— 商品の写真をアップロードすると自動で検索します</span>
           </div>
@@ -299,7 +299,7 @@ function GlobalPageContent() {
           {imagePreview ? (
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
               <div style={{ position: "relative", flexShrink: 0 }}>
-                <img src={imagePreview} alt="アップロード画像" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 10, border: "1px solid rgba(0,255,80,0.25)" }} />
+                <img src={imagePreview} alt="アップロード画像" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 10, border: "1px solid rgba(212,175,55,0.25)" }} />
                 <button onClick={clearImage} style={{ position: "absolute", top: -6, right: -6, background: "rgba(255,80,80,0.9)", border: "none", borderRadius: "50%", width: 18, height: 18, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
                   <X size={10} color="white" />
                 </button>
@@ -313,7 +313,7 @@ function GlobalPageContent() {
                 ) : imgError ? (
                   <div style={{ fontSize: 12, color: "#ff6644" }}>{imgError}</div>
                 ) : keyword ? (
-                  <div style={{ fontSize: 13, color: "#00ff80" }}>
+                  <div style={{ fontSize: 13, color: "#D4AF37" }}>
                     識別完了 → <span style={{ fontWeight: 700 }}>「{keyword}」</span>
                   </div>
                 ) : null}
@@ -325,9 +325,9 @@ function GlobalPageContent() {
               onDragOver={e => e.preventDefault()}
               onClick={() => fileRef.current?.click()}
               style={{
-                border: "2px dashed rgba(0,255,80,0.2)", borderRadius: 10,
+                border: "2px dashed rgba(212,175,55,0.2)", borderRadius: 10,
                 padding: "20px 16px", textAlign: "center", cursor: "pointer",
-                background: "rgba(0,255,80,0.02)", transition: "border-color 0.15s",
+                background: "rgba(212,175,55,0.02)", transition: "border-color 0.15s",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
               }}
             >
@@ -342,16 +342,16 @@ function GlobalPageContent() {
             onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} />
         </div>
 
-        <div style={{ borderTop: "1px solid rgba(0,255,80,0.08)", marginBottom: 16 }} />
+        <div style={{ borderTop: "1px solid rgba(212,175,55,0.08)", marginBottom: 16 }} />
 
         <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
           {/* キーワード */}
           <div style={{ flex: 2, minWidth: 220 }}>
-            <label style={{ fontSize: 12, color: "#4a8a5a", display: "block", marginBottom: 5, fontWeight: 600 }}>
+            <label style={{ fontSize: 12, color: "#8A8278", display: "block", marginBottom: 5, fontWeight: 600 }}>
               商品名・キーワード
             </label>
             <div style={{ position: "relative" }}>
-              <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#4a8a5a" }} />
+              <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#8A8278" }} />
               <input
                 ref={kwRef}
                 style={{ ...inp, paddingLeft: 36 }}
@@ -366,7 +366,7 @@ function GlobalPageContent() {
 
           {/* 仕入れ価格（任意） */}
           <div style={{ flex: 1, minWidth: 160 }}>
-            <label style={{ fontSize: 12, color: "#4a8a5a", display: "block", marginBottom: 5, fontWeight: 600 }}>
+            <label style={{ fontSize: 12, color: "#8A8278", display: "block", marginBottom: 5, fontWeight: 600 }}>
               仕入れ価格（円）<span style={{ color: "#3a5a4a", fontWeight: 400 }}>  任意</span>
             </label>
             <input
@@ -384,8 +384,8 @@ function GlobalPageContent() {
             onClick={() => doSearch()}
             disabled={loading || !keyword.trim()}
             style={{
-              background: loading ? "rgba(0,255,80,0.05)" : "linear-gradient(135deg,#004d1f,#006629)",
-              border: "1px solid rgba(0,255,80,0.4)", borderRadius: 10, color: "#00ff80",
+              background: loading ? "rgba(212,175,55,0.05)" : "linear-gradient(135deg,#1e1608,#2a1e08)",
+              border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37",
               padding: "10px 28px", fontWeight: 700, fontSize: 14, cursor: loading || !keyword.trim() ? "not-allowed" : "pointer",
               opacity: !keyword.trim() ? 0.5 : 1, whiteSpace: "nowrap",
               display: "flex", alignItems: "center", gap: 8, alignSelf: "flex-end",
@@ -398,7 +398,7 @@ function GlobalPageContent() {
         </div>
 
         {buyPrice && (
-          <div style={{ marginTop: 10, fontSize: 12, color: "#4a8a5a" }}>
+          <div style={{ marginTop: 10, fontSize: 12, color: "#8A8278" }}>
             ✦ 仕入れ価格 ¥{parseInt(buyPrice).toLocaleString()} を入力中 — 各プラットフォームでの利益も計算します
           </div>
         )}
@@ -413,9 +413,9 @@ function GlobalPageContent() {
       {/* 検索中プレースホルダー */}
       {loading && (
         <div style={{ ...card, textAlign: "center", padding: "48px 24px" }}>
-          <RefreshCw size={32} color="#00ff80" style={{ animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
-          <div style={{ color: "#e8f5eb", fontWeight: 700, fontSize: 16, marginBottom: 6 }}>全プラットフォームを検索中...</div>
-          <div style={{ color: "#4a8a5a", fontSize: 13 }}>
+          <RefreshCw size={32} color="#D4AF37" style={{ animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
+          <div style={{ color: "#F5F0E8", fontWeight: 700, fontSize: 16, marginBottom: 6 }}>全プラットフォームを検索中...</div>
+          <div style={{ color: "#8A8278", fontSize: 13 }}>
             メルカリ・ヤフオク・ラクマ・eBay・Shopee・Lazada を同時に検索しています
           </div>
         </div>
@@ -427,27 +427,27 @@ function GlobalPageContent() {
           {/* サマリーバナー */}
           <div style={{ display: "flex", gap: 14, marginBottom: 20, flexWrap: "wrap" }}>
             <div style={{ ...card, flex: 1, minWidth: 180, padding: "14px 20px" }}>
-              <div style={{ fontSize: 11, color: "#4a8a5a", marginBottom: 4 }}>検索キーワード</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#e8f5eb" }}>「{result.keyword}」</div>
+              <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>検索キーワード</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>「{result.keyword}」</div>
             </div>
             <div style={{ ...card, flex: 1, minWidth: 160, padding: "14px 20px" }}>
-              <div style={{ fontSize: 11, color: "#4a8a5a", marginBottom: 4 }}>データ取得プラットフォーム</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#00ff80" }}>{result.platforms.length} サイト</div>
+              <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>データ取得プラットフォーム</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#D4AF37" }}>{result.platforms.length} サイト</div>
             </div>
             {bestPlatform && (
-              <div style={{ ...card, flex: 2, minWidth: 260, padding: "14px 20px", borderColor: "rgba(0,255,80,0.4)" }}>
-                <div style={{ fontSize: 11, color: "#4a8a5a", marginBottom: 4 }}>
+              <div style={{ ...card, flex: 2, minWidth: 260, padding: "14px 20px", borderColor: "rgba(212,175,55,0.4)" }}>
+                <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>
                   {hasBuyPrice ? "🥇 最も利益が出るプラットフォーム" : "💰 最も高く売れるプラットフォーム"}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 24 }}>{bestPlatform.flag}</span>
                   <div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: "#00ff80" }}>{bestPlatform.name}</div>
-                    <div style={{ fontSize: 13, color: "#e8f5eb" }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: "#D4AF37" }}>{bestPlatform.name}</div>
+                    <div style={{ fontSize: 13, color: "#F5F0E8" }}>
                       平均 {fmtPrice(bestPlatform.avg_price_local, bestPlatform.currency)}
                       {bestPlatform.currency !== "JPY" && ` ≈ ¥${bestPlatform.avg_price_jpy.toLocaleString()}`}
                       {hasBuyPrice && bestPlatform.profit && (
-                        <span style={{ color: "#00ff80", fontWeight: 700, marginLeft: 10 }}>
+                        <span style={{ color: "#D4AF37", fontWeight: 700, marginLeft: 10 }}>
                           利益 +¥{bestPlatform.profit.net_profit_jpy.toLocaleString()} ({bestPlatform.profit.profit_rate}%)
                         </span>
                       )}
@@ -461,11 +461,11 @@ function GlobalPageContent() {
           {/* メイン: 全プラットフォーム一覧テーブル */}
           <div style={card}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-              <TrendingUp size={16} color="#00ff80" />
-              <span style={{ fontWeight: 700, color: "#e8f5eb", fontSize: 15 }}>
+              <TrendingUp size={16} color="#D4AF37" />
+              <span style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 15 }}>
                 {hasBuyPrice ? "利益ランキング" : "販売相場一覧"}
               </span>
-              <span style={{ fontSize: 12, color: "#4a8a5a" }}>
+              <span style={{ fontSize: 12, color: "#8A8278" }}>
                 {hasBuyPrice
                   ? `仕入れ ¥${parseInt(String(result.buy_price)).toLocaleString()} ベースで計算`
                   : "行をクリックで実際の商品を確認"}
@@ -475,14 +475,14 @@ function GlobalPageContent() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(0,255,80,0.2)" }}>
-                    <th style={{ padding: "8px 10px", color: "#4a8a5a", fontWeight: 600, textAlign: "center", width: 40 }}>#</th>
-                    <th style={{ padding: "8px 10px", color: "#4a8a5a", fontWeight: 600, textAlign: "left" }}>プラットフォーム</th>
-                    <th style={{ padding: "8px 10px", color: "#4a8a5a", fontWeight: 600, textAlign: "right" }}>最安値</th>
-                    <th style={{ padding: "8px 10px", color: "#4a8a5a", fontWeight: 600, textAlign: "right" }}>平均価格</th>
-                    <th style={{ padding: "8px 10px", color: "#4a8a5a", fontWeight: 600, textAlign: "right" }}>最高値</th>
+                  <tr style={{ borderBottom: "1px solid rgba(212,175,55,0.2)" }}>
+                    <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "center", width: 40 }}>#</th>
+                    <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "left" }}>プラットフォーム</th>
+                    <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "right" }}>最安値</th>
+                    <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "right" }}>平均価格</th>
+                    <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "right" }}>最高値</th>
                     {hasBuyPrice && (
-                      <th style={{ padding: "8px 10px", color: "#4a8a5a", fontWeight: 600, textAlign: "right" }}>利益（推定）</th>
+                      <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "right" }}>利益（推定）</th>
                     )}
                     <th style={{ width: 32 }} />
                   </tr>
@@ -508,7 +508,7 @@ function GlobalPageContent() {
       {!result && !loading && !error && (
         <div style={{ ...card, textAlign: "center", padding: "56px 24px", borderStyle: "dashed" }}>
           <Globe size={40} color="#1a4a2a" style={{ margin: "0 auto 16px" }} />
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#4a8a5a", marginBottom: 8 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#8A8278", marginBottom: 8 }}>
             商品名を入力して検索してください
           </div>
           <div style={{ fontSize: 13, color: "#3a5a4a", marginBottom: 20 }}>
@@ -521,8 +521,8 @@ function GlobalPageContent() {
                 key={kw}
                 onClick={() => { setKeyword(kw); doSearch(kw, buyPrice); }}
                 style={{
-                  background: "rgba(0,255,80,0.06)", border: "1px solid rgba(0,255,80,0.2)",
-                  borderRadius: 20, color: "#4a8a5a", padding: "6px 16px", fontSize: 13, cursor: "pointer",
+                  background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)",
+                  borderRadius: 20, color: "#8A8278", padding: "6px 16px", fontSize: 13, cursor: "pointer",
                 }}
               >
                 {kw}

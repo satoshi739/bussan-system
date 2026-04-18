@@ -37,10 +37,10 @@ export function ToastContainer() {
           key={t.id}
           style={{
             background: t.type === "success" ? "rgba(0,30,10,0.98)" : t.type === "error" ? "rgba(30,0,0,0.98)" : "rgba(0,10,30,0.98)",
-            border: `1px solid ${t.type === "success" ? "#00ff80" : t.type === "error" ? "#ff6666" : "#66ccff"}`,
+            border: `1px solid ${t.type === "success" ? "#D4AF37" : t.type === "error" ? "#ff6666" : "#66ccff"}`,
             borderRadius: 10,
             padding: "12px 18px",
-            color: t.type === "success" ? "#00ff80" : t.type === "error" ? "#ff6666" : "#66ccff",
+            color: t.type === "success" ? "#D4AF37" : t.type === "error" ? "#ff6666" : "#66ccff",
             fontWeight: 700,
             fontSize: 14,
             boxShadow: "0 4px 20px rgba(0,0,0,0.5)",

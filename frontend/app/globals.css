@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #060f08;
-  --surface: rgba(0, 14, 5, 0.9);
-  --border: rgba(0, 255, 80, 0.15);
-  --green: #00ff80;
-  --green-dim: #4ddc80;
-  --text: #e8f5eb;
-  --text-muted: #8ab89a;
+  --bg: #0a0a0b;
+  --surface: rgba(20, 20, 22, 0.97);
+  --border: rgba(212, 175, 55, 0.18);
+  --green: #D4AF37;
+  --green-dim: #9A7D25;
+  --text: #F5F0E8;
+  --text-muted: #8A8278;
 }
 
 html,
@@ -20,12 +20,10 @@ body {
 
 body {
   background-image:
-    linear-gradient(rgba(0, 255, 80, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 80, 0.02) 1px, transparent 1px),
-    radial-gradient(ellipse at 50% 0%, rgba(0, 150, 50, 0.06) 0%, transparent 55%);
-  background-size: 44px 44px, 44px 44px, 100% 100%;
+    radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.04) 0%, transparent 55%);
+  background-size: 100% 100%;
 }
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0, 255, 80, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.25); border-radius: 3px; }

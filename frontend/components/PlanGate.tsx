@@ -27,7 +27,7 @@ export default function PlanGate({ userPlan, requiredPlan, children, featureName
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
       <div style={{
-        background: "rgba(0,14,5,0.9)",
+        background: "rgba(20,20,22,0.9)",
         border: "1px solid rgba(255,180,0,0.25)",
         borderRadius: 18,
         padding: "48px 40px",
@@ -40,10 +40,10 @@ export default function PlanGate({ userPlan, requiredPlan, children, featureName
             <Lock size={28} color="#ffcc44" />
           </div>
         </div>
-        <div style={{ fontSize: 18, fontWeight: 800, color: "#e8f5eb", marginBottom: 10 }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8", marginBottom: 10 }}>
           {featureName ? `${featureName}は上位プランの機能です` : "上位プランが必要です"}
         </div>
-        <div style={{ fontSize: 14, color: "#8ab89a", lineHeight: 1.8, marginBottom: 28 }}>
+        <div style={{ fontSize: 14, color: "#8A8278", lineHeight: 1.8, marginBottom: 28 }}>
           この機能は <strong style={{ color: "#ffcc44" }}>{PLAN_LABELS[requiredPlan]}プラン</strong> 以上でご利用いただけます。
           <br />
           現在のプラン: {PLAN_LABELS[userPlan]}
@@ -52,10 +52,10 @@ export default function PlanGate({ userPlan, requiredPlan, children, featureName
           href="/pricing"
           style={{
             display: "inline-block",
-            background: "linear-gradient(135deg,#004d1f,#006629)",
-            border: "1px solid rgba(0,255,80,0.4)",
+            background: "linear-gradient(135deg,#1e1608,#2a1e08)",
+            border: "1px solid rgba(212,175,55,0.4)",
             borderRadius: 10,
-            color: "#00ff80",
+            color: "#D4AF37",
             padding: "12px 28px",
             fontSize: 14,
             fontWeight: 800,

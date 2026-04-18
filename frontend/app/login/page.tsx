@@ -33,8 +33,8 @@ export default function LoginPage() {
   };
 
   const card: React.CSSProperties = {
-    background: "rgba(0,14,5,0.95)",
-    border: "1px solid rgba(0,255,80,0.2)",
+    background: "rgba(20,20,22,0.95)",
+    border: "1px solid rgba(212,175,55,0.2)",
     borderRadius: 18,
     padding: "48px 44px",
     maxWidth: 420,
@@ -43,23 +43,23 @@ export default function LoginPage() {
 
   if (sent) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#060f08" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0a0a0b" }}>
         <div style={card}>
           <div style={{ textAlign: "center" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-              <div style={{ background: "rgba(0,255,80,0.08)", border: "1px solid rgba(0,255,80,0.25)", borderRadius: 16, padding: 18 }}>
-                <Mail size={32} color="#00ff80" />
+              <div style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 16, padding: 18 }}>
+                <Mail size={32} color="#D4AF37" />
               </div>
             </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: "#e8f5eb", marginBottom: 10 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#F5F0E8", marginBottom: 10 }}>
               メールを送信しました
             </div>
-            <div style={{ fontSize: 14, color: "#8ab89a", lineHeight: 1.8 }}>
-              <strong style={{ color: "#00ff80" }}>{email}</strong> へ<br />
+            <div style={{ fontSize: 14, color: "#8A8278", lineHeight: 1.8 }}>
+              <strong style={{ color: "#D4AF37" }}>{email}</strong> へ<br />
               ログインリンクを送りました。<br />
               メールのリンクをクリックしてください。
             </div>
-            <div style={{ marginTop: 24, fontSize: 12, color: "#4a8a5a" }}>
+            <div style={{ marginTop: 24, fontSize: 12, color: "#8A8278" }}>
               メールが届かない場合はスパムフォルダをご確認ください
             </div>
           </div>
@@ -69,20 +69,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#060f08" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0a0a0b" }}>
       <div style={card}>
         <div style={{ textAlign: "center", marginBottom: 36 }}>
-          <div style={{ fontSize: 28, fontWeight: 900, color: "#00ff80", fontFamily: "monospace", marginBottom: 8 }}>
+          <div style={{ fontSize: 28, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace", marginBottom: 8 }}>
             物販チェッカー
           </div>
-          <div style={{ fontSize: 14, color: "#8ab89a" }}>
+          <div style={{ fontSize: 14, color: "#8A8278" }}>
             メールアドレスでサインイン
           </div>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 13, color: "#8ab89a", marginBottom: 8, fontWeight: 600 }}>
+            <label style={{ display: "block", fontSize: 13, color: "#8A8278", marginBottom: 8, fontWeight: 600 }}>
               メールアドレス
             </label>
             <input
@@ -93,10 +93,10 @@ export default function LoginPage() {
               required
               style={{
                 width: "100%",
-                background: "rgba(0,12,4,0.9)",
-                border: "1px solid rgba(0,255,80,0.25)",
+                background: "rgba(10,10,11,0.9)",
+                border: "1px solid rgba(212,175,55,0.25)",
                 borderRadius: 10,
-                color: "#e8f5eb",
+                color: "#F5F0E8",
                 padding: "12px 16px",
                 fontSize: 14,
                 outline: "none",
@@ -116,10 +116,10 @@ export default function LoginPage() {
             disabled={isPending || !email}
             style={{
               width: "100%",
-              background: "linear-gradient(135deg,#004d1f,#006629)",
-              border: "1px solid rgba(0,255,80,0.4)",
+              background: "linear-gradient(135deg,#1e1608,#2a1e08)",
+              border: "1px solid rgba(212,175,55,0.4)",
               borderRadius: 10,
-              color: "#00ff80",
+              color: "#D4AF37",
               padding: "13px",
               fontSize: 15,
               fontWeight: 700,
@@ -136,8 +136,8 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(0,255,80,0.1)", textAlign: "center" }}>
-          <a href="/pricing" style={{ fontSize: 13, color: "#4a8a5a", textDecoration: "none" }}>
+        <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(212,175,55,0.1)", textAlign: "center" }}>
+          <a href="/pricing" style={{ fontSize: 13, color: "#8A8278", textDecoration: "none" }}>
             プランを確認する →
           </a>
         </div>
