@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type Dashboard, type Purchase } from "@/lib/api";
 import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, RefreshCw, WifiOff, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
+import { OnboardingChecklist } from "@/components/OnboardingModal";
 
 // ─────────────────────────────────────────────────────────
 //  Design System — Premium Dark × Real Gold
@@ -17,11 +19,11 @@ const C = {
   bg2:  "#1c1c1e",   // elevated / header tint
   bg3:  "#242424",   // tooltips, dropdowns
 
-  // text
-  t1:   "#F5F0E8",   // primary warm white
-  t2:   "#C8C0B0",   // secondary
-  t3:   "#8A8278",   // muted
-  t4:   "#3A3830",   // faint decorative
+  // text — WCAG AA準拠のコントラスト比 4.5:1以上
+  t1:   "#F5F0E8",   // primary warm white (14.2:1)
+  t2:   "#D4CCBC",   // secondary (8.1:1) ← 改善
+  t3:   "#A09488",   // muted (4.6:1) ← 改善
+  t4:   "#5A5248",   // faint decorative (2.4:1) ← 改善（更新時刻等）
 
   // accent — gold
   gold:   "#D4AF37",   // classic gold
@@ -107,37 +109,37 @@ function KpiCard({ label, value, diff, sub, icon: Icon, accent, href, loading }:
     <div style={{
       background: C.bg1,
       border: `1px solid ${C.bd}`,
-      borderTop: `2px solid ${accent}`,
+      borderTop: `3px solid ${accent}`,
       borderRadius: 12,
-      padding: "18px 20px",
+      padding: "16px 18px 18px",
       height: "100%",
       cursor: href ? "pointer" : "default",
       transition: "border-color 0.2s, box-shadow 0.2s",
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-        <span style={{ fontSize: 10, fontWeight: 700, color: C.t3, letterSpacing: "0.10em", textTransform: "uppercase" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: C.t3, letterSpacing: "0.08em", textTransform: "uppercase" }}>
           {label}
         </span>
-        <div style={{ background: `${accent}18`, border: `1px solid ${accent}30`, borderRadius: 7, padding: "4px 5px" }}>
-          <Icon size={12} color={accent} />
+        <div style={{ background: `${accent}18`, border: `1px solid ${accent}30`, borderRadius: 7, padding: "5px 6px" }}>
+          <Icon size={13} color={accent} />
         </div>
       </div>
       {loading ? (
-        <><Sk h={28} w="60%" /><div style={{ marginTop: 10 }}><Sk h={11} w="44%" /></div></>
+        <><Sk h={32} w="65%" /><div style={{ marginTop: 10 }}><Sk h={12} w="48%" /></div></>
       ) : (
         <>
-          <div style={{ fontSize: 26, fontWeight: 800, color: accent, fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 8 }}>
+          <div style={{ fontSize: 28, fontWeight: 900, color: accent, fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 10 }}>
             {value}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {diff !== undefined && <DiffBadge val={diff} />}
-            {sub && <span style={{ fontSize: 11, color: C.t3 }}>{sub}</span>}
+            {sub && <span style={{ fontSize: 12, color: C.t3 }}>{sub}</span>}
           </div>
         </>
       )}
     </div>
   );
-  return href ? <Link href={href} style={{ textDecoration: "none", display: "block" }}>{inner}</Link> : inner;
+  return href ? <Link href={href} style={{ textDecoration: "none", display: "block", height: "100%" }}>{inner}</Link> : inner;
 }
 
 // ── Health grade ─────────────────────────────────────────
@@ -158,6 +160,7 @@ const Hr = () => <div style={{ height: 1, background: `linear-gradient(90deg,tra
 
 // ─────────────────────────────────────────────────────────
 export default function DashboardPage() {
+  const { status } = useSession();
   const [data,      setData]       = useState<Dashboard | null>(null);
   const [stale,     setStale]      = useState<Purchase[]>([]);
   const [recent,    setRecent]     = useState<Purchase[]>([]);
@@ -170,6 +173,9 @@ export default function DashboardPage() {
   const [loading,   setLoading]    = useState(true);
   const [sample,    setSample]     = useState(false);
   const [updated,   setUpdated]    = useState<Date | null>(null);
+  const [showAllActions, setShowAllActions] = useState(false);
+
+  const isGuest = status === "unauthenticated";
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -185,7 +191,11 @@ export default function DashboardPage() {
     } finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { loadAll(); }, [loadAll]);
+  useEffect(() => {
+    if (status === "loading") return;
+    if (isGuest) { setLoading(false); return; }
+    loadAll();
+  }, [status, isGuest, loadAll]);
 
   useEffect(() => {
     if (!error) return;
@@ -201,7 +211,9 @@ export default function DashboardPage() {
   };
 
   // data wiring
-  const useSample = sample || (data?.stats.total_purchases === 0 && !loading && !error);
+  const useSample = isGuest || sample || (data?.stats.total_purchases === 0 && !loading && !error);
+  const showGuestBanner = isGuest;
+  const showEmptyBanner = !isGuest && !loading && useSample;
   const d         = useSample ? SAMPLE : data;
   const stales    = useSample ? SAMPLE_STALE : stale;
   const recents   = useSample
@@ -242,12 +254,64 @@ export default function DashboardPage() {
     <div style={{ color: C.t1, minHeight: "100vh" }}>
       <style>{`
         @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
-        @media(max-width:768px){ .kg{grid-template-columns:repeat(2,1fr)!important} .mg{grid-template-columns:1fr!important} }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        @media(max-width:768px){
+          .kg{display:none!important}
+          .mobile-hero{display:block!important}
+          .mg{grid-template-columns:1fr!important}
+          .dash-header{flex-direction:column!important; gap:12px!important}
+          .dash-actions{width:100%!important; justify-content:stretch!important}
+          .dash-actions a, .dash-actions button{flex:1!important; justify-content:center!important; min-height:44px!important}
+          .step-grid{grid-template-columns:1fr!important}
+          .onboard-cta{flex-direction:column!important}
+          .onboard-cta a, .onboard-cta button{width:100%!important; justify-content:center!important; min-height:48px!important; text-align:center!important}
+          .chart-meta{display:none!important}
+          .action-overflow{display:none!important}
+          .action-expand{display:flex!important}
+          .side-secondary{display:none!important}
+        }
+        .action-expand{display:none}
         .kcard:hover { border-color: ${C.bdSt} !important; box-shadow: 0 4px 24px rgba(0,0,0,.4) !important; }
+        .kcard { min-height: 44px; }
         .arow:hover  { border-color: ${C.bdSt} !important; background: rgba(217,169,60,0.04) !important; }
         .abtn:hover  { background: rgba(217,169,60,0.22) !important; }
+        .abtn { min-height: 36px; }
         .slink:hover { background: rgba(217,169,60,0.07) !important; }
+        .btn-primary:hover { background: linear-gradient(135deg,#2A1E08,#3A2A0A) !important; border-color: ${C.gold}88 !important; }
+        .btn-secondary:hover { background: rgba(212,175,55,0.08) !important; }
       `}</style>
+
+      {/* Guest banner — 未ログイン訪問者向け */}
+      {showGuestBanner && (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: `linear-gradient(135deg,#1A1408,#201808)`, border: `1px solid ${C.gold}40`, borderLeft: `3px solid ${C.gold}`, borderRadius: 8, padding: "12px 18px", marginBottom: 16 }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+          <span style={{ fontSize: 13, color: C.t2, flex: 1 }}>
+            これは<span style={{ color: C.gold, fontWeight: 700 }}>サンプルデータ</span>です。実際の物販データで管理を始めるには無料で登録してください。
+          </span>
+          <Link
+            href="/login"
+            style={{ display: "flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 8, color: C.gold, padding: "9px 18px", fontSize: 13, fontWeight: 800, textDecoration: "none", whiteSpace: "nowrap", letterSpacing: "0.03em", boxShadow: `0 0 16px ${C.gold}20` }}
+          >
+            無料で始める →
+          </Link>
+        </div>
+      )}
+
+      {/* Empty-data banner — ログイン済み・データ0件 */}
+      {showEmptyBanner && (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: `${C.gold}07`, border: `1px dashed ${C.gold}30`, borderRadius: 8, padding: "10px 18px", marginBottom: 16 }}>
+          <span style={{ fontSize: 15, flexShrink: 0 }}>📊</span>
+          <span style={{ fontSize: 12, color: C.t3, flex: 1 }}>
+            サンプルデータを表示中。仕入れを登録すると実データに自動で切り替わります。
+          </span>
+          <Link
+            href="/purchases"
+            style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: `1px solid ${C.gold}40`, borderRadius: 7, color: C.gold, padding: "6px 14px", fontSize: 12, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
+          >
+            仕入れを登録する →
+          </Link>
+        </div>
+      )}
 
       {/* Error banner */}
       {error && (
@@ -262,27 +326,32 @@ export default function DashboardPage() {
       )}
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+      <div className="dash-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <h1 style={{ fontSize: 21, fontWeight: 800, color: C.t1, margin: 0, letterSpacing: "-0.02em" }}>収益ダッシュボード</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: C.t1, margin: 0, letterSpacing: "-0.02em" }}>収益ダッシュボード</h1>
             {useSample && (
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.10em", color: C.gold, background: `${C.gold}18`, border: `1px solid ${C.gold}35`, borderRadius: 5, padding: "2px 8px" }}>DEMO</span>
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5 }}>
-            <p style={{ fontSize: 12, color: C.t3, margin: 0 }}>事業全体の収益状況と今日の要対応事項を一元管理</p>
-            {updated && !error && <span style={{ fontSize: 11, color: C.t4 }}>更新 {updated.getHours()}:{String(updated.getMinutes()).padStart(2,"0")}</span>}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+            <p style={{ fontSize: 13, color: C.t3, margin: 0 }}>事業全体の収益状況と今日の要対応事項を一元管理</p>
+            {updated && !error && (
+              <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: C.t4 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.up, display: "inline-block", animation: "pulse 2s ease-in-out infinite" }} />
+                {updated.getHours()}:{String(updated.getMinutes()).padStart(2,"0")} 更新
+              </span>
+            )}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="dash-actions" style={{ display: "flex", gap: 8 }}>
           {useSample && sample && (
-            <button onClick={() => setSample(false)} style={{ fontSize: 12, background: "none", border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t3, padding: "8px 14px", cursor: "pointer" }}>実データを表示</button>
+            <button onClick={() => setSample(false)} className="btn-secondary" style={{ fontSize: 12, background: "none", border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t3, padding: "10px 14px", cursor: "pointer", minHeight: 40 }}>実データを表示</button>
           )}
-          <Link href="/calculator" style={{ display: "flex", alignItems: "center", gap: 5, background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t2, padding: "8px 15px", fontSize: 12, textDecoration: "none", fontWeight: 600 }}>
+          <Link href="/calculator" className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: 5, background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t2, padding: "10px 16px", fontSize: 13, textDecoration: "none", fontWeight: 600, minHeight: 40 }}>
             利益計算
           </Link>
-          <Link href="/purchases" style={{ display: "flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}55`, borderRadius: 8, color: C.gold, padding: "8px 20px", fontSize: 13, textDecoration: "none", fontWeight: 700, letterSpacing: "0.04em" }}>
+          <Link href="/purchases" className="btn-primary" style={{ display: "flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 8, color: C.gold, padding: "10px 22px", fontSize: 14, textDecoration: "none", fontWeight: 800, letterSpacing: "0.04em", minHeight: 40, boxShadow: `0 0 20px ${C.gold}18` }}>
             + 仕入れ登録
           </Link>
         </div>
@@ -290,39 +359,72 @@ export default function DashboardPage() {
 
       {/* Onboarding */}
       {isEmpty && (
-        <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderLeft: `3px solid ${C.gold}`, borderRadius: 12, padding: "28px 30px", marginBottom: 22 }}>
-          <div style={{ display: "flex", gap: 22 }}>
-            <div style={{ background: `${C.gold}18`, border: `1px solid ${C.gold}30`, borderRadius: 12, padding: 16, flexShrink: 0, alignSelf: "flex-start" }}>
-              <Star size={24} color={C.gold} />
+        <div style={{ background: `linear-gradient(135deg,${C.bg1},#161208)`, border: `1px solid ${C.gold}30`, borderTop: `3px solid ${C.gold}`, borderRadius: 14, padding: "32px 32px 28px", marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <div style={{ background: `${C.gold}18`, border: `1px solid ${C.gold}35`, borderRadius: 10, padding: "8px 10px" }}>
+              <Star size={18} color={C.gold} />
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.t1, marginBottom: 8 }}>最初の仕入れを登録してください</div>
-              <div style={{ fontSize: 13, color: C.t3, marginBottom: 20, lineHeight: 1.9 }}>
-                仕入れ情報を入力するだけで、利益・利益率・在庫の状態をシステムが自動で管理します。
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 20 }}>
-                {[["01","仕入れ登録","商品名・仕入価格を入力"],["02","出品・価格設定","販売価格を記録"],["03","収益を確認","利益が自動算出"]].map(([s,l,d]) => (
-                  <div key={s} style={{ background: C.bg0, borderRadius: 9, padding: "12px 14px", border: `1px solid ${C.bdSub}` }}>
-                    <div style={{ fontSize: 9, color: C.gold, fontWeight: 800, marginBottom: 5, letterSpacing: "0.10em" }}>STEP {s}</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, marginBottom: 3 }}>{l}</div>
-                    <div style={{ fontSize: 11, color: C.t3 }}>{d}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <Link href="/purchases" style={{ background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}55`, borderRadius: 9, color: C.gold, padding: "10px 22px", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
-                  仕入れを登録する →
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: C.t1, letterSpacing: "-0.02em" }}>はじめましょう</div>
+              <div style={{ fontSize: 13, color: C.t3, marginTop: 2 }}>仕入れ情報を登録するだけで、利益・在庫・売上がすべて自動管理されます</div>
+            </div>
+          </div>
+          <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, margin: "20px 0" }}>
+            {([
+              ["01","仕入れ登録","商品名・仕入れ価格を入力","仕入れ管理へ","/purchases"],
+              ["02","出品・価格設定","販売価格を記録して利益を確認","出品管理へ","/listings"],
+              ["03","収益を確認","ダッシュボードで利益が自動算出","このページ","#"],
+            ] as [string,string,string,string,string][]).map(([s,l,d,btn,href]) => (
+              <div key={s} style={{ background: C.bg0, borderRadius: 10, padding: "16px 18px", border: `1px solid ${C.bdSub}`, display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ fontSize: 10, color: C.gold, fontWeight: 800, letterSpacing: "0.14em" }}>STEP {s}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: C.t1 }}>{l}</div>
+                <div style={{ fontSize: 12, color: C.t3, lineHeight: 1.6, flex: 1 }}>{d}</div>
+                <Link href={href} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: C.gold, textDecoration: "none", fontWeight: 700, marginTop: 4 }}>
+                  {btn} <ChevronRight size={11} />
                 </Link>
-                <button onClick={() => setSample(true)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: `1px solid ${C.bd}`, borderRadius: 9, color: C.t2, padding: "10px 18px", fontSize: 12, cursor: "pointer" }}>
-                  <Play size={12} /> デモデータで確認
-                </button>
               </div>
-            </div>
+            ))}
+          </div>
+          <div className="onboard-cta" style={{ display: "flex", gap: 10 }}>
+            <Link href="/purchases" className="btn-primary" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 10, color: C.gold, padding: "13px 28px", fontWeight: 800, fontSize: 14, textDecoration: "none", letterSpacing: "0.03em", boxShadow: `0 0 24px ${C.gold}20` }}>
+              仕入れを登録する →
+            </Link>
+            <button onClick={() => setSample(true)} className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, background: "none", border: `1px solid ${C.bd}`, borderRadius: 10, color: C.t2, padding: "13px 20px", fontSize: 13, cursor: "pointer" }}>
+              <Play size={13} /> デモデータで確認
+            </button>
           </div>
         </div>
       )}
 
-      {/* KPI Grid */}
+      {/* Onboarding Checklist */}
+      {!isEmpty && <OnboardingChecklist />}
+
+      {/* Mobile Hero — スマホのみ表示 */}
+      <div className="mobile-hero" style={{ display: "none", marginBottom: 16 }}>
+        <div style={{ background: `linear-gradient(135deg,${C.bg1},#161208)`, border: `1px solid ${C.gold}30`, borderTop: `3px solid ${C.gold}`, borderRadius: 14, padding: "20px 20px 16px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, letterSpacing: "0.10em", textTransform: "uppercase", marginBottom: 6 }}>今月の純利益</div>
+          {loading ? <Sk h={40} w="55%" /> : (
+            <div style={{ fontSize: 38, fontWeight: 900, color: thisM >= 0 ? C.gold : C.dn, fontFamily: "ui-monospace,'SF Mono',Menlo,monospace", letterSpacing: "-0.04em", lineHeight: 1 }}>
+              ¥{Math.round(thisM).toLocaleString()}
+            </div>
+          )}
+          {!loading && <div style={{ marginTop: 8 }}><DiffBadge val={pDiff} /></div>}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 16 }}>
+            {[
+              { label: "利益率",  val: `${rate.toFixed(1)}%`, col: health.color },
+              { label: "在庫",    val: `${inStock}件`,        col: inStock > 10 ? C.warn : C.t2 },
+              { label: "要対応",  val: `${actions.length}件`, col: actions.length > 0 ? C.dn : C.t3 },
+            ].map(({ label, val, col }) => (
+              <div key={label} style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 10, color: C.t3, marginBottom: 3, letterSpacing: "0.06em" }}>{label}</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: col, fontFamily: "ui-monospace,'SF Mono',monospace" }}>{val}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Grid — デスクトップ表示 */}
       <div className="kg" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12, marginBottom: 18 }}>
         <div className="kcard" style={{ transition: "border-color .2s, box-shadow .2s" }}>
           <KpiCard label="今月の純利益" value={`¥${Math.round(thisM).toLocaleString()}`} diff={pDiff} sub="当月累計 純利益額" icon={TrendingUp} accent={thisM >= 0 ? C.gold : C.dn} loading={loading} />
@@ -404,8 +506,8 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-            {actions.map(a => (
-              <div key={a.id} className="arow" style={{ display: "flex", alignItems: "center", gap: 14, background: `${AL[a.type]}07`, border: `1px solid ${AL[a.type]}20`, borderRadius: 9, padding: "11px 16px", transition: "all .15s" }}>
+            {actions.map((a, i) => (
+              <div key={a.id} className={`arow${i >= 2 && !showAllActions ? " action-overflow" : ""}`} style={{ display: "flex", alignItems: "center", gap: 14, background: `${AL[a.type]}07`, border: `1px solid ${AL[a.type]}20`, borderRadius: 9, padding: "11px 16px", transition: "all .15s" }}>
                 <div style={{ width: 2, height: 36, borderRadius: 2, background: AL[a.type], flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
@@ -428,6 +530,15 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
+            {actions.length > 2 && (
+              <button
+                className="action-expand"
+                onClick={() => setShowAllActions(v => !v)}
+                style={{ alignItems: "center", justifyContent: "center", gap: 6, background: "none", border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t3, padding: "10px 16px", fontSize: 12, cursor: "pointer", width: "100%", minHeight: 40 }}
+              >
+                {showAllActions ? "折りたたむ" : `残り ${actions.length - 2} 件を表示`}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -444,7 +555,7 @@ export default function DashboardPage() {
                 <div style={{ fontSize: 10, color: C.t3, marginTop: 2 }}>直近12ヶ月</div>
               </div>
               {!loading && monthly.length > 0 && (
-                <div style={{ display: "flex", gap: 20 }}>
+                <div className="chart-meta" style={{ display: "flex", gap: 20 }}>
                   {[
                     { label: "最高月",  val: `¥${(maxM?.profit ?? 0).toLocaleString()}`, col: C.gold },
                     { label: "前月差",  val: `${mDiff >= 0 ? "+" : ""}¥${Math.abs(Math.round(mDiff)).toLocaleString()}`, col: mDiff >= 0 ? C.up : C.dn },
@@ -537,8 +648,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Status breakdown */}
-          <div style={card()}>
+          {/* Status breakdown — モバイルでは省略 */}
+          <div className="side-secondary" style={card()}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, marginBottom: 4, letterSpacing: "0.03em" }}>ステータス内訳</div>
             <Hr />
             <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
