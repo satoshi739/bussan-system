@@ -67,20 +67,10 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
     }
   };
 
-  const handleUpgrade = async (priceId: string | null, planKey: string) => {
-    if (!priceId) return;
+  const handleUpgrade = (paymentLink: string | null, planKey: string) => {
+    if (!paymentLink) return;
     setUpgradeLoading(planKey);
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      const { url } = await res.json();
-      if (url) window.location.href = url;
-    } finally {
-      setUpgradeLoading(null);
-    }
+    window.location.href = paymentLink;
   };
 
   return (

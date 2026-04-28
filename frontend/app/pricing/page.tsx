@@ -22,24 +22,10 @@ const proCard: React.CSSProperties = {
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
 
-  const handleSubscribe = async (priceId: string | null, planKey: string) => {
-    if (!priceId) return;
+  const handleSubscribe = (paymentLink: string | null, planKey: string) => {
+    if (!paymentLink) return;
     setLoading(planKey);
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      if (res.status === 401) {
-        window.location.href = `/login?callbackUrl=/pricing`;
-        return;
-      }
-      const { url } = await res.json();
-      if (url) window.location.href = url;
-    } finally {
-      setLoading(null);
-    }
+    window.location.href = paymentLink;
   };
 
   return (
@@ -111,9 +97,14 @@ export default function PricingPage() {
               </div>
               <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.PRO.name}</span>
             </div>
-            <div style={{ marginBottom: 24 }}>
+            <div style={{ marginBottom: 8 }}>
               <span style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>¥{PLANS.PRO.price.toLocaleString()}</span>
               <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <span style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 20, padding: "2px 10px", fontWeight: 700, letterSpacing: "0.03em" }}>
+                🎁 7日間無料トライアル
+              </span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
               {PLANS.PRO.features.map((f) => (
@@ -138,7 +129,7 @@ export default function PricingPage() {
                 cursor: loading === "PRO" ? "not-allowed" : "pointer",
               }}
             >
-              {loading === "PRO" ? "処理中..." : "プロにアップグレード"}
+              {loading === "PRO" ? "処理中..." : "Standardプランを始める"}
             </button>
           </div>
 
@@ -150,9 +141,14 @@ export default function PricingPage() {
               </div>
               <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.BUSINESS.name}</span>
             </div>
-            <div style={{ marginBottom: 24 }}>
+            <div style={{ marginBottom: 8 }}>
               <span style={{ fontSize: 36, fontWeight: 900, color: "#66aaff", fontFamily: "monospace" }}>¥{PLANS.BUSINESS.price.toLocaleString()}</span>
               <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <span style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 20, padding: "2px 10px", fontWeight: 700, letterSpacing: "0.03em" }}>
+                🎁 7日間無料トライアル
+              </span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
               {PLANS.BUSINESS.features.map((f) => (
@@ -177,7 +173,7 @@ export default function PricingPage() {
                 cursor: loading === "BUSINESS" ? "not-allowed" : "pointer",
               }}
             >
-              {loading === "BUSINESS" ? "処理中..." : "ビジネスプランへ"}
+              {loading === "BUSINESS" ? "処理中..." : "Proプランを始める"}
             </button>
           </div>
         </div>

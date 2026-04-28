@@ -45,10 +45,10 @@ export const PLANS = {
     },
   },
   PRO: {
-    name: "プロ",
-    nameEn: "Pro",
-    price: 980,
-    priceId: process.env.STRIPE_PRO_PRICE_ID ?? null,
+    name: "Standard",
+    nameEn: "Standard",
+    price: 9800,
+    priceId: "https://buy.stripe.com/cNi5kC2XTbUUd4DdUfgjC00",
     features: [
       "仕入れ管理（無制限）",
       "利益計算",
@@ -68,12 +68,12 @@ export const PLANS = {
     },
   },
   BUSINESS: {
-    name: "ビジネス",
-    nameEn: "Business",
-    price: 2980,
-    priceId: process.env.STRIPE_BUSINESS_PRICE_ID ?? null,
+    name: "Pro",
+    nameEn: "Pro",
+    price: 19800,
+    priceId: "https://buy.stripe.com/dRmaEW2XTf762pZ5nJgjC01",
     features: [
-      "プロの全機能",
+      "Standardの全機能",
       "高度な分析レポート",
       "CSVエクスポート",
       "優先サポート",

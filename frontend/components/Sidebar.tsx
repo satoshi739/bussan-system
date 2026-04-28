@@ -9,7 +9,7 @@ import { T } from "@/lib/tokens";
 
 const GROUP_LABEL = "#6A6058";
 
-const PLAN_LABELS: Record<string, string> = { FREE: "フリー", PRO: "プロ", BUSINESS: "ビジネス" };
+const PLAN_LABELS: Record<string, string> = { FREE: "フリー", PRO: "Standard", BUSINESS: "Pro" };
 const PLAN_COLORS: Record<string, string> = { FREE: T.t3, PRO: T.gold, BUSINESS: T.goldLt };
 
 const navGroups = [
