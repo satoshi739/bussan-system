@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type Dashboard, type Purchase } from "@/lib/api";
-import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, RefreshCw, WifiOff, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star } from "lucide-react";
+import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, RefreshCw, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 import { OnboardingChecklist } from "@/components/OnboardingModal";
@@ -168,8 +168,6 @@ export default function DashboardPage() {
   const [editGoal,  setEditGoal]   = useState(false);
   const [goalInput, setGoalInput]  = useState("");
   const [error,     setError]      = useState(false);
-  const [retry,     setRetry]      = useState(0);
-  const [countdown, setCountdown]  = useState(5);
   const [loading,   setLoading]    = useState(true);
   const [sample,    setSample]     = useState(false);
   const [updated,   setUpdated]    = useState<Date | null>(null);
@@ -197,13 +195,6 @@ export default function DashboardPage() {
     loadAll();
   }, [status, isGuest, loadAll]);
 
-  useEffect(() => {
-    if (!error) return;
-    setCountdown(5);
-    const t = setInterval(() => setCountdown(c => { if (c <= 1) { loadAll(); setRetry(r => r + 1); return 5; } return c - 1; }), 1000);
-    return () => clearInterval(t);
-  }, [error, retry, loadAll]);
-
   const saveGoal = async () => {
     await setGoal(Number(goalInput));
     const g = await getGoal();
@@ -211,7 +202,7 @@ export default function DashboardPage() {
   };
 
   // data wiring
-  const useSample = isGuest || sample || (data?.stats.total_purchases === 0 && !loading && !error);
+  const useSample = isGuest || sample || error || (data?.stats.total_purchases === 0 && !loading);
   const showGuestBanner = isGuest;
   const showEmptyBanner = !isGuest && !loading && useSample;
   const d         = useSample ? SAMPLE : data;
@@ -313,17 +304,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Error banner */}
-      {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, background: `${C.dn}0D`, border: `1px solid ${C.dn}25`, borderRadius: 8, padding: "10px 18px", marginBottom: 16, fontSize: 12 }}>
-          <WifiOff size={13} color={C.dn} />
-          <span style={{ color: C.dn, fontWeight: 700 }}>API 未接続</span>
-          <span style={{ color: C.t3 }}>— {countdown} 秒後に自動再接続</span>
-          <button onClick={() => { setRetry(r => r + 1); loadAll(); }} style={{ marginLeft: "auto", background: "none", border: `1px solid ${C.dn}35`, borderRadius: 6, color: C.dn, padding: "4px 12px", cursor: "pointer", fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
-            <RefreshCw size={10} /> 再接続
-          </button>
-        </div>
-      )}
 
       {/* Header */}
       <div className="dash-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
