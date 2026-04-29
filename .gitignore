@@ -3,9 +3,12 @@
 
 # データベース（ローカルのデータはサーバーと分けて管理）
 data/bussan.db
+data/*.db-shm
+data/*.db-wal
 
 # Mac系のゴミファイル
 .DS_Store
 __pycache__/
 *.pyc
 *.pyo
+.vercel
