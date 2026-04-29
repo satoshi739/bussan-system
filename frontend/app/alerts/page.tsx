@@ -8,12 +8,13 @@ const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [checkedAt, setCheckedAt] = useState<string | null>(null);
 
   useEffect(() => {
     getPriceChangeAlerts(7, 5)
       .then(r => { setAlerts(r.alerts); setCheckedAt(r.checked_at); })
-      .catch(console.error)
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -26,6 +27,17 @@ export default function AlertsPage() {
 
       {loading ? (
         <div style={{ ...card, textAlign: "center", padding: 60, color: "#8A8278" }}>読み込み中...</div>
+      ) : error ? (
+        <div style={{ ...card, textAlign: "center", padding: 60 }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
+          <div style={{ color: "#ff9966", fontWeight: 700, marginBottom: 8 }}>サーバーに接続できませんでした</div>
+          <div style={{ color: "#8A8278", fontSize: 13, lineHeight: 1.8 }}>
+            バックエンドが起動中の可能性があります。<br />しばらくしてから再読み込みしてください。
+          </div>
+          <button onClick={() => window.location.reload()} style={{ marginTop: 16, background: "transparent", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#D4AF37", padding: "8px 20px", fontSize: 13, cursor: "pointer" }}>
+            再読み込み
+          </button>
+        </div>
       ) : alerts.length === 0 ? (
         <div style={{ ...card, textAlign: "center", padding: 60 }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🔔</div>
