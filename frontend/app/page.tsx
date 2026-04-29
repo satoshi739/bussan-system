@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type Dashboard, type Purchase } from "@/lib/api";
-import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, RefreshCw, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star } from "lucide-react";
+import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, RefreshCw, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Brain } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 import { OnboardingChecklist } from "@/components/OnboardingModal";
@@ -77,6 +77,12 @@ const SAMPLE: Dashboard = {
 const SAMPLE_STALE: Purchase[] = [
   { id: 1, product_name: "ゲームボーイソフト まとめ", platform: "ヤフオク", purchase_price: 3200, purchase_shipping: 0, purchase_date: "2026-03-28", status: "purchased", created_at: "2026-03-28T00:00:00Z" },
   { id: 2, product_name: "レゴ クラシック 10698",     platform: "メルカリ", purchase_price: 4800, purchase_shipping: 0, purchase_date: "2026-03-25", status: "purchased", created_at: "2026-03-25T00:00:00Z" },
+];
+
+const SAMPLE_PROFIT_CANDIDATES = [
+  { id: 1, name: "セイコー 5 SNXS79 自動巻き 中古", buy: 4200,  sell: 12800, profit: 7800, rate: 61, stars: 5 },
+  { id: 2, name: "ポケモンカード 旧裏面 まとめ 16枚", buy: 2800, sell: 6500,  profit: 3200, rate: 49, stars: 4 },
+  { id: 3, name: "レゴ テクニック 42083 中古",        buy: 8500, sell: 18900, profit: 9200, rate: 49, stars: 4 },
 ];
 
 // ── Skeleton ─────────────────────────────────────────────
@@ -157,6 +163,93 @@ const AL: Record<string, string> = { danger: C.dn, warning: C.warn, info: C.info
 
 // ── Rule divider ─────────────────────────────────────────
 const Hr = () => <div style={{ height: 1, background: `linear-gradient(90deg,transparent,${C.bd},transparent)`, margin: "14px 0" }} />;
+
+// ── Stars ─────────────────────────────────────────────────
+function Stars({ n }: { n: number }) {
+  return <span style={{ color: C.gold, fontSize: 14, letterSpacing: "0.08em" }}>{Array.from({ length: 5 }, (_, i) => i < n ? "★" : "☆").join("")}</span>;
+}
+
+// ── Profit Candidate Card ─────────────────────────────────
+function ProfitCandidateCard({ name, buy, sell, profit, rate, stars }: typeof SAMPLE_PROFIT_CANDIDATES[0]) {
+  return (
+    <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderTop: `3px solid ${C.gold}`, borderRadius: 12, padding: "16px 18px" }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, marginBottom: 14, lineHeight: 1.5, minHeight: 36 }}>{name}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {([
+          { label: "仕入れ",   val: `¥${buy.toLocaleString()}`,     col: C.t2      },
+          { label: "販売",     val: `¥${sell.toLocaleString()}`,    col: "#66aaff" },
+          { label: "想定利益", val: `+¥${profit.toLocaleString()}`, col: C.up      },
+          { label: "利益率",   val: `${rate}%`,                     col: C.gold    },
+        ] as { label: string; val: string; col: string }[]).map(({ label, val, col }) => (
+          <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 11, color: C.t3 }}>{label}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: col, fontFamily: "ui-monospace, 'SF Mono', monospace" }}>{val}</span>
+          </div>
+        ))}
+        <div style={{ borderTop: `1px solid ${C.bdSub}`, paddingTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 11, color: C.t3 }}>おすすめ度</span>
+          <Stars n={stars} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── AI CEO Hero ──────────────────────────────────────────
+function AICEOHero() {
+  return (
+    <div style={{
+      background: `linear-gradient(135deg, #0c0a04, #1c1408, #0c0a04)`,
+      border: `1px solid ${C.gold}55`,
+      borderTop: `3px solid ${C.gold}`,
+      borderRadius: 14,
+      padding: "22px 28px",
+      marginBottom: 16,
+      display: "flex",
+      alignItems: "center",
+      gap: 20,
+      flexWrap: "wrap",
+      boxShadow: `0 0 40px ${C.gold}10`,
+    }}>
+      <div style={{
+        background: `${C.gold}20`,
+        border: `1px solid ${C.gold}40`,
+        borderRadius: 12,
+        padding: "14px 16px",
+        flexShrink: 0,
+      }}>
+        <Brain size={32} color={C.gold} />
+      </div>
+      <div style={{ flex: 1, minWidth: 160 }}>
+        <div style={{ fontSize: 18, fontWeight: 900, color: C.t1, marginBottom: 6, letterSpacing: "-0.02em" }}>
+          AI CEO が仕入れ戦略を全自動で立案します
+        </div>
+        <div style={{ fontSize: 12, color: C.t3, lineHeight: 1.7 }}>
+          ゴールを入力するだけ。スキャン・分析・候補リストアップを自動実行。初心者でも即日スタート。
+        </div>
+      </div>
+      <Link href="/agents" style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        background: `linear-gradient(135deg, #1E1608, #2A1E08)`,
+        border: `1px solid ${C.gold}80`,
+        borderRadius: 10,
+        color: C.gold,
+        padding: "15px 32px",
+        fontSize: 15,
+        fontWeight: 800,
+        textDecoration: "none",
+        letterSpacing: "0.04em",
+        boxShadow: `0 0 28px ${C.gold}28`,
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+      }}>
+        <Brain size={16} /> AI CEO を起動する →
+      </Link>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────
 export default function DashboardPage() {
@@ -272,6 +365,9 @@ export default function DashboardPage() {
         .btn-secondary:hover { background: rgba(212,175,55,0.08) !important; }
       `}</style>
 
+      {/* AI CEO Hero — ゲスト・空データ時にトップ表示 */}
+      {useSample && <AICEOHero />}
+
       {/* Guest banner — 未ログイン訪問者向け */}
       {showGuestBanner && (
         <div style={{ display: "flex", alignItems: "center", gap: 12, background: `linear-gradient(135deg,#1A1408,#201808)`, border: `1px solid ${C.gold}40`, borderLeft: `3px solid ${C.gold}`, borderRadius: 8, padding: "12px 18px", marginBottom: 16 }}>
@@ -280,30 +376,155 @@ export default function DashboardPage() {
             これは<span style={{ color: C.gold, fontWeight: 700 }}>サンプルデータ</span>です。実際の物販データで管理を始めるには無料で登録してください。
           </span>
           <Link
-            href="/login"
+            href="/scanner"
             style={{ display: "flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 8, color: C.gold, padding: "9px 18px", fontSize: 13, fontWeight: 800, textDecoration: "none", whiteSpace: "nowrap", letterSpacing: "0.03em", boxShadow: `0 0 16px ${C.gold}20` }}
           >
-            無料で始める →
+            今すぐ利益を調べる →
           </Link>
         </div>
       )}
 
       {/* Empty-data banner — ログイン済み・データ0件 */}
       {showEmptyBanner && (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: `${C.gold}07`, border: `1px dashed ${C.gold}30`, borderRadius: 8, padding: "10px 18px", marginBottom: 16 }}>
-          <span style={{ fontSize: 15, flexShrink: 0 }}>📊</span>
-          <span style={{ fontSize: 12, color: C.t3, flex: 1 }}>
-            サンプルデータを表示中。仕入れを登録すると実データに自動で切り替わります。
-          </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: `linear-gradient(135deg, #0f0d05, #181408)`, border: `1px dashed ${C.gold}35`, borderRadius: 10, padding: "14px 20px", marginBottom: 16 }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>🚀</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, marginBottom: 2 }}>仕入れを登録すると、このダッシュボードに実データが反映されます</div>
+            <div style={{ fontSize: 11, color: C.t3 }}>今は月商¥98,400・利益率31.5%のサンプルを表示中。データを入れると自動で切り替わります。</div>
+          </div>
           <Link
             href="/purchases"
-            style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: `1px solid ${C.gold}40`, borderRadius: 7, color: C.gold, padding: "6px 14px", fontSize: 12, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
+            style={{ display: "flex", alignItems: "center", gap: 5, background: `linear-gradient(135deg, #1E1608, #2A1E08)`, border: `1px solid ${C.gold}60`, borderRadius: 8, color: C.gold, padding: "9px 18px", fontSize: 12, fontWeight: 800, textDecoration: "none", whiteSpace: "nowrap", boxShadow: `0 0 12px ${C.gold}15` }}
           >
             仕入れを登録する →
           </Link>
         </div>
       )}
 
+
+      {/* まずこれを試す + おすすめ仕入れTOP3 — ゲスト・空データ時 */}
+      {useSample && (
+        <div style={{ marginBottom: 24 }}>
+
+          {/* ── まずこれを試す ── */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>
+              まずこれを試す
+            </div>
+            <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              {([
+                {
+                  emoji: "🔍",
+                  label: "利益スキャナー",
+                  desc: "商品名を入れるだけ。仕入れ価格・利益率・需要を瞬時に判定。",
+                  cta: "今すぐ試す →",
+                  href: "/scanner",
+                  accent: C.gold,
+                },
+                {
+                  emoji: "🤖",
+                  label: "AI CEO に指示する",
+                  desc: "「利益率30%の商品を探して」と入力するだけで全自動スキャン開始。",
+                  cta: "起動する →",
+                  href: "/agents",
+                  accent: "#66aaff",
+                },
+                {
+                  emoji: "📦",
+                  label: "仕入れを登録する",
+                  desc: "商品・価格を記録するとダッシュボードに利益・在庫が自動反映。",
+                  cta: "登録する →",
+                  href: "/purchases",
+                  accent: C.up,
+                },
+              ] as { emoji: string; label: string; desc: string; cta: string; href: string; accent: string }[]).map(({ emoji, label, desc, cta, href, accent }) => (
+                <Link key={label} href={href} style={{ textDecoration: "none", display: "block" }}>
+                  <div style={{
+                    background: C.bg1,
+                    border: `1px solid ${C.bd}`,
+                    borderTop: `3px solid ${accent}`,
+                    borderRadius: 12,
+                    padding: "18px 18px 16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 7,
+                    transition: "border-color 0.2s, box-shadow 0.2s",
+                    height: "100%",
+                    cursor: "pointer",
+                  }}>
+                    <div style={{ fontSize: 26, lineHeight: 1 }}>{emoji}</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: C.t1 }}>{label}</div>
+                    <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.65, flex: 1 }}>{desc}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: accent, display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+                      {cta}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* ── 今日のおすすめ仕入れ TOP3 ── */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                <span style={{ fontSize: 18 }}>🔥</span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: C.t1, letterSpacing: "-0.01em" }}>今日のおすすめ仕入れ</span>
+                <span style={{
+                  background: `linear-gradient(135deg, ${C.gold}28, ${C.gold}14)`,
+                  border: `1px solid ${C.gold}45`,
+                  borderRadius: 6,
+                  padding: "2px 10px",
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: C.gold,
+                  letterSpacing: "0.06em",
+                }}>TOP 3</span>
+              </div>
+              <div style={{ fontSize: 11, color: C.t3 }}>利益率・想定利益・仕入れ判断をまとめて表示。初心者でも利益商品をすぐに判定できます</div>
+            </div>
+            <span style={{ fontSize: 10, color: C.t4, background: `${C.gold}12`, border: `1px solid ${C.gold}22`, borderRadius: 5, padding: "2px 8px", letterSpacing: "0.06em" }}>SAMPLE</span>
+          </div>
+          <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+            {SAMPLE_PROFIT_CANDIDATES.map((c, idx) => (
+              <div key={c.id} style={{ position: "relative" }}>
+                {idx === 0 && (
+                  <div style={{
+                    position: "absolute",
+                    top: -10,
+                    left: 14,
+                    background: `linear-gradient(135deg, ${C.gold}, ${C.goldLt})`,
+                    color: C.bg0,
+                    fontSize: 10,
+                    fontWeight: 900,
+                    padding: "2px 10px",
+                    borderRadius: 20,
+                    letterSpacing: "0.06em",
+                    zIndex: 1,
+                  }}>
+                    ★ NO.1
+                  </div>
+                )}
+                <ProfitCandidateCard {...c} />
+              </div>
+            ))}
+          </div>
+
+          {/* /pricing CTA — デモ閲覧後の導線 */}
+          <div style={{ marginTop: 16, background: `linear-gradient(135deg,#141208,#1A1608)`, border: `1px solid ${C.gold}35`, borderRadius: 12, padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: C.t1, marginBottom: 4 }}>気になる商品が見つかりましたか？</div>
+              <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.6 }}>Standardプラン（月額¥9,800）でリアルタイムスキャン・全商品の詳細分析が使えます。7日間無料トライアル付き。</div>
+            </div>
+            <Link
+              href="/pricing"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 9, color: C.gold, padding: "11px 22px", fontSize: 13, fontWeight: 800, textDecoration: "none", whiteSpace: "nowrap", letterSpacing: "0.03em", boxShadow: `0 0 16px ${C.gold}18`, flexShrink: 0 }}
+            >
+              料金プランを見る →
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="dash-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
@@ -331,8 +552,8 @@ export default function DashboardPage() {
           <Link href="/calculator" className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: 5, background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t2, padding: "10px 16px", fontSize: 13, textDecoration: "none", fontWeight: 600, minHeight: 40 }}>
             利益計算
           </Link>
-          <Link href="/purchases" className="btn-primary" style={{ display: "flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 8, color: C.gold, padding: "10px 22px", fontSize: 14, textDecoration: "none", fontWeight: 800, letterSpacing: "0.04em", minHeight: 40, boxShadow: `0 0 20px ${C.gold}18` }}>
-            + 仕入れ登録
+          <Link href="/scanner" className="btn-primary" style={{ display: "flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 8, color: C.gold, padding: "10px 22px", fontSize: 14, textDecoration: "none", fontWeight: 800, letterSpacing: "0.04em", minHeight: 40, boxShadow: `0 0 20px ${C.gold}18` }}>
+            今すぐ利益を調べる
           </Link>
         </div>
       </div>

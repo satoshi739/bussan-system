@@ -1,12 +1,24 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-async function req<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+async function req<T>(path: string, options?: RequestInit, timeoutMs = 5000): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      ...options,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// AI エージェント用（最大120秒）
+function agentReq<T>(path: string, options?: RequestInit): Promise<T> {
+  return req<T>(path, options, 120_000);
 }
 
 // Dashboard
@@ -24,8 +36,19 @@ export const createPurchase = (body: PurchaseCreate) =>
   req<{ id: number }>("/api/purchases", { method: "POST", body: JSON.stringify(body) });
 export const updatePurchaseStatus = (id: number, status: string) =>
   req("/api/purchases/" + id + "/status", { method: "PATCH", body: JSON.stringify({ status }) });
+export const updatePurchase = (id: number, body: Partial<Omit<Purchase, "id" | "status" | "created_at">>) =>
+  req("/api/purchases/" + id, { method: "PATCH", body: JSON.stringify(body) });
 export const deletePurchase = (id: number) =>
   req("/api/purchases/" + id, { method: "DELETE" });
+export const getProductNames = () => req<string[]>("/api/purchases/product-names");
+export const importPurchasesCSV = (file: File): Promise<{ imported: number; errors: string[]; parse_errors: string[] }> => {
+  const form = new FormData();
+  form.append("file", file);
+  return fetch(`${BASE}/api/purchases/import/csv`, { method: "POST", body: form }).then(r => {
+    if (!r.ok) throw new Error("インポートに失敗しました");
+    return r.json();
+  });
+};
 
 // Listings
 export const getListings = (status?: string) =>
@@ -36,7 +59,7 @@ export const createListing = (body: ListingCreate) =>
 // Sales
 export const getSales = () => req<Sale[]>("/api/sales");
 export const createSaleSImple = (body: SimpleSaleCreate) =>
-  req<{ net_profit: number }>("/api/sales/simple", { method: "POST", body: JSON.stringify(body) });
+  req<{ net_profit: number; monthly_profit: number }>("/api/sales/simple", { method: "POST", body: JSON.stringify(body) });
 
 // Calc
 export const calcProfit = (body: ProfitCalcRequest) =>
@@ -259,8 +282,547 @@ export const getSettings = () =>
 
 // LINE notify
 export const testLineNotify = (token: string) =>
-  req<{ ok: boolean }>("/api/notify/test", { method: "POST", body: JSON.stringify({ token }) });
+  req<{ ok: boolean; error?: string }>("/api/notify/test", { method: "POST", body: JSON.stringify({ token }) });
 export const notifyStale = () =>
-  req<{ ok: boolean; count?: number; msg?: string }>("/api/notify/stale", { method: "POST" });
+  req<{ ok: boolean; count?: number; msg?: string; error?: string }>("/api/notify/stale", { method: "POST" });
 export const notifyDaily = () =>
-  req<{ ok: boolean }>("/api/notify/daily", { method: "POST" });
+  req<{ ok: boolean; error?: string }>("/api/notify/daily", { method: "POST" });
+
+// Source sync (在庫連動・価格上昇監視)
+export interface SourceSyncSettings {
+  enabled: boolean;
+  interval_min: number;
+  price_rise_threshold_pct: number;
+  min_alert_delta_jpy: number;
+  active_only: boolean;
+  last_run: number;
+}
+
+export const getSourceSyncSettings = () =>
+  req<SourceSyncSettings>("/api/source-sync/settings");
+export const saveSourceSyncSettings = (body: {
+  enabled: boolean;
+  interval_min: number;
+  price_rise_threshold_pct: number;
+  min_alert_delta_jpy: number;
+  active_only: boolean;
+}) => req<{ ok: boolean }>("/api/source-sync/settings", { method: "POST", body: JSON.stringify(body) });
+export const runSourceSyncNow = () =>
+  req<{ ok: boolean; checked: number; sold_out_detected: number; price_rise_detected: number; checked_at: string }>("/api/source-sync/run", { method: "POST" });
+
+// ── 価格変動アラート ──────────────────────────────────────────────
+export interface PriceAlert {
+  keyword: string;
+  source: string;
+  old_avg: number;
+  recent_avg: number;
+  recent_min: number | null;
+  change_rate: number;
+  direction: "up" | "down";
+  recent_count: number;
+  in_watchlist: boolean;
+}
+
+export const getPriceChangeAlerts = (days?: number, threshold?: number) => {
+  const q = new URLSearchParams();
+  if (days) q.set("days", String(days));
+  if (threshold) q.set("threshold", String(threshold));
+  return req<{ alerts: PriceAlert[]; total: number; checked_at: string; period_days: number }>(`/api/alerts/price-changes?${q}`);
+};
+
+// ── 売れ筋トレンド ────────────────────────────────────────────────
+export interface SalesTrends {
+  monthly_by_platform: { month: string; selling_platform: string; count: number; total_profit: number; avg_profit: number }[];
+  trending_products: { product_name: string; sale_count: number; total_profit: number; avg_rate: number; last_sold: string }[];
+  monthly_totals: { month: string; count: number; profit: number }[];
+}
+
+export const getSalesTrends = (months?: number) =>
+  req<SalesTrends>(`/api/analytics/trends${months ? "?months=" + months : ""}`);
+
+// ── 競合セラー分析 ────────────────────────────────────────────────
+export interface CompetitionResult {
+  product_name: string;
+  selling_platform: string;
+  your_price: number;
+  market_avg: number;
+  market_min: number;
+  diff_pct: number;
+  status: "high" | "competitive" | "low";
+  market_items: number;
+  cost: number;
+}
+
+export const getCompetitionAnalysis = () =>
+  req<{ results: CompetitionResult[] }>("/api/analytics/competition");
+
+// ── AI リサーチアシスタント ──────────────────────────────────────
+export const aiResearch = (message: string, include_data = true) =>
+  req<{ ok: boolean; response: string }>("/api/ai/research", {
+    method: "POST",
+    body: JSON.stringify({ message, include_data }),
+  });
+
+// ── 月次レポート ──────────────────────────────────────────────────
+export interface MonthlyReport {
+  month: string;
+  summary: { sale_count: number; total_profit: number; avg_profit: number; avg_rate: number; total_revenue: number };
+  prev_month: { month: string; sale_count: number; total_profit: number };
+  purchases: { count: number; invested: number };
+  goal: number;
+  goal_achievement: number | null;
+  profit_growth: number;
+  by_platform: { selling_platform: string; count: number; profit: number; avg_rate: number }[];
+  best_products: { product_name: string; buy_platform: string; selling_platform: string; net_profit: number; profit_rate: number }[];
+}
+
+export const getMonthlyReport = (month?: string) =>
+  req<MonthlyReport>(`/api/reports/monthly${month ? "?month=" + encodeURIComponent(month) : ""}`);
+
+export const sendMonthlyReportLine = (month?: string) =>
+  req<{ ok: boolean }>("/api/reports/monthly/line", { method: "POST", body: JSON.stringify({ month }) });
+
+// ── 外注・発送管理 ────────────────────────────────────────────
+export interface Fulfillment {
+  id: number;
+  purchase_id: number;
+  worker_name?: string;
+  status: string;
+  tracking_number?: string;
+  shipping_company?: string;
+  pickup_date?: string;
+  pack_date?: string;
+  ship_date?: string;
+  notes?: string;
+  created_at: string;
+  product_name: string;
+  platform: string;
+  purchase_price: number;
+  purchase_shipping: number;
+  purchase_url?: string;
+  purchase_date: string;
+}
+
+export interface FulfillmentCreate {
+  purchase_id: number;
+  worker_name?: string;
+  status?: string;
+  tracking_number?: string;
+  shipping_company?: string;
+  pickup_date?: string;
+  pack_date?: string;
+  ship_date?: string;
+  notes?: string;
+}
+
+export interface FulfillmentUpdate {
+  worker_name?: string;
+  status?: string;
+  tracking_number?: string;
+  shipping_company?: string;
+  pickup_date?: string;
+  pack_date?: string;
+  ship_date?: string;
+  notes?: string;
+}
+
+export const getFulfillments = (status?: string) =>
+  req<Fulfillment[]>(`/api/fulfillment${status ? "?status=" + status : ""}`);
+export const createFulfillment = (body: FulfillmentCreate) =>
+  req<{ id: number }>("/api/fulfillment", { method: "POST", body: JSON.stringify(body) });
+export const updateFulfillment = (id: number, body: FulfillmentUpdate) =>
+  req("/api/fulfillment/" + id, { method: "PATCH", body: JSON.stringify(body) });
+export const deleteFulfillment = (id: number) =>
+  req("/api/fulfillment/" + id, { method: "DELETE" });
+
+// ── 発送代行業者 ──────────────────────────────────────────────
+export interface FulfillmentVendor {
+  id: number;
+  name: string;
+  vendor_type: string;
+  connection_type: "api" | "email" | "line" | "manual";
+  status: "active" | "inactive" | "testing";
+  api_key?: string;
+  api_endpoint?: string;
+  contact_email?: string;
+  line_token?: string;
+  base_fee: number;
+  per_item_fee: number;
+  supported_methods: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FulfillmentVendorCreate {
+  name: string;
+  vendor_type: string;
+  connection_type: string;
+  status?: string;
+  api_key?: string;
+  api_endpoint?: string;
+  contact_email?: string;
+  line_token?: string;
+  base_fee?: number;
+  per_item_fee?: number;
+  supported_methods?: string;
+  notes?: string;
+}
+
+export interface ShippingRequest {
+  vendor_id: number;
+  shipping_method: string;
+  shipping_cost: number;
+  vendor_fee: number;
+  recipient_name?: string;
+  recipient_zip?: string;
+  recipient_prefecture?: string;
+  recipient_address?: string;
+  recipient_phone?: string;
+  request_options?: string;
+  notes?: string;
+}
+
+export interface StatusLog {
+  id: number;
+  task_id: number;
+  from_status?: string;
+  to_status: string;
+  changed_by: string;
+  note?: string;
+  created_at: string;
+}
+
+export const getFulfillmentVendors = () =>
+  req<FulfillmentVendor[]>("/api/fulfillment/vendors");
+export const getFulfillmentVendor = (id: number) =>
+  req<FulfillmentVendor>("/api/fulfillment/vendors/" + id);
+export const createFulfillmentVendor = (body: FulfillmentVendorCreate) =>
+  req<{ id: number }>("/api/fulfillment/vendors", { method: "POST", body: JSON.stringify(body) });
+export const updateFulfillmentVendor = (id: number, body: Partial<FulfillmentVendorCreate & { status: string }>) =>
+  req("/api/fulfillment/vendors/" + id, { method: "PATCH", body: JSON.stringify(body) });
+export const deleteFulfillmentVendor = (id: number) =>
+  req("/api/fulfillment/vendors/" + id, { method: "DELETE" });
+export const testFulfillmentVendor = (id: number) =>
+  req<{ ok: boolean; message: string }>("/api/fulfillment/vendors/" + id + "/test", { method: "POST" });
+export const createShippingRequest = (taskId: number, body: ShippingRequest) =>
+  req<{ ok: boolean }>("/api/fulfillment/" + taskId + "/request", { method: "POST", body: JSON.stringify(body) });
+export const getStatusLogs = (taskId: number) =>
+  req<StatusLog[]>("/api/fulfillment/" + taskId + "/logs");
+
+// ── FBA 納品管理 ──────────────────────────────────────────────
+
+export interface FbaShipmentItem {
+  id: number;
+  shipment_id: number;
+  purchase_id?: number;
+  product_name: string;
+  asin?: string;
+  fnsku?: string;
+  sku?: string;
+  quantity: number;
+  box_number: number;
+  condition_type: string;
+  notes?: string;
+  created_at: string;
+}
+
+export interface FbaShipment {
+  id: number;
+  plan_name: string;
+  status: "draft" | "ready" | "sent" | "received";
+  destination: string;
+  box_count: number;
+  total_items: number;
+  notes?: string;
+  created_at: string;
+  sent_at?: string;
+  received_at?: string;
+  items: FbaShipmentItem[];
+}
+
+export interface FbaShipmentCreate {
+  plan_name: string;
+  status?: string;
+  destination?: string;
+  box_count?: number;
+  notes?: string;
+}
+
+export interface FbaShipmentItemCreate {
+  purchase_id?: number;
+  product_name: string;
+  asin?: string;
+  fnsku?: string;
+  sku?: string;
+  quantity: number;
+  box_number?: number;
+  condition_type?: string;
+  notes?: string;
+}
+
+export const getFbaShipments = () => req<FbaShipment[]>("/api/fba/shipments");
+export const getFbaShipment = (id: number) => req<FbaShipment>("/api/fba/shipments/" + id);
+export const createFbaShipment = (body: FbaShipmentCreate) =>
+  req<{ id: number }>("/api/fba/shipments", { method: "POST", body: JSON.stringify(body) });
+export const updateFbaShipment = (id: number, body: Partial<FbaShipmentCreate & { sent_at?: string; received_at?: string }>) =>
+  req("/api/fba/shipments/" + id, { method: "PATCH", body: JSON.stringify(body) });
+export const deleteFbaShipment = (id: number) =>
+  req("/api/fba/shipments/" + id, { method: "DELETE" });
+export const addFbaShipmentItem = (shipmentId: number, body: FbaShipmentItemCreate) =>
+  req<{ id: number; fnsku: string; sku: string }>("/api/fba/shipments/" + shipmentId + "/items", { method: "POST", body: JSON.stringify(body) });
+export const updateFbaShipmentItem = (itemId: number, body: Partial<FbaShipmentItemCreate>) =>
+  req("/api/fba/shipment-items/" + itemId, { method: "PATCH", body: JSON.stringify(body) });
+export const deleteFbaShipmentItem = (itemId: number) =>
+  req("/api/fba/shipment-items/" + itemId, { method: "DELETE" });
+
+// ── 在庫管理 ──────────────────────────────────────────────────
+
+export interface InventoryItem {
+  id: number;
+  product_name: string;
+  asin?: string;
+  sku?: string;
+  fnsku?: string;
+  quantity: number;
+  reserved_quantity: number;
+  daily_sales: number;
+  reorder_point: number;
+  location: string;
+  status: string;
+  unit_cost: number;
+  days_remaining?: number | null;
+  last_updated: string;
+  created_at: string;
+}
+
+export interface InventoryItemCreate {
+  product_name: string;
+  asin?: string;
+  sku?: string;
+  fnsku?: string;
+  quantity?: number;
+  reserved_quantity?: number;
+  daily_sales?: number;
+  reorder_point?: number;
+  location?: string;
+  status?: string;
+  unit_cost?: number;
+}
+
+export interface InventorySummary {
+  total_items: number;
+  low_stock_count: number;
+  out_of_stock_count: number;
+  total_inventory_value: number;
+}
+
+export const getInventory = (status?: string) =>
+  req<InventoryItem[]>(`/api/inventory${status ? "?status=" + status : ""}`);
+export const getInventorySummary = () => req<InventorySummary>("/api/inventory/summary");
+export const createInventoryItem = (body: InventoryItemCreate) =>
+  req<{ id: number }>("/api/inventory", { method: "POST", body: JSON.stringify(body) });
+export const updateInventoryItem = (id: number, body: Partial<InventoryItemCreate>) =>
+  req("/api/inventory/" + id, { method: "PATCH", body: JSON.stringify(body) });
+export const deleteInventoryItem = (id: number) =>
+  req("/api/inventory/" + id, { method: "DELETE" });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AI AGENT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export interface ApprovalQueueItem {
+  id: number;
+  product_name: string;
+  buy_price: number;
+  buy_url: string;
+  buy_source: string;
+  buy_image: string;
+  sell_platform: string;
+  est_sell_price: number;
+  net_profit_jpy: number;
+  profit_rate: number;
+  score: number;
+  ceo_reason: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+  approved_at?: string;
+  rejected_at?: string;
+  purchase_id?: number;
+}
+
+export interface AgentListing {
+  id: number;
+  purchase_id?: number;
+  approval_queue_id?: number;
+  sell_platform: string;
+  title: string;
+  description: string;
+  price: number;
+  price_currency: string;
+  tags: string[];
+  category_suggestion: string;
+  shipping_notes: string;
+  seo_keywords: string[];
+  status: string;
+  created_at: string;
+}
+
+export interface AgentSNSContent {
+  id: number;
+  purchase_id?: number;
+  approval_queue_id?: number;
+  post_type: string;
+  platform: string;
+  content: string;
+  hashtags: string[];
+  status: string;
+  created_at: string;
+}
+
+export interface AgentSession {
+  id: number;
+  goal: string;
+  budget_jpy?: number;
+  status: string;
+  scanned_count: number;
+  queued_count: number;
+  report: Record<string, unknown>;
+  created_at: string;
+  completed_at?: string;
+}
+
+// CEO エージェント（長時間リクエスト対応）
+export const runCEOAgent = (body: { goal: string; budget_jpy?: number; max_turns?: number }) =>
+  agentReq<{ session_id: number; status: string; queued_count: number; scanned_count: number; final_message: string }>(
+    "/api/agents/ceo/run",
+    { method: "POST", body: JSON.stringify(body) }
+  );
+export const getAgentSessions = () => req<AgentSession[]>("/api/agents/sessions");
+
+// 承認キュー
+export const getApprovalQueue = (status?: string) =>
+  req<{ items: ApprovalQueueItem[]; pending_count: number; total_investment_jpy: number; total_expected_profit_jpy: number }>(
+    `/api/agents/approval-queue${status ? "?status=" + status : ""}`
+  );
+export const approveQueueItem = (id: number) =>
+  req<{ ok: boolean; purchase_id: number; message: string }>(
+    `/api/agents/approval-queue/${id}/approve`,
+    { method: "POST" }
+  );
+export const rejectQueueItem = (id: number, reason = "") =>
+  req<{ ok: boolean }>(`/api/agents/approval-queue/${id}/reject`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+
+// 出品文
+export const generateListing = (body: {
+  approval_queue_id?: number;
+  purchase_id?: number;
+  product_name: string;
+  buy_price: number;
+  buy_source: string;
+  sell_platform: string;
+  est_sell_price: number;
+  condition?: string;
+  notes?: string;
+}) => agentReq<{ listing_id: number; listing: AgentListing }>("/api/agents/listing/generate", {
+  method: "POST",
+  body: JSON.stringify(body),
+});
+export const getAgentListings = (purchase_id?: number) =>
+  req<AgentListing[]>(`/api/agents/listings${purchase_id ? "?purchase_id=" + purchase_id : ""}`);
+export const publishAgentListing = (id: number) =>
+  req("/api/agents/listings/" + id + "/publish", { method: "POST" });
+
+// SNS コンテンツ
+export const generateSNSContent = (body: {
+  approval_queue_id?: number;
+  purchase_id?: number;
+  product_name: string;
+  buy_price: number;
+  sell_price: number;
+  profit_jpy: number;
+  buy_source: string;
+  sell_platform: string;
+  post_type?: string;
+  platforms?: string[];
+}) => agentReq<{ saved: { platform: string; id: number }[]; content: Record<string, unknown> }>("/api/agents/sns/generate", {
+  method: "POST",
+  body: JSON.stringify(body),
+});
+export const getAgentSNSContent = (purchase_id?: number) =>
+  req<AgentSNSContent[]>(`/api/agents/sns${purchase_id ? "?purchase_id=" + purchase_id : ""}`);
+export const publishSNSContent = (id: number) =>
+  req("/api/agents/sns/" + id + "/publish", { method: "POST" });
+export const recordSNSPerformance = (id: number, body: { platform: string; likes?: number; comments?: number; reach?: number; led_to_sale?: boolean }) =>
+  req("/api/agents/sns/" + id + "/performance", { method: "POST", body: JSON.stringify(body) });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// モニタリング
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export interface MonitorStatus {
+  running: boolean;
+  thread_alive: boolean;
+  scheduled_jobs: { job: string; next_run: string; interval: string }[];
+  current_time: string;
+}
+
+export const getMonitorStatus = () => req<MonitorStatus>("/api/monitor/status");
+export const runMonitorNow = (task: "daily_scan" | "stale_check" | "weekly_report") =>
+  agentReq<{ ok: boolean; task: string; executed_at: string }>(
+    "/api/monitor/run-now?task=" + task,
+    { method: "POST" }
+  );
+export const saveMonitorSettings = (body: {
+  daily_scan_time?: string;
+  stale_check_enabled?: boolean;
+  weekly_report_day?: string;
+  weekly_report_time?: string;
+}) => req("/api/monitor/settings", { method: "POST", body: JSON.stringify(body) });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Research Agent
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export interface SeasonalIntelligence {
+  current_month: number;
+  current_season: string;
+  hot_categories: string[];
+  strategy_note: string;
+  next_month_preview: { season: string; hot: string[] };
+}
+
+export const researchMarket = (keyword: string, task = "ebay_sold") =>
+  req<Record<string, unknown>>(`/api/agents/research/market?keyword=${encodeURIComponent(keyword)}&task=${task}`);
+export const getSeasonalIntelligence = () => req<SeasonalIntelligence>("/api/agents/research/seasonal");
+export const getOwnHistory = (days = 60) =>
+  req<Record<string, unknown>>(`/api/agents/research/history?days=${days}`);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// エージェント記憶
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export interface AgentMemoryItem {
+  id: number;
+  agent_name: string;
+  memory_type: string;
+  title: string;
+  content: string;
+  tags: string[];
+  importance: number;
+  access_count: number;
+  created_at: string;
+}
+
+export const getAgentMemory = (params?: { agent_name?: string; memory_type?: string; q?: string }) => {
+  const q = new URLSearchParams();
+  if (params?.agent_name) q.set("agent_name", params.agent_name);
+  if (params?.memory_type) q.set("memory_type", params.memory_type);
+  if (params?.q) q.set("q", params.q);
+  return req<AgentMemoryItem[]>(`/api/agents/memory?${q}`);
+};
+export const deleteMemory = (id: number) =>
+  req("/api/agents/memory/" + id, { method: "DELETE" });

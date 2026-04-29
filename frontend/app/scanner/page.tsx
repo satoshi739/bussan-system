@@ -1,8 +1,10 @@
 "use client";
 
 import RequirePlan from "@/components/RequirePlan";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, SlidersHorizontal, TrendingUp, ArrowUpDown, X, Sparkles, ChevronDown, ChevronUp, BarChart2, Activity } from "lucide-react";
+import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 
 // ── おすすめジャンル ────────────────────────────────────────────────
 const GENRES = [
@@ -44,12 +46,23 @@ const PLATFORMS = [
 ];
 
 const RATING = {
-  excellent: { label: "優秀",     color: "#D4AF37", bg: "rgba(212,175,55,0.12)" },
-  good:      { label: "良い",     color: "#F0D060", bg: "rgba(212,175,55,0.1)" },
-  ok:        { label: "まあまあ", color: "#ffcc44", bg: "rgba(255,204,68,0.1)" },
-  marginal:  { label: "ギリギリ", color: "#ff9944", bg: "rgba(255,153,68,0.1)" },
-  loss:      { label: "赤字",     color: "#ff4444", bg: "rgba(255,68,68,0.08)" },
+  excellent: { label: "おすすめ",        color: "#D4AF37", bg: "rgba(212,175,55,0.12)" },
+  good:      { label: "おすすめ",        color: "#F0D060", bg: "rgba(212,175,55,0.1)"  },
+  ok:        { label: "普通",            color: "#ffcc44", bg: "rgba(255,204,68,0.1)"  },
+  marginal:  { label: "やめた方がいい",  color: "#ff9944", bg: "rgba(255,153,68,0.1)" },
+  loss:      { label: "やめた方がいい",  color: "#ff4444", bg: "rgba(255,68,68,0.08)" },
 };
+
+const RATING_STARS: Record<string, number> = {
+  excellent: 5, good: 4, ok: 3, marginal: 2, loss: 1,
+};
+
+// サンプル表示用（スキャン前・未ログイン時）
+const SAMPLE_SCAN_ITEMS = [
+  { id: "s1", name: "セイコー 5 SNXS79 自動巻き 中古", buy: 4200,  sell: 12800, profit: 7800, rate: 61, rating: "excellent", source: "ヤフオク" },
+  { id: "s2", name: "ポケモンカード 旧裏面 まとめ",    buy: 2800,  sell: 6500,  profit: 3200, rate: 49, rating: "good",      source: "メルカリ" },
+  { id: "s3", name: "レゴ テクニック 42083 中古",      buy: 8500,  sell: 18900, profit: 9200, rate: 49, rating: "good",      source: "ヤフオク" },
+];
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const api = async <T,>(path: string, opts?: RequestInit): Promise<T> => {
@@ -64,6 +77,10 @@ type ScanKeyword = { keyword: string; target_sell_platform: string; max_buy_pric
 type ScanResult  = { name: string; buy_price: number; buy_url: string; buy_image: string; buy_source: string; condition: string; sell_platform: string; sell_platform_name: string; sell_platform_flag: string; sell_currency: string; est_sell_price_local: number; est_sell_price_jpy: number; net_profit_jpy: number; profit_rate: number; roi: number; intl_shipping_jpy: number; platform_fee_jpy: number; rating: string; score: number; scanned_at: string; scan_keyword?: string };
 type DemandData  = { demand_score: number; market_prices: Record<string, { avg: number; avg_local?: number; min: number; max: number; count: number; flag: string; currency: string }>; velocity: { level: string; label: string; weekly: string; color: string }; total_listings: number; avg_market_jpy: number };
 type DeepLink    = { label: string; flag: string; url: string; note: string; category: string; recommended: boolean; price_display: string };
+
+// 商品ごとの安定キー（フィルター後もindexがズレない）
+const itemKey = (item: ScanResult): string =>
+  item.buy_url ? item.buy_url : `${item.buy_source}::${item.buy_price}::${item.name}`;
 
 // ── スコアゲージコンポーネント ──
 function ScoreGauge({ score, color, profitRate, roi, netProfit, open, onToggle }: {
@@ -160,12 +177,51 @@ function ProfitBar({ rate, color }: { rate: number; color: string }) {
   );
 }
 
+// ── Stars ────────────────────────────────────────────────
+function ScanStars({ n }: { n: number }) {
+  return <span style={{ color: "#D4AF37", fontSize: 13, letterSpacing: "0.06em" }}>{Array.from({ length: 5 }, (_, i) => i < n ? "★" : "☆").join("")}</span>;
+}
+
+// ── Sample Result Card ───────────────────────────────────
+function SampleResultCard({ name, buy, sell, profit, rate, rating, source }: typeof SAMPLE_SCAN_ITEMS[0]) {
+  const rt = RATING[rating as keyof typeof RATING] ?? RATING.ok;
+  const stars = RATING_STARS[rating] ?? 3;
+  return (
+    <div style={{ background: "rgba(20,20,22,0.95)", border: `1px solid ${rt.color}30`, borderTop: `3px solid ${rt.color}`, borderRadius: 14, padding: "18px 20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <span style={{ fontSize: 10, background: rt.bg, border: `1px solid ${rt.color}44`, borderRadius: 10, padding: "2px 10px", color: rt.color, fontWeight: 800 }}>{rt.label}</span>
+        <span style={{ fontSize: 10, color: "#8A8278" }}>{source}</span>
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#F5F0E8", marginBottom: 14, lineHeight: 1.5 }}>{name}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {([
+          { label: "仕入れ",   val: `¥${buy.toLocaleString()}`,     col: "#c0dcd0" },
+          { label: "販売",     val: `¥${sell.toLocaleString()}`,    col: "#66aaff" },
+          { label: "想定利益", val: `+¥${profit.toLocaleString()}`, col: "#4ade80" },
+          { label: "利益率",   val: `${rate}%`,                     col: rt.color  },
+        ] as { label: string; val: string; col: string }[]).map(({ label, val, col }) => (
+          <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 11, color: "#8A8278" }}>{label}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: col, fontFamily: "monospace" }}>{val}</span>
+          </div>
+        ))}
+        <div style={{ borderTop: "1px solid rgba(212,175,55,0.08)", paddingTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 11, color: "#8A8278" }}>おすすめ度</span>
+          <ScanStars n={stars} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ScannerPageContent() {
   const [keywords, setKeywords]     = useState<ScanKeyword[]>([]);
   const [results, setResults]       = useState<ScanResult[]>([]);
   const [scanning, setScanning]     = useState(false);
+  const [scanningKw, setScanningKw] = useState<Set<string>>(new Set());
   const [scanMsg, setScanMsg]       = useState("");
-  const [loaded, setLoaded]         = useState(false);
+  const [quickKw, setQuickKw]       = useState("");
+  const [quickPlatform, setQuickPlatform] = useState("eBay");
 
   // キーワード追加フォーム
   const [showAdd, setShowAdd]       = useState(false);
@@ -179,27 +235,30 @@ function ScannerPageContent() {
   const [filterRating, setFilterRating] = useState<string>("all");
   const [filterSource, setFilterSource] = useState<string>("all");
 
-  // スコア内訳
-  const [openScore, setOpenScore]       = useState<number | null>(null);
+  // スコア内訳（文字列キーでフィルター後もズレない）
+  const [openScore, setOpenScore]       = useState<string | null>(null);
 
-  // 需要チェック
-  const [demandData, setDemandData]     = useState<Record<number, DemandData & { loading: boolean }>>({});
-  const [expandedDemand, setExpandedDemand] = useState<Set<number>>(new Set());
+  // 需要チェック（文字列キー）
+  const [demandData, setDemandData]     = useState<Record<string, DemandData & { loading: boolean }>>({});
+  const [expandedDemand, setExpandedDemand] = useState<Set<string>>(new Set());
 
-  // AI分析
-  const [aiAnalysis, setAiAnalysis]     = useState<Record<number, { verdict: string; analysis: string; loading: boolean }>>({});
-  const [expandedAi, setExpandedAi]     = useState<Set<number>>(new Set());
+  // AI分析（文字列キー）
+  const [aiAnalysis, setAiAnalysis]     = useState<Record<string, { verdict: string; analysis: string; loading: boolean }>>({});
+  const [expandedAi, setExpandedAi]     = useState<Set<string>>(new Set());
 
   // AI キーワード提案
   const [aiKwGenre, setAiKwGenre]       = useState("");
+  const [aiKwPlatform, setAiKwPlatform] = useState("eBay"); // AIキーワード提案のプラットフォーム
   const [aiKwLoading, setAiKwLoading]   = useState(false);
   const [aiKwSuggestions, setAiKwSuggestions] = useState<{ keyword: string; max_price: number; reason: string }[]>([]);
 
   // 出品モーダル
-  const [listingItem, setListingItem]   = useState<ScanResult | null>(null);
-  const [listingLinks, setListingLinks] = useState<Record<string, DeepLink>>({});
-  const [listingLoading, setListingLoading] = useState(false);
-  const [checked, setChecked]           = useState<Set<string>>(new Set());
+  const [listingItem, setListingItem]         = useState<ScanResult | null>(null);
+  const [listingLinks, setListingLinks]       = useState<Record<string, DeepLink>>({});
+  const [listingLoading, setListingLoading]   = useState(false);
+  const [listingConfirmed, setListingConfirmed] = useState(false);   // 仕入れ登録済みフラグ
+  const [listingRegistering, setListingRegistering] = useState(false); // 登録中フラグ
+  const [checked, setChecked]                 = useState<Set<string>>(new Set());
 
   const loadData = useCallback(async () => {
     const [kws, res] = await Promise.all([
@@ -208,22 +267,50 @@ function ScannerPageContent() {
     ]);
     setKeywords(kws);
     setResults(res.results || []);
-    setLoaded(true);
   }, []);
 
-  if (!loaded) { loadData(); }
+  const doQuickScan = async () => {
+    const kw = quickKw.trim();
+    if (!kw) return;
+    setQuickKw("");
+    await api("/api/scanner/keywords", { method: "POST", body: JSON.stringify({ keyword: kw, target_sell_platform: quickPlatform, max_buy_price: null, min_profit_rate: 20, memo: "" }) }).catch(() => {});
+    await loadData();
+    runScan(kw, quickPlatform);
+  };
+
+  // 初回ロード（useEffect内でのみ呼ぶ）
+  useEffect(() => { loadData(); }, [loadData]);
 
   const runScan = async (keyword?: string, platform?: string) => {
-    setScanning(true);
+    if (keyword) {
+      setScanningKw(p => new Set([...p, keyword]));
+    } else {
+      setScanning(true);
+    }
     setScanMsg(keyword ? `「${keyword}」をスキャン中...` : "全キーワードをスキャン中...");
     try {
       const p = new URLSearchParams();
       if (keyword) { p.set("keyword", keyword); p.set("platform", platform || "eBay"); }
       const r = await api<{ count: number; results: ScanResult[] }>(`/api/scanner/run?${p}`, { method: "POST" });
-      setResults(r.results);
+      if (keyword) {
+        // 個別スキャン: 同キーワードの古い結果だけ差し替え、他は維持
+        setResults(prev => [...prev.filter(item => item.scan_keyword !== keyword), ...r.results]);
+      } else {
+        setResults(r.results);
+      }
       setScanMsg(`完了 — ${r.count}件の利益候補を発見`);
-    } catch (e) { setScanMsg("スキャン失敗: " + String(e)); }
-    finally { setScanning(false); }
+    } catch (e) {
+      const msg = errMsg(e);
+      setScanMsg("スキャン失敗: " + msg);
+      toast(msg, "error");
+    }
+    finally {
+      if (keyword) {
+        setScanningKw(p => { const n = new Set(p); n.delete(keyword); return n; });
+      } else {
+        setScanning(false);
+      }
+    }
   };
 
   const addKeyword = async () => {
@@ -246,22 +333,24 @@ function ScannerPageContent() {
     runScan(g.keyword, g.platform);
   };
 
-  const runDemandCheck = async (item: ScanResult, idx: number) => {
-    setDemandData(p => ({ ...p, [idx]: { ...p[idx], loading: true } as DemandData & { loading: boolean } }));
-    setExpandedDemand(p => new Set([...p, idx]));
+  const runDemandCheck = async (item: ScanResult) => {
+    const key = itemKey(item);
+    setDemandData(p => ({ ...p, [key]: { ...p[key], loading: true } as DemandData & { loading: boolean } }));
+    setExpandedDemand(p => new Set([...p, key]));
     try {
       const keyword = item.scan_keyword || item.name.split(" ").slice(0, 3).join(" ");
       const p = new URLSearchParams({ keyword, buy_price: String(item.buy_price), sell_platform: item.sell_platform });
       const r = await api<DemandData>(`/api/scanner/demand-check?${p}`, { method: "POST" });
-      setDemandData(prev => ({ ...prev, [idx]: { ...r, loading: false } }));
-    } catch (e) {
-      setDemandData(prev => ({ ...prev, [idx]: { ...prev[idx], loading: false } }));
+      setDemandData(prev => ({ ...prev, [key]: { ...r, loading: false } }));
+    } catch {
+      setDemandData(prev => ({ ...prev, [key]: { ...prev[key], loading: false } }));
     }
   };
 
-  const runAiAnalysis = async (item: ScanResult, idx: number) => {
-    setAiAnalysis(p => ({ ...p, [idx]: { verdict: "", analysis: "", loading: true } }));
-    setExpandedAi(p => new Set([...p, idx]));
+  const runAiAnalysis = async (item: ScanResult) => {
+    const key = itemKey(item);
+    setAiAnalysis(p => ({ ...p, [key]: { verdict: "", analysis: "", loading: true } }));
+    setExpandedAi(p => new Set([...p, key]));
     try {
       const r = await api<{ verdict: string; analysis: string }>("/api/ai/analyze", {
         method: "POST",
@@ -279,9 +368,10 @@ function ScannerPageContent() {
           scan_keyword: item.scan_keyword || "",
         }),
       });
-      setAiAnalysis(p => ({ ...p, [idx]: { verdict: r.verdict, analysis: r.analysis, loading: false } }));
+      setAiAnalysis(p => ({ ...p, [key]: { verdict: r.verdict, analysis: r.analysis, loading: false } }));
     } catch (e) {
-      setAiAnalysis(p => ({ ...p, [idx]: { verdict: "error", analysis: String(e), loading: false } }));
+      setAiAnalysis(p => ({ ...p, [key]: { verdict: "error", analysis: errMsg(e), loading: false } }));
+      toast(errMsg(e), "error");
     }
   };
 
@@ -291,28 +381,75 @@ function ScannerPageContent() {
     try {
       const r = await api<{ suggestions: { keyword: string; max_price: number; reason: string }[] }>("/api/ai/suggest-keywords", {
         method: "POST",
-        body: JSON.stringify({ genre: aiKwGenre, platform: "eBay", count: 8 }),
+        body: JSON.stringify({ genre: aiKwGenre, platform: aiKwPlatform, count: 8 }),
       });
       setAiKwSuggestions(r.suggestions);
     } catch (e) {
-      console.error(e);
+      toast(errMsg(e), "error");
     } finally {
       setAiKwLoading(false);
     }
   };
 
+  // モーダルを開く: プレビューエンドポイントを使用（DB登録なし）
   const openListing = async (item: ScanResult) => {
-    setListingItem(item); setListingLoading(true); setChecked(new Set());
+    setListingItem(item);
+    setListingLoading(true);
+    setChecked(new Set());
+    setListingConfirmed(false);
+    setListingRegistering(false);
     try {
-      const r = await api<{ deep_links: Record<string, DeepLink> }>("/api/flow/quick-purchase-list", { method: "POST", body: JSON.stringify({ product_name: item.name, buy_platform: item.buy_source, buy_price: item.buy_price, buy_url: item.buy_url, buy_date: new Date().toISOString().split("T")[0], sell_platform: item.sell_platform, weight_g: 500, target_profit_rate: 0.25 }) });
+      const r = await api<{ deep_links: Record<string, DeepLink> }>("/api/flow/listing-preview", {
+        method: "POST",
+        body: JSON.stringify({
+          product_name: item.name,
+          buy_platform: item.buy_source,
+          buy_price: item.buy_price,
+          buy_url: item.buy_url || null,
+          sell_platform: item.sell_platform,
+          weight_g: 500,
+          target_profit_rate: 0.25,
+        }),
+      });
       setListingLinks(r.deep_links);
-      setChecked(new Set(Object.entries(r.deep_links).filter(([,v]) => v.recommended).map(([k]) => k)));
-    } catch(e) { console.error(e); }
+      setChecked(new Set(Object.entries(r.deep_links).filter(([, v]) => v.recommended).map(([k]) => k)));
+    } catch (e) { toast(errMsg(e), "error"); }
     finally { setListingLoading(false); }
   };
 
+  // リンクだけ開く（DB登録なし）
   const openChecked = () => {
     Object.entries(listingLinks).filter(([k]) => checked.has(k)).forEach(([, l], i) => setTimeout(() => window.open(l.url, "_blank"), i * 300));
+  };
+
+  // 仕入れ登録してリンクを開く
+  const confirmAndOpen = async () => {
+    if (!listingItem) return;
+    if (!listingConfirmed) {
+      setListingRegistering(true);
+      try {
+        await api("/api/flow/quick-purchase-list", {
+          method: "POST",
+          body: JSON.stringify({
+            product_name: listingItem.name,
+            buy_platform: listingItem.buy_source,
+            buy_price: listingItem.buy_price,
+            buy_url: listingItem.buy_url || null,
+            buy_date: new Date().toISOString().split("T")[0],
+            sell_platform: listingItem.sell_platform,
+            weight_g: 500,
+            target_profit_rate: 0.25,
+          }),
+        });
+        setListingConfirmed(true);
+      } catch (e) {
+        toast(errMsg(e), "error");
+        return;
+      } finally {
+        setListingRegistering(false);
+      }
+    }
+    openChecked();
   };
 
   // フィルター & ソート適用
@@ -338,6 +475,54 @@ function ScannerPageContent() {
 
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+
+      {/* ── 3ステップ ガイド ── */}
+      <div style={{ background: "linear-gradient(135deg,rgba(20,20,22,0.9),rgba(26,20,10,0.9))", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 14, padding: "18px 22px", marginBottom: 20 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#8A8278", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14 }}>使い方 — かんたん3ステップ</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} className="scanner-steps">
+          {([
+            ["①", "商品名を入れる",     "下の入力欄にキーワードを入力"],
+            ["②", "利益を調べる",       "ボタンを押すと仕入れ価格・利益を自動計算"],
+            ["③", "おすすめか確認する", "スコアと判定で「買うべきか」がすぐわかる"],
+          ] as [string, string, string][]).map(([step, title, desc]) => (
+            <div key={step} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#D4AF37", lineHeight: 1, flexShrink: 0, minWidth: 28 }}>{step}</div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#F5F0E8", marginBottom: 3 }}>{title}</div>
+                <div style={{ fontSize: 11, color: "#8A8278", lineHeight: 1.5 }}>{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── クイック商品検索 ── */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#d0e8d8", marginBottom: 8 }}>商品名で利益を調べる</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            style={{ flex: 1, background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#F5F0E8", padding: "14px 16px", fontSize: 14, outline: "none", minHeight: 50 }}
+            placeholder="例：スニーカー、カメラ、フィギュア、ゲーム機"
+            value={quickKw}
+            onChange={e => setQuickKw(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && doQuickScan()}
+          />
+          <select
+            style={{ background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, color: "#F5F0E8", padding: "0 12px", fontSize: 13, outline: "none", flexShrink: 0 }}
+            value={quickPlatform}
+            onChange={e => setQuickPlatform(e.target.value)}
+          >
+            {PLATFORMS.map(p => <option key={p.key} value={p.key}>{p.flag} {p.label}</option>)}
+          </select>
+          <button
+            onClick={doQuickScan}
+            disabled={!quickKw.trim() || scanning}
+            style={{ display: "flex", alignItems: "center", gap: 7, background: !quickKw.trim() ? "rgba(212,175,55,0.05)" : "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: !quickKw.trim() ? "#5a5248" : "#D4AF37", padding: "0 24px", fontSize: 14, fontWeight: 800, cursor: !quickKw.trim() ? "not-allowed" : "pointer", minHeight: 50, whiteSpace: "nowrap", letterSpacing: "0.03em" }}
+          >
+            <Radar size={16} /> 利益を調べる
+          </button>
+        </div>
+      </div>
 
       {/* ── ヘッダー ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
@@ -396,10 +581,14 @@ function ScannerPageContent() {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {GENRES.map(g => {
             const added = keywords.some(k => k.keyword === g.keyword);
+            const isRunning = scanningKw.has(g.keyword);
             return (
-              <button key={g.keyword} onClick={() => addFromGenre(g)} disabled={scanning}
-                style={{ display: "flex", alignItems: "center", gap: 7, background: added ? `${g.color}10` : "rgba(0,8,2,0.6)", border: `1px solid ${added ? g.color + "35" : "rgba(212,175,55,0.08)"}`, borderRadius: 7, padding: "6px 12px", cursor: scanning ? "not-allowed" : "pointer", transition: "all 0.15s" }}>
-                <div style={{ width: 2, height: 18, borderRadius: 1, background: g.color, flexShrink: 0 }} />
+              <button key={g.keyword} onClick={() => addFromGenre(g)} disabled={scanning || isRunning}
+                style={{ display: "flex", alignItems: "center", gap: 7, background: added ? `${g.color}10` : "rgba(0,8,2,0.6)", border: `1px solid ${added ? g.color + "35" : "rgba(212,175,55,0.08)"}`, borderRadius: 7, padding: "6px 12px", cursor: scanning || isRunning ? "not-allowed" : "pointer", transition: "all 0.15s" }}>
+                {isRunning
+                  ? <RefreshCw size={10} color={g.color} style={{ animation: "spin 1s linear infinite", flexShrink: 0 }} />
+                  : <div style={{ width: 2, height: 18, borderRadius: 1, background: g.color, flexShrink: 0 }} />
+                }
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: added ? g.color : "#b8d8c8", lineHeight: 1.2 }}>{g.label}</div>
                   <div style={{ fontSize: 9, color: "#3a6a4a" }}>{g.reason}</div>
@@ -426,6 +615,13 @@ function ScannerPageContent() {
             onChange={e => setAiKwGenre(e.target.value)}
             onKeyDown={e => e.key === "Enter" && runAiKeywords()}
           />
+          <select
+            style={{ ...inp, width: "auto", flexShrink: 0, padding: "8px 10px" }}
+            value={aiKwPlatform}
+            onChange={e => setAiKwPlatform(e.target.value)}
+          >
+            {PLATFORMS.map(p => <option key={p.key} value={p.key}>{p.flag} {p.label}</option>)}
+          </select>
           <button
             onClick={runAiKeywords}
             disabled={aiKwLoading || !aiKwGenre.trim()}
@@ -440,7 +636,7 @@ function ScannerPageContent() {
             {aiKwSuggestions.map((s, i) => (
               <button
                 key={i}
-                onClick={() => addFromGenre({ keyword: s.keyword, platform: "eBay", maxPrice: s.max_price, label: s.keyword, reason: s.reason, color: "#aa88ff" } as typeof GENRES[number])}
+                onClick={() => addFromGenre({ keyword: s.keyword, platform: aiKwPlatform as typeof PLATFORMS[number]["key"], maxPrice: s.max_price, label: s.keyword, reason: s.reason, color: "#aa88ff" } as typeof GENRES[number])}
                 disabled={scanning}
                 style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(170,136,255,0.07)", border: "1px solid rgba(170,136,255,0.2)", borderRadius: 7, padding: "6px 12px", cursor: "pointer", transition: "all 0.15s" }}
               >
@@ -495,13 +691,15 @@ function ScannerPageContent() {
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {keywords.map(kw => {
               const pf = PLATFORMS.find(p => p.key === kw.target_sell_platform);
+              const isKwScanning = scanningKw.has(kw.keyword);
               return (
                 <div key={kw.keyword} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,8,2,0.7)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 20, padding: "5px 10px 5px 12px" }}>
                   <span style={{ fontSize: 12, color: "#c0dcd0", fontWeight: 600 }}>{kw.keyword}</span>
                   <span style={{ fontSize: 10, color: "#8A8278" }}>{pf?.flag} {kw.target_sell_platform}</span>
                   {kw.best_profit_rate && <span style={{ fontSize: 10, color: "#D4AF37", background: "rgba(212,175,55,0.1)", borderRadius: 10, padding: "1px 6px" }}>{kw.best_profit_rate.toFixed(1)}%</span>}
-                  <button onClick={() => runScan(kw.keyword, kw.target_sell_platform)} disabled={scanning} style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 6, color: "#D4AF37", padding: "2px 6px", cursor: "pointer", lineHeight: 1 }}>
-                    <Play size={9} />
+                  {/* 個別スキャン: 全体スキャン中でも実行可能 */}
+                  <button onClick={() => runScan(kw.keyword, kw.target_sell_platform)} disabled={isKwScanning} style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 6, color: "#D4AF37", padding: "2px 6px", cursor: isKwScanning ? "not-allowed" : "pointer", lineHeight: 1 }}>
+                    {isKwScanning ? <RefreshCw size={9} style={{ animation: "spin 1s linear infinite" }} /> : <Play size={9} />}
                   </button>
                   <button onClick={() => deleteKeyword(kw.keyword)} style={{ background: "transparent", border: "none", color: "#4a5a4a", cursor: "pointer", padding: "1px 3px", lineHeight: 1 }}>
                     <Trash2 size={10} />
@@ -535,7 +733,7 @@ function ScannerPageContent() {
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <SlidersHorizontal size={13} color="#8A8278" />
             <span style={{ fontSize: 11, color: "#8A8278" }}>評価</span>
-            {["all", "excellent", "good", "ok"].map(r => (
+            {(["all", "excellent", "good", "ok", "marginal", "loss"] as const).map(r => (
               <button key={r} onClick={() => setFilterRating(r)} style={{ padding: "4px 10px", borderRadius: 20, border: `1px solid ${filterRating===r ? "rgba(212,175,55,0.4)" : "rgba(212,175,55,0.1)"}`, background: filterRating===r ? "rgba(212,175,55,0.1)" : "transparent", color: filterRating===r ? "#D4AF37" : "#6a9a7a", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                 {r === "all" ? "すべて" : RATING[r as keyof typeof RATING]?.label}
               </button>
@@ -557,12 +755,23 @@ function ScannerPageContent() {
       )}
 
       {/* ── スキャン結果グリッド ── */}
-      {processed.length === 0 ? (
+      {processed.length === 0 && results.length === 0 && !scanning ? (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#d0e8d8" }}>利益候補サンプル</div>
+              <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>実際にスキャンした結果のサンプルです。上の検索欄に商品名を入れると実際の結果が表示されます</div>
+            </div>
+            <span style={{ fontSize: 10, color: "#5a5248", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 5, padding: "2px 8px" }}>SAMPLE</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+            {SAMPLE_SCAN_ITEMS.map(item => <SampleResultCard key={item.id} {...item} />)}
+          </div>
+        </div>
+      ) : processed.length === 0 ? (
         <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.08)", borderRadius: 14, textAlign: "center", padding: "60px 0" }}>
           <Radar size={32} color="rgba(212,175,55,0.15)" style={{ margin: "0 auto 14px", display: "block" }} />
-          <div style={{ fontSize: 13, color: "#8A8278" }}>
-            {results.length > 0 ? "フィルター条件に一致する結果がありません" : "ジャンルを選ぶかキーワードを追加してスキャンを実行してください"}
-          </div>
+          <div style={{ fontSize: 13, color: "#8A8278" }}>フィルター条件に一致する結果がありません</div>
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
@@ -570,8 +779,9 @@ function ScannerPageContent() {
             const rt = RATING[item.rating as keyof typeof RATING] ?? RATING.ok;
             const rankColor = i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : i === 2 ? "#cd7f32" : "rgba(212,175,55,0.3)";
             const profitColor = item.net_profit_jpy >= 0 ? rt.color : "#ff4444";
+            const key = itemKey(item);
             return (
-              <div key={i} style={{ background: "rgba(20,20,22,0.95)", border: `1px solid ${i < 3 ? rankColor + "30" : "rgba(212,175,55,0.1)"}`, borderRadius: 14, padding: "18px 20px", position: "relative", overflow: "visible" }}
+              <div key={key} style={{ background: "rgba(20,20,22,0.95)", border: `1px solid ${i < 3 ? rankColor + "30" : "rgba(212,175,55,0.1)"}`, borderRadius: 14, padding: "18px 20px", position: "relative", overflow: "visible" }}
                 onClick={() => setOpenScore(null)}>
 
                 {/* 上部アクセントライン */}
@@ -584,8 +794,8 @@ function ScannerPageContent() {
                     <ScoreGauge
                       score={item.score} color={rt.color}
                       profitRate={item.profit_rate} roi={item.roi} netProfit={item.net_profit_jpy}
-                      open={openScore === i}
-                      onToggle={() => setOpenScore(openScore === i ? null : i)}
+                      open={openScore === key}
+                      onToggle={() => setOpenScore(openScore === key ? null : key)}
                     />
                     <div>
                       <div style={{ fontSize: 10, color: "#8A8278" }}>スコア</div>
@@ -632,7 +842,7 @@ function ScannerPageContent() {
                 {/* 利益情報 */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
                   <div style={{ background: `${profitColor}0c`, border: `1px solid ${profitColor}22`, borderRadius: 7, padding: "7px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "#8A8278" }}>純利益</div>
+                    <div style={{ fontSize: 9, color: "#8A8278" }}>想定利益</div>
                     <div style={{ fontSize: 16, fontWeight: 900, color: profitColor, fontFamily: "monospace" }}>
                       {item.net_profit_jpy >= 0 ? "+" : ""}¥{Math.round(item.net_profit_jpy).toLocaleString()}
                     </div>
@@ -641,9 +851,12 @@ function ScannerPageContent() {
                     <div style={{ fontSize: 9, color: "#8A8278" }}>利益率</div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: rt.color }}>{item.profit_rate}%</div>
                   </div>
-                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 7, padding: "7px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "#8A8278" }}>ROI</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: "#66aaff" }}>{item.roi}%</div>
+                  <div style={{ background: rt.bg, border: `1px solid ${rt.color}30`, borderRadius: 7, padding: "7px 8px", textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "#8A8278" }}>おすすめ度</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: rt.color, marginTop: 2 }}>{rt.label}</div>
+                    <div style={{ fontSize: 9, color: rt.color, marginTop: 1, letterSpacing: "0.05em" }}>
+                      {Array.from({ length: 5 }, (_, ii) => ii < (RATING_STARS[item.rating] ?? 3) ? "★" : "☆").join("")}
+                    </div>
                   </div>
                 </div>
 
@@ -671,33 +884,45 @@ function ScannerPageContent() {
                     <ShoppingCart size={12} /> 仕入れ＆出品
                   </button>
                   <button
-                    onClick={() => demandData[i] ? setExpandedDemand(p => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; }) : runDemandCheck(item, i)}
-                    style={{ display: "flex", alignItems: "center", gap: 5, background: demandData[i] && !demandData[i].loading ? "rgba(0,200,180,0.12)" : "rgba(0,200,180,0.05)", border: `1px solid ${demandData[i] ? "rgba(0,200,180,0.35)" : "rgba(0,200,180,0.15)"}`, borderRadius: 8, color: "#44ddcc", padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
-                    {demandData[i]?.loading ? <RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> : <BarChart2 size={12} />}
+                    onClick={() => {
+                      const d = demandData[key];
+                      if (d) {
+                        setExpandedDemand(p => { const n = new Set(p); n.has(key) ? n.delete(key) : n.add(key); return n; });
+                      } else {
+                        runDemandCheck(item);
+                      }
+                    }}
+                    style={{ display: "flex", alignItems: "center", gap: 5, background: demandData[key] && !demandData[key].loading ? "rgba(0,200,180,0.12)" : "rgba(0,200,180,0.05)", border: `1px solid ${demandData[key] ? "rgba(0,200,180,0.35)" : "rgba(0,200,180,0.15)"}`, borderRadius: 8, color: "#44ddcc", padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                    {demandData[key]?.loading ? <RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> : <BarChart2 size={12} />}
                     相場
-                    {demandData[i] && !demandData[i].loading && (expandedDemand.has(i) ? <ChevronUp size={11} /> : <ChevronDown size={11} />)}
+                    {demandData[key] && !demandData[key].loading && (expandedDemand.has(key) ? <ChevronUp size={11} /> : <ChevronDown size={11} />)}
                   </button>
                   <button
-                    onClick={() => aiAnalysis[i] ? setExpandedAi(p => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; }) : runAiAnalysis(item, i)}
-                    style={{ display: "flex", alignItems: "center", gap: 5, background: aiAnalysis[i]?.verdict === "buy" ? "rgba(170,136,255,0.15)" : "rgba(170,136,255,0.07)", border: `1px solid ${aiAnalysis[i] ? "rgba(170,136,255,0.4)" : "rgba(170,136,255,0.2)"}`, borderRadius: 8, color: "#aa88ff", padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
-                    {aiAnalysis[i]?.loading ? <RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={12} />}
+                    onClick={() => {
+                      const a = aiAnalysis[key];
+                      if (a) {
+                        setExpandedAi(p => { const n = new Set(p); n.has(key) ? n.delete(key) : n.add(key); return n; });
+                      } else {
+                        runAiAnalysis(item);
+                      }
+                    }}
+                    style={{ display: "flex", alignItems: "center", gap: 5, background: aiAnalysis[key]?.verdict === "buy" ? "rgba(170,136,255,0.15)" : "rgba(170,136,255,0.07)", border: `1px solid ${aiAnalysis[key] ? "rgba(170,136,255,0.4)" : "rgba(170,136,255,0.2)"}`, borderRadius: 8, color: "#aa88ff", padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                    {aiAnalysis[key]?.loading ? <RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={12} />}
                     AI
-                    {aiAnalysis[i] && !aiAnalysis[i].loading && (expandedAi.has(i) ? <ChevronUp size={11} /> : <ChevronDown size={11} />)}
+                    {aiAnalysis[key] && !aiAnalysis[key].loading && (expandedAi.has(key) ? <ChevronUp size={11} /> : <ChevronDown size={11} />)}
                   </button>
                 </div>
 
                 {/* 需要・相場チェック結果 */}
-                {expandedDemand.has(i) && demandData[i] && !demandData[i].loading && (() => {
-                  const d = demandData[i];
+                {expandedDemand.has(key) && demandData[key] && !demandData[key].loading && (() => {
+                  const d = demandData[key];
                   const dColor = d.demand_score >= 70 ? "#D4AF37" : d.demand_score >= 45 ? "#ffcc44" : "#ff9944";
                   return (
                     <div style={{ background: "rgba(0,200,180,0.04)", border: "1px solid rgba(0,200,180,0.18)", borderRadius: 10, padding: "12px 14px", marginBottom: 8 }}>
-                      {/* ヘッダー：需要スコア + 売れやすさ */}
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                         <Activity size={13} color="#44ddcc" />
                         <span style={{ fontSize: 11, fontWeight: 700, color: "#44ddcc" }}>需要・相場分析</span>
                         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-                          {/* 需要スコアゲージ */}
                           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                             <DemandGauge score={d.demand_score} color={dColor} />
                             <div>
@@ -705,7 +930,6 @@ function ScannerPageContent() {
                               <div style={{ fontSize: 10, fontWeight: 800, color: dColor }}>スコア</div>
                             </div>
                           </div>
-                          {/* 売れやすさバッジ */}
                           <div style={{ background: `${d.velocity.color}15`, border: `1px solid ${d.velocity.color}40`, borderRadius: 8, padding: "4px 10px", textAlign: "center" }}>
                             <div style={{ fontSize: 10, fontWeight: 800, color: d.velocity.color }}>{d.velocity.label}</div>
                             <div style={{ fontSize: 9, color: "#8A8278" }}>{d.velocity.weekly}</div>
@@ -713,7 +937,6 @@ function ScannerPageContent() {
                         </div>
                       </div>
 
-                      {/* 他サイト相場比較テーブル */}
                       {Object.keys(d.market_prices).length > 0 ? (
                         <div>
                           <div style={{ fontSize: 9, color: "#3a8a7a", fontWeight: 700, marginBottom: 6, letterSpacing: "0.05em" }}>他サイト相場（平均価格）</div>
@@ -760,22 +983,22 @@ function ScannerPageContent() {
                 })()}
 
                 {/* AI分析結果 */}
-                {expandedAi.has(i) && aiAnalysis[i] && !aiAnalysis[i].loading && (
+                {expandedAi.has(key) && aiAnalysis[key] && !aiAnalysis[key].loading && (
                   <div style={{ background: "rgba(170,136,255,0.05)", border: "1px solid rgba(170,136,255,0.2)", borderRadius: 10, padding: "12px 14px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
                       <Sparkles size={12} color="#aa88ff" />
                       <span style={{ fontSize: 11, fontWeight: 700, color: "#aa88ff" }}>AI判定</span>
                       <span style={{
                         fontSize: 11, borderRadius: 10, padding: "1px 8px", fontWeight: 700,
-                        ...(aiAnalysis[i].verdict === "buy"   ? { background: "rgba(212,175,55,0.15)",  border: "1px solid rgba(212,175,55,0.4)",  color: "#D4AF37" } :
-                           aiAnalysis[i].verdict === "skip"  ? { background: "rgba(255,68,68,0.12)",  border: "1px solid rgba(255,68,68,0.3)",  color: "#ff6666" } :
-                                                               { background: "rgba(255,204,68,0.12)", border: "1px solid rgba(255,204,68,0.3)", color: "#ffcc44" }),
+                        ...(aiAnalysis[key].verdict === "buy"   ? { background: "rgba(212,175,55,0.15)",  border: "1px solid rgba(212,175,55,0.4)",  color: "#D4AF37" } :
+                           aiAnalysis[key].verdict === "skip"  ? { background: "rgba(255,68,68,0.12)",  border: "1px solid rgba(255,68,68,0.3)",  color: "#ff6666" } :
+                                                                 { background: "rgba(255,204,68,0.12)", border: "1px solid rgba(255,204,68,0.3)", color: "#ffcc44" }),
                       }}>
-                        {aiAnalysis[i].verdict === "buy" ? "買うべき" : aiAnalysis[i].verdict === "skip" ? "見送り" : "要検討"}
+                        {aiAnalysis[key].verdict === "buy" ? "買うべき" : aiAnalysis[key].verdict === "skip" ? "見送り" : "要検討"}
                       </span>
                     </div>
                     <div style={{ fontSize: 11, color: "#8A8278", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-                      {aiAnalysis[i].analysis}
+                      {aiAnalysis[key].analysis}
                     </div>
                   </div>
                 )}
@@ -809,37 +1032,36 @@ function ScannerPageContent() {
             {listingLoading ? (
               <div style={{ textAlign: "center", color: "#8A8278", padding: "30px 0" }}>
                 <RefreshCw size={22} style={{ animation: "spin 1s linear infinite", display: "block", margin: "0 auto 10px" }} />
-                <div style={{ fontSize: 13 }}>仕入れ登録・価格計算中...</div>
+                <div style={{ fontSize: 13 }}>出品リンクを生成中...</div>
               </div>
             ) : (
               <>
-                <div style={{ fontSize: 12, color: "#D4AF37", marginBottom: 12, display: "flex", alignItems: "center", gap: 5 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />
-                  仕入れをDBに登録しました
-                </div>
+                {/* 登録済みバッジ */}
+                {listingConfirmed && (
+                  <div style={{ fontSize: 12, color: "#D4AF37", marginBottom: 12, display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.06)", borderRadius: 8, padding: "8px 12px", border: "1px solid rgba(212,175,55,0.2)" }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />
+                    仕入れ管理に登録しました
+                  </div>
+                )}
 
-                {/* 一括開くボタン */}
+                {/* チェックリスト操作 */}
                 <div style={{ display: "flex", gap: 7, marginBottom: 14 }}>
-                  <button onClick={openChecked} disabled={checked.size === 0}
-                    style={{ flex: 1, background: checked.size > 0 ? "linear-gradient(135deg,#1e1608,#2a1e08)" : "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: checked.size > 0 ? "#D4AF37" : "#3a6a4a", padding: "9px", fontWeight: 700, fontSize: 12, cursor: checked.size > 0 ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                    <ExternalLink size={12} /> チェックした {checked.size}件 をまとめて開く
-                  </button>
                   <button onClick={() => setChecked(new Set(Object.keys(listingLinks)))} style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, color: "#4a9a5a", padding: "8px 11px", fontSize: 11, cursor: "pointer" }}>全選択</button>
                   <button onClick={() => setChecked(new Set())} style={{ background: "rgba(255,50,50,0.06)", border: "1px solid rgba(255,50,50,0.15)", borderRadius: 8, color: "#7a4a4a", padding: "8px 11px", fontSize: 11, cursor: "pointer" }}>解除</button>
                 </div>
 
                 {["国内", "海外"].map(cat => {
-                  const links = Object.entries(listingLinks).filter(([,v]) => v.category === cat);
+                  const links = Object.entries(listingLinks).filter(([, v]) => v.category === cat);
                   return (
                     <div key={cat} style={{ marginBottom: 14 }}>
                       <div style={{ fontSize: 10, color: "#8A8278", fontWeight: 700, marginBottom: 6, letterSpacing: "0.05em" }}>
                         {cat === "国内" ? "国内プラットフォーム" : "海外プラットフォーム"}
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                        {links.map(([key, link]) => {
-                          const isChecked = checked.has(key);
+                        {links.map(([lkey, link]) => {
+                          const isChecked = checked.has(lkey);
                           return (
-                            <div key={key} onClick={() => setChecked(p => { const n = new Set(p); n.has(key) ? n.delete(key) : n.add(key); return n; })}
+                            <div key={lkey} onClick={() => setChecked(p => { const n = new Set(p); n.has(lkey) ? n.delete(lkey) : n.add(lkey); return n; })}
                               style={{ display: "flex", alignItems: "center", gap: 10, background: isChecked ? "rgba(212,175,55,0.07)" : "rgba(0,8,2,0.6)", border: `1px solid ${isChecked ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.08)"}`, borderRadius: 9, padding: "9px 13px", cursor: "pointer", transition: "all 0.12s" }}>
                               <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${isChecked ? "#D4AF37" : "rgba(212,175,55,0.2)"}`, background: isChecked ? "rgba(212,175,55,0.2)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                 {isChecked && <span style={{ fontSize: 10, color: "#D4AF37", fontWeight: 900, lineHeight: 1 }}>✓</span>}
@@ -864,8 +1086,35 @@ function ScannerPageContent() {
                   );
                 })}
 
-                <div style={{ fontSize: 10, color: "#3a5a4a", textAlign: "center", marginTop: 8 }}>
-                  出品完了後、出品管理からステータスを更新してください
+                {/* アクションボタン */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+                  {/* 主要アクション: 仕入れ登録 + リンクを開く */}
+                  <button
+                    onClick={confirmAndOpen}
+                    disabled={checked.size === 0 || listingRegistering}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: listingConfirmed ? "rgba(0,60,20,0.6)" : "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: checked.size === 0 || listingRegistering ? "#4a6a4a" : "#D4AF37", padding: "12px", fontWeight: 700, fontSize: 13, cursor: checked.size === 0 || listingRegistering ? "not-allowed" : "pointer" }}
+                  >
+                    {listingRegistering
+                      ? <><RefreshCw size={13} style={{ animation: "spin 1s linear infinite" }} /> 登録中...</>
+                      : listingConfirmed
+                        ? <><ExternalLink size={13} /> チェックした {checked.size}件 を開く</>
+                        : <><ShoppingCart size={13} /> 仕入れを登録してリンクを開く（{checked.size}件）</>
+                    }
+                  </button>
+                  {/* サブ: 登録なしでリンクだけ開く */}
+                  {!listingConfirmed && (
+                    <button
+                      onClick={openChecked}
+                      disabled={checked.size === 0}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "transparent", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, color: checked.size === 0 ? "#3a5a4a" : "#6a9a7a", padding: "9px", fontWeight: 600, fontSize: 12, cursor: checked.size === 0 ? "not-allowed" : "pointer" }}
+                    >
+                      <ExternalLink size={12} /> 登録せずリンクだけ開く
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ fontSize: 10, color: "#3a5a4a", textAlign: "center", marginTop: 10 }}>
+                  出品完了後、仕入れ管理からステータスを更新してください
                 </div>
               </>
             )}

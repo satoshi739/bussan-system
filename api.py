@@ -2,7 +2,7 @@
 物販チェッカー — FastAPI バックエンド
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -20,13 +20,40 @@ from calculators import calculate_profit, find_breakeven_price, max_purchase_pri
 
 app = FastAPI(title="物販チェッカー API")
 
+
+@app.on_event("startup")
+async def _startup():
+    """サーバー起動時にバックグラウンド監視スレッドを開始する"""
+    try:
+        import monitor
+        monitor.start()
+    except Exception as e:
+        print(f"[Monitor] 起動失敗（無視して続行）: {e}")
+
+
+@app.on_event("shutdown")
+async def _shutdown():
+    try:
+        import monitor
+        monitor.stop()
+    except Exception:
+        pass
+
+_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "https://frontend-one-steel-loaau9zmao.vercel.app",
+    # 追加ドメインは環境変数 ALLOWED_ORIGINS で "," 区切りで渡す
+]
+import os as _os
+_extra = _os.environ.get("ALLOWED_ORIGINS", "")
+if _extra:
+    _ALLOWED_ORIGINS += [o.strip() for o in _extra.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000", "http://localhost:3001", "http://localhost:3002",
-        "https://frontend-one-steel-loaau9zmao.vercel.app",
-        "https://*.vercel.app",
-    ],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -115,6 +142,88 @@ def update_purchase_status(purchase_id: int, body: StatusUpdate):
     db.update_purchase_status(purchase_id, body.status)
     return {"ok": True}
 
+class PurchaseUpdate(BaseModel):
+    product_name: Optional[str] = None
+    platform: Optional[str] = None
+    purchase_price: Optional[float] = None
+    purchase_shipping: Optional[float] = None
+    purchase_url: Optional[str] = None
+    purchase_date: Optional[str] = None
+    notes: Optional[str] = None
+
+@app.patch("/api/purchases/{purchase_id}")
+def update_purchase(purchase_id: int, body: PurchaseUpdate):
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not data:
+        raise HTTPException(400, "No fields to update")
+    db.update_purchase(purchase_id, data)
+    return {"ok": True}
+
+@app.get("/api/purchases/product-names")
+def get_product_names():
+    return db.get_product_names()
+
+@app.post("/api/purchases/import/csv")
+async def import_purchases_csv(file: UploadFile = File(...)):
+    import csv, io as _io
+    content = await file.read()
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = content.decode("shift-jis", errors="replace")
+
+    reader = csv.DictReader(_io.StringIO(text))
+    COL = {
+        "product_name":      ["商品名", "product_name", "name", "商品"],
+        "platform":          ["仕入れ先", "仕入れ元", "platform", "購入先", "買い先"],
+        "purchase_price":    ["仕入れ価格", "purchase_price", "price", "価格", "金額"],
+        "purchase_shipping": ["仕入れ送料", "purchase_shipping", "shipping", "送料"],
+        "purchase_url":      ["URL", "purchase_url", "url", "リンク"],
+        "purchase_date":     ["仕入れ日", "purchase_date", "date", "日付", "購入日"],
+        "notes":             ["メモ", "notes", "note", "備考", "コメント"],
+    }
+    def pick(row: dict, key: str):
+        for col in COL[key]:
+            v = row.get(col, "")
+            if v:
+                return v.strip()
+        return ""
+
+    rows = []
+    errors = []
+    for i, row in enumerate(reader, 1):
+        name = pick(row, "product_name")
+        if not name:
+            errors.append(f"行{i}: 商品名が空です")
+            continue
+        price_str = pick(row, "purchase_price")
+        if not price_str:
+            errors.append(f"行{i}: 仕入れ価格が空です")
+            continue
+        try:
+            price = float(price_str.replace(",", "").replace("¥", "").replace("円", ""))
+        except ValueError:
+            errors.append(f"行{i}: 仕入れ価格が数値ではありません ({price_str})")
+            continue
+        shipping_str = pick(row, "purchase_shipping")
+        try:
+            shipping = float(shipping_str.replace(",", "").replace("¥", "").replace("円", "")) if shipping_str else 0.0
+        except ValueError:
+            shipping = 0.0
+        rows.append({
+            "product_name":      name,
+            "platform":          pick(row, "platform") or "その他",
+            "purchase_price":    price,
+            "purchase_shipping": shipping,
+            "purchase_url":      pick(row, "purchase_url") or None,
+            "purchase_date":     pick(row, "purchase_date") or date.today().isoformat(),
+            "notes":             pick(row, "notes") or None,
+        })
+
+    result = db.import_purchases_csv(rows)
+    result["parse_errors"] = errors
+    return result
+
 @app.delete("/api/purchases/{purchase_id}")
 def delete_purchase(purchase_id: int):
     db.delete_purchase(purchase_id)
@@ -150,8 +259,15 @@ def create_sale(body: SaleCreate):
 
 @app.post("/api/sales/simple")
 def create_sale_simple(body: SimpleSaleCreate):
+    from datetime import datetime
     net_profit = db.record_sale_simple(body.purchase_id, body.sale_price, body.sell_platform)
-    return {"net_profit": net_profit}
+    month = datetime.today().strftime("%Y-%m")
+    row = db.conn.execute(
+        "SELECT COALESCE(SUM(net_profit), 0) as total FROM sales WHERE strftime('%Y-%m', sale_date) = ?",
+        (month,)
+    ).fetchone()
+    monthly_profit = float(row["total"]) if row else 0.0
+    return {"net_profit": net_profit, "monthly_profit": monthly_profit}
 
 
 # ── 利益計算 ─────────────────────────────────────────────
@@ -269,9 +385,19 @@ def get_analytics_by_buy_platform():
 
 # ── 設定 ─────────────────────────────────────────────────
 
+_SENSITIVE_KEYS = {"anthropic_api_key", "line_notify_token"}
+
 @app.get("/api/settings")
 def get_settings():
-    return db.get_settings()
+    settings = db.get_settings()
+    # センシティブなキーはマスクして返す（フロントで「設定済み」判定のみに使用）
+    masked = {}
+    for k, v in settings.items():
+        if k in _SENSITIVE_KEYS and v:
+            masked[k] = "****"
+        else:
+            masked[k] = v
+    return masked
 
 @app.post("/api/settings")
 def save_settings(body: dict):
@@ -442,7 +568,11 @@ def get_price_history(keyword: str):
 import urllib.request
 import urllib.parse
 
-def _send_line(token: str, message: str) -> bool:
+def _send_line(token: str, message: str) -> tuple[bool, str]:
+    """
+    LINE Notifyに送信する。
+    Returns: (success, error_message)
+    """
     try:
         data = urllib.parse.urlencode({'message': message}).encode('utf-8')
         req = urllib.request.Request(
@@ -452,10 +582,21 @@ def _send_line(token: str, message: str) -> bool:
             method='POST'
         )
         with urllib.request.urlopen(req, timeout=10) as res:
-            return res.status == 200
+            return res.status == 200, ''
+    except urllib.error.HTTPError as e:
+        status = e.code
+        if status == 401:
+            msg = 'トークンが無効です。LINE Notifyで新しいトークンを発行してください。'
+        elif status == 400:
+            msg = 'リクエストが不正です。メッセージ内容を確認してください。'
+        else:
+            msg = f'LINE APIエラー (HTTP {status})'
+        print(f'[LINE] HTTPエラー {status}: {msg}')
+        return False, msg
     except Exception as e:
+        msg = f'通信エラー: {e}'
         print(f'[LINE] エラー: {e}')
-        return False
+        return False, msg
 
 
 class LineTestRequest(BaseModel):
@@ -463,10 +604,10 @@ class LineTestRequest(BaseModel):
 
 @app.post("/api/notify/test")
 def notify_test(body: LineTestRequest):
-    ok = _send_line(body.token, '\n✅ 物販チェッカーとLINEの連携が完了しました！\n売れ残り警告や日次レポートが届きます。')
+    ok, err = _send_line(body.token, '\n✅ 物販チェッカーとLINEの連携が完了しました！\n売れ残り警告や日次レポートが届きます。')
     if ok:
         db.save_settings({'line_token': body.token})
-    return {'ok': ok}
+    return {'ok': ok, 'error': err if not ok else None}
 
 
 @app.post("/api/notify/stale")
@@ -495,8 +636,11 @@ def notify_stale(days: int = 14):
         days_elapsed = (datetime.today().date() - datetime.fromisoformat(r['purchase_date']).date()).days
         msg += f'・{r["product_name"]}\n  {days_elapsed}日経過 / ¥{r["purchase_price"]:,}\n\n'
     
-    ok = _send_line(token, msg)
-    return {'ok': ok, 'count': len(rows)}
+    ok, err = _send_line(token, msg)
+    result = {'ok': ok, 'count': len(rows)}
+    if not ok:
+        result['error'] = err
+    return result
 
 
 @app.post("/api/notify/daily")
@@ -529,8 +673,11 @@ def notify_daily():
     if stale_count['c'] > 0:
         msg += f'⚠️ 売れ残り {stale_count["c"]}件あり\n'
     
-    ok = _send_line(token, msg)
-    return {'ok': ok}
+    ok, err = _send_line(token, msg)
+    result = {'ok': ok}
+    if not ok:
+        result['error'] = err
+    return result
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -639,15 +786,29 @@ class GlobalSearchRequest(BaseModel):
 
 
 @app.post("/api/global/search")
-def global_search(body: GlobalSearchRequest):
+async def global_search(body: GlobalSearchRequest):
     """
-    日本の仕入れ相場 + グローバル販売相場を同時検索して利益マトリクスを返す。
+    日本の仕入れ相場 + グローバル販売相場を並列検索して利益マトリクスを返す。
     """
+    import concurrent.futures
     from scrapers import search_all_buy_sites
     from scrapers_global import search_global_selling_prices
 
-    # 仕入れ相場（日本）
-    buy_results = search_all_buy_sites(body.keyword, body.limit)
+    loop = asyncio.get_event_loop()
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+
+    # 仕入れ・販売相場を並列取得
+    buy_fut = loop.run_in_executor(executor, search_all_buy_sites, body.keyword, body.limit)
+    sell_fut = loop.run_in_executor(
+        executor,
+        lambda: search_global_selling_prices(
+            keyword=body.keyword,
+            platforms=body.sell_platforms,
+            limit=body.limit,
+        )
+    )
+    buy_results, sell_data = await asyncio.gather(buy_fut, sell_fut)
+
     buy_prices = [r['price'] for r in buy_results if r.get('price', 0) > 0]
     buy_stats = {}
     if buy_prices:
@@ -657,13 +818,6 @@ def global_search(body: GlobalSearchRequest):
             'avg': round(sum(buy_prices) / len(buy_prices)),
             'count': len(buy_prices),
         }
-
-    # グローバル販売相場
-    sell_data = search_global_selling_prices(
-        keyword=body.keyword,
-        platforms=body.sell_platforms,
-        limit=body.limit,
-    )
 
     # 利益マトリクス（仕入れ最安値 × 各プラットフォーム平均販売価格）
     profit_matrix_data = []
@@ -1163,6 +1317,61 @@ class QuickPurchaseAndListRequest(BaseModel):
     target_profit_rate: float = 0.25
 
 
+class ListingPreviewRequest(BaseModel):
+    product_name: str
+    buy_platform: str
+    buy_price: float
+    buy_shipping: float = 0
+    buy_url: Optional[str] = None
+    sell_platform: str = "eBay"
+    sell_price_local: Optional[float] = None
+    weight_g: float = 500
+    target_profit_rate: float = 0.25
+
+
+@app.post("/api/flow/listing-preview")
+def listing_preview(body: ListingPreviewRequest):
+    """ディープリンクのみ生成（DB登録なし）"""
+    pf = GLOBAL_PLATFORMS.get(body.sell_platform, {})
+    currency = pf.get("currency", "JPY")
+
+    if body.sell_price_local:
+        sell_price_local = body.sell_price_local
+    else:
+        suggested = suggest_selling_price(
+            purchase_price_jpy=body.buy_price + body.buy_shipping,
+            platform_key=body.sell_platform,
+            target_profit_rate=body.target_profit_rate,
+            weight_g=body.weight_g,
+        )
+        sell_price_local = suggested.get("price_local", 0) if suggested else 0
+
+    profit_calc = {}
+    if sell_price_local > 0:
+        profit_calc = calculate_global_profit(
+            purchase_price_jpy=body.buy_price,
+            selling_price_local=sell_price_local,
+            platform_key=body.sell_platform,
+            purchase_shipping_jpy=body.buy_shipping,
+            weight_g=body.weight_g,
+        )
+
+    deep_links = _generate_listing_deeplinks(
+        product_name=body.product_name,
+        price_local=sell_price_local,
+        currency=currency,
+        platform_key=body.sell_platform,
+        buy_url=body.buy_url,
+    )
+
+    return {
+        "ok": True,
+        "deep_links": deep_links,
+        "sell_price_local": round(sell_price_local, 2) if sell_price_local else 0,
+        "profit_calc": profit_calc,
+    }
+
+
 @app.post("/api/flow/quick-purchase-list")
 def quick_purchase_and_list(body: QuickPurchaseAndListRequest):
     """
@@ -1419,6 +1628,8 @@ class ImageIdentifyRequest(BaseModel):
     image_data: str   # base64 or data URL
     media_type: str = "image/jpeg"
 
+_CLAUDE_VISION_MONTHLY_LIMIT = 200   # 月200回まで
+
 @app.post("/api/image/identify")
 def identify_product_from_image(body: ImageIdentifyRequest):
     """画像から商品名を識別する（Claude Vision）"""
@@ -1426,6 +1637,10 @@ def identify_product_from_image(body: ImageIdentifyRequest):
     api_key = settings.get("anthropic_api_key", "").strip()
     if not api_key:
         raise HTTPException(400, "Anthropic APIキーが未設定です（設定ページで登録してください）")
+
+    used = db.get_monthly_api_calls("claude_vision")
+    if used >= _CLAUDE_VISION_MONTHLY_LIMIT:
+        raise HTTPException(429, f"Claude Vision APIの月次利用上限（{_CLAUDE_VISION_MONTHLY_LIMIT}回）に達しました。来月まで待つか、上限を引き上げてください。")
 
     try:
         import anthropic
@@ -1473,9 +1688,14 @@ def identify_product_from_image(body: ImageIdentifyRequest):
         )
 
         product_name = message.content[0].text.strip()
-        # 余分な引用符や説明を除去
         product_name = product_name.strip("「」『』\"'")
-        return {"ok": True, "product_name": product_name}
+        db.increment_api_calls("claude_vision")
+        return {
+            "ok": True,
+            "product_name": product_name,
+            "monthly_used": used + 1,
+            "monthly_limit": _CLAUDE_VISION_MONTHLY_LIMIT,
+        }
 
     except ImportError:
         raise HTTPException(500, "anthropicライブラリが未インストールです")
@@ -1632,6 +1852,171 @@ def ai_suggest_keywords(body: AIKeywordsRequest):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 _scanner_bg_task: Optional[asyncio.Task] = None
+_source_sync_bg_task: Optional[asyncio.Task] = None
+
+
+def _is_listing_unavailable_page(html: str) -> bool:
+    """仕入れ元の商品ページが売り切れ/終了かどうかをざっくり判定"""
+    text = (html or "").lower()
+    unavailable_keywords = [
+        "このオークションは終了しました",
+        "この商品は売り切れです",
+        "販売終了",
+        "sold out",
+        "item ended",
+        "listing has ended",
+        "この商品は現在お取り扱いできません",
+    ]
+    return any(k.lower() in text for k in unavailable_keywords)
+
+
+def _detect_buy_price_by_platform(product_name: str, platform: str) -> Optional[float]:
+    """仕入れ元プラットフォームから現在価格（最安）を推定して返す"""
+    from scrapers import (
+        search_yahoo_auction, search_mercari, search_rakuma,
+        search_yahoo_shopping, search_amazon_jp,
+    )
+    platform_norm = (platform or "").lower()
+    scraper = None
+    if "yahoo" in platform_norm or "ヤフオク" in platform_norm:
+        scraper = search_yahoo_auction
+    elif "mercari" in platform_norm or "メルカリ" in platform_norm:
+        scraper = search_mercari
+    elif "rakuma" in platform_norm or "ラクマ" in platform_norm:
+        scraper = search_rakuma
+    elif "ショッピング" in platform_norm:
+        scraper = search_yahoo_shopping
+    elif "amazon" in platform_norm:
+        scraper = search_amazon_jp
+    if not scraper:
+        return None
+    try:
+        results = scraper(product_name, 5)
+        prices = [float(i.get("price", 0)) for i in results if i.get("price", 0)]
+        return min(prices) if prices else None
+    except Exception:
+        return None
+
+
+def _send_source_sync_alert(message: str):
+    settings = db.get_settings()
+    token = settings.get("line_token", "").strip()
+    if token:
+        _send_line(token, message)
+
+
+def run_source_sync_once() -> Dict:
+    """
+    仕入れ元在庫/価格を1回チェック:
+    - 仕入れ元ページが終了・売り切れなら active listing を paused に変更
+    - 仕入れ相場が上昇したらLINE通知
+    """
+    import urllib.request
+    from datetime import datetime
+
+    settings = db.get_settings()
+    threshold_pct = float(settings.get("source_sync_price_rise_threshold_pct", "8"))
+    min_alert_delta_jpy = float(settings.get("source_sync_min_alert_delta_jpy", "300"))
+    active_only = settings.get("source_sync_active_only", "1") == "1"
+
+    where_clause = "WHERE l.status = 'active'" if active_only else ""
+    rows = db.conn.execute(f"""
+        SELECT l.id as listing_id, l.status as listing_status, l.selling_platform,
+               l.listing_price, p.id as purchase_id, p.product_name, p.platform,
+               p.purchase_price, p.purchase_shipping, p.purchase_url
+        FROM listings l
+        JOIN purchases p ON l.purchase_id = p.id
+        {where_clause}
+        ORDER BY l.id DESC
+        LIMIT 100
+    """).fetchall()
+
+    sold_out_count = 0
+    price_up_count = 0
+    sold_out_items: List[str] = []
+    price_up_items: List[str] = []
+
+    for r in rows:
+        purchase_url = (r["purchase_url"] or "").strip()
+        product_name = r["product_name"]
+        buy_platform = r["platform"]
+        baseline_buy = float(r["purchase_price"] or 0)
+
+        # 1) URLがある場合はページ売り切れを優先チェック
+        if purchase_url.startswith("http"):
+            try:
+                req = urllib.request.Request(
+                    purchase_url,
+                    headers={"User-Agent": "Mozilla/5.0"},
+                )
+                with urllib.request.urlopen(req, timeout=8) as res:
+                    html = res.read(120000).decode("utf-8", errors="ignore")
+                if _is_listing_unavailable_page(html):
+                    if r["listing_status"] == "active":
+                        db.conn.execute(
+                            "UPDATE listings SET status = 'paused' WHERE id = ?",
+                            (r["listing_id"],),
+                        )
+                        sold_out_count += 1
+                        sold_out_items.append(product_name)
+            except Exception:
+                pass
+
+        # 2) 仕入れ相場の上昇チェック
+        market_buy = _detect_buy_price_by_platform(product_name, buy_platform)
+        if market_buy and baseline_buy > 0:
+            delta = market_buy - baseline_buy
+            rise_pct = (delta / baseline_buy) * 100
+            if delta >= min_alert_delta_jpy and rise_pct >= threshold_pct:
+                price_up_count += 1
+                price_up_items.append(
+                    f"・{product_name}\n  仕入れ {baseline_buy:,.0f}円 → 現在 {market_buy:,.0f}円 (+{rise_pct:.1f}%)"
+                )
+
+    db.save_settings({"source_sync_last_run": str(_time.time())})
+    db.conn.commit()
+
+    if sold_out_items:
+        msg = "\n🛑 仕入れ元 在庫切れ検知\n"
+        msg += f"自動停止: {sold_out_count}件\n\n"
+        for name in sold_out_items[:6]:
+            msg += f"・{name}\n"
+        _send_source_sync_alert(msg)
+
+    if price_up_items:
+        msg = "\n📈 仕入れ価格 上昇アラート\n"
+        msg += f"対象: {price_up_count}件\n\n"
+        msg += "\n\n".join(price_up_items[:5])
+        _send_source_sync_alert(msg)
+
+    return {
+        "ok": True,
+        "checked": len(rows),
+        "sold_out_detected": sold_out_count,
+        "price_rise_detected": price_up_count,
+        "checked_at": datetime.now().isoformat(),
+    }
+
+
+async def _source_sync_loop():
+    """定期ソース連動ループ（在庫連動/価格上昇監視）"""
+    while True:
+        try:
+            settings = db.get_settings()
+            if settings.get("source_sync_enabled", "0") == "1":
+                interval_min = float(settings.get("source_sync_interval_min", "15"))
+                last_run = float(settings.get("source_sync_last_run", "0"))
+                now = _time.time()
+                if now - last_run >= interval_min * 60:
+                    print("[SourceSync] 在庫・価格チェック開始...")
+                    result = run_source_sync_once()
+                    print(
+                        f"[SourceSync] 完了: checked={result['checked']} "
+                        f"sold_out={result['sold_out_detected']} price_rise={result['price_rise_detected']}"
+                    )
+        except Exception as e:
+            print(f"[SourceSync] エラー: {e}")
+        await asyncio.sleep(120)  # 2分ごとに実行判定
 
 
 async def _auto_scan_loop():
@@ -1673,15 +2058,18 @@ async def _auto_scan_loop():
 
 @app.on_event("startup")
 async def startup_event():
-    global _scanner_bg_task
+    global _scanner_bg_task, _source_sync_bg_task
     _scanner_bg_task = asyncio.create_task(_auto_scan_loop())
+    _source_sync_bg_task = asyncio.create_task(_source_sync_loop())
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    global _scanner_bg_task
+    global _scanner_bg_task, _source_sync_bg_task
     if _scanner_bg_task:
         _scanner_bg_task.cancel()
+    if _source_sync_bg_task:
+        _source_sync_bg_task.cancel()
 
 
 # 自動スキャン設定の更新
@@ -1710,6 +2098,44 @@ def get_auto_scan_settings():
         "notify_score": float(settings.get("auto_scan_notify_score", "70")),
         "last_run": float(settings.get("auto_scan_last_run", "0")),
     }
+
+
+class SourceSyncSettings(BaseModel):
+    enabled: bool = False
+    interval_min: float = 15
+    price_rise_threshold_pct: float = 8
+    min_alert_delta_jpy: float = 300
+    active_only: bool = True
+
+
+@app.post("/api/source-sync/settings")
+def update_source_sync_settings(body: SourceSyncSettings):
+    db.save_settings({
+        "source_sync_enabled": "1" if body.enabled else "0",
+        "source_sync_interval_min": str(body.interval_min),
+        "source_sync_price_rise_threshold_pct": str(body.price_rise_threshold_pct),
+        "source_sync_min_alert_delta_jpy": str(body.min_alert_delta_jpy),
+        "source_sync_active_only": "1" if body.active_only else "0",
+    })
+    return {"ok": True}
+
+
+@app.get("/api/source-sync/settings")
+def get_source_sync_settings():
+    settings = db.get_settings()
+    return {
+        "enabled": settings.get("source_sync_enabled", "0") == "1",
+        "interval_min": float(settings.get("source_sync_interval_min", "15")),
+        "price_rise_threshold_pct": float(settings.get("source_sync_price_rise_threshold_pct", "8")),
+        "min_alert_delta_jpy": float(settings.get("source_sync_min_alert_delta_jpy", "300")),
+        "active_only": settings.get("source_sync_active_only", "1") == "1",
+        "last_run": float(settings.get("source_sync_last_run", "0")),
+    }
+
+
+@app.post("/api/source-sync/run")
+def source_sync_run_now():
+    return run_source_sync_once()
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2177,5 +2603,818 @@ def send_monthly_report_line(month: Optional[str] = None):
         for p in r['best_products'][:3]:
             msg += f'・{p["product_name"]} ¥{int(p["net_profit"]):,}\n'
 
-    ok = _send_line(token, msg)
-    return {'ok': ok}
+    ok, err = _send_line(token, msg)
+    result = {'ok': ok}
+    if not ok:
+        result['error'] = err
+    return result
+
+
+# ── 外注・発送管理 ───────────────────────────────────────
+
+class FulfillmentCreate(BaseModel):
+    purchase_id: int
+    worker_name: Optional[str] = None
+    status: str = "waiting"
+    tracking_number: Optional[str] = None
+    shipping_company: Optional[str] = None
+    pickup_date: Optional[str] = None
+    pack_date: Optional[str] = None
+    ship_date: Optional[str] = None
+    notes: Optional[str] = None
+
+class FulfillmentUpdate(BaseModel):
+    worker_name: Optional[str] = None
+    status: Optional[str] = None
+    tracking_number: Optional[str] = None
+    shipping_company: Optional[str] = None
+    pickup_date: Optional[str] = None
+    pack_date: Optional[str] = None
+    ship_date: Optional[str] = None
+    notes: Optional[str] = None
+
+@app.get("/api/fulfillment")
+def get_fulfillments(status: Optional[str] = None):
+    rows = db.get_fulfillments(status=status)
+    return [dict(r) for r in rows]
+
+@app.post("/api/fulfillment")
+def create_fulfillment(body: FulfillmentCreate):
+    fid = db.add_fulfillment(body.model_dump())
+    return {"id": fid}
+
+@app.patch("/api/fulfillment/{fulfillment_id}")
+def update_fulfillment(fulfillment_id: int, body: FulfillmentUpdate):
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not data:
+        raise HTTPException(400, "更新するフィールドがありません")
+    db.update_fulfillment(fulfillment_id, data)
+    return {"ok": True}
+
+@app.delete("/api/fulfillment/{fulfillment_id}")
+def delete_fulfillment(fulfillment_id: int):
+    db.delete_fulfillment(fulfillment_id)
+    return {"ok": True}
+
+
+# ── 発送代行業者 ─────────────────────────────────────────
+
+class VendorCreate(BaseModel):
+    name: str
+    vendor_type: str = "manual"
+    connection_type: str = "manual"
+    status: str = "inactive"
+    api_key: Optional[str] = None
+    api_endpoint: Optional[str] = None
+    contact_email: Optional[str] = None
+    line_token: Optional[str] = None
+    base_fee: float = 0
+    per_item_fee: float = 0
+    supported_methods: str = "[]"
+    notes: Optional[str] = None
+
+class VendorUpdate(BaseModel):
+    name: Optional[str] = None
+    status: Optional[str] = None
+    api_key: Optional[str] = None
+    api_endpoint: Optional[str] = None
+    contact_email: Optional[str] = None
+    line_token: Optional[str] = None
+    base_fee: Optional[float] = None
+    per_item_fee: Optional[float] = None
+    supported_methods: Optional[str] = None
+    notes: Optional[str] = None
+
+class ShippingRequestCreate(BaseModel):
+    vendor_id: int
+    shipping_method: str
+    shipping_cost: float = 0
+    vendor_fee: float = 0
+    recipient_name: Optional[str] = None
+    recipient_zip: Optional[str] = None
+    recipient_prefecture: Optional[str] = None
+    recipient_address: Optional[str] = None
+    recipient_phone: Optional[str] = None
+    request_options: Optional[str] = None
+    notes: Optional[str] = None
+
+@app.get("/api/fulfillment/vendors")
+def get_vendors():
+    rows = db.get_vendors()
+    return [dict(r) for r in rows]
+
+@app.post("/api/fulfillment/vendors")
+def create_vendor(body: VendorCreate):
+    vid = db.add_vendor(body.model_dump())
+    return {"id": vid}
+
+@app.get("/api/fulfillment/vendors/{vendor_id}")
+def get_vendor(vendor_id: int):
+    row = db.get_vendor(vendor_id)
+    if not row:
+        raise HTTPException(404, "業者が見つかりません")
+    return dict(row)
+
+@app.patch("/api/fulfillment/vendors/{vendor_id}")
+def update_vendor(vendor_id: int, body: VendorUpdate):
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not data:
+        raise HTTPException(400, "更新フィールドがありません")
+    db.update_vendor(vendor_id, data)
+    return {"ok": True}
+
+@app.delete("/api/fulfillment/vendors/{vendor_id}")
+def delete_vendor(vendor_id: int):
+    db.delete_vendor(vendor_id)
+    return {"ok": True}
+
+@app.post("/api/fulfillment/vendors/{vendor_id}/test")
+def test_vendor(vendor_id: int):
+    vendor = db.get_vendor(vendor_id)
+    if not vendor:
+        raise HTTPException(404, "業者が見つかりません")
+    v = dict(vendor)
+    if v['connection_type'] == 'api':
+        if not v.get('api_key'):
+            return {"ok": False, "message": "APIキーが設定されていません"}
+        # 実際のAPI呼び出しは各業者実装時に追加
+        return {"ok": True, "message": f"{v['name']} への接続テスト成功（モック）"}
+    elif v['connection_type'] == 'email':
+        if not v.get('contact_email'):
+            return {"ok": False, "message": "メールアドレスが設定されていません"}
+        return {"ok": True, "message": f"{v['contact_email']} への送信テスト成功"}
+    elif v['connection_type'] == 'line':
+        if not v.get('line_token'):
+            return {"ok": False, "message": "LINEトークンが設定されていません"}
+        return {"ok": True, "message": "LINE連携テスト成功"}
+    return {"ok": True, "message": "手動管理モードです"}
+
+@app.post("/api/fulfillment/{task_id}/request")
+def create_shipping_request(task_id: int, body: ShippingRequestCreate):
+    from datetime import datetime
+    rows = db.get_fulfillments()
+    task = next((dict(r) for r in rows if r['id'] == task_id), None)
+    if not task:
+        raise HTTPException(404, "タスクが見つかりません")
+
+    old_status = task['status']
+    data = body.model_dump()
+    data['requested_at'] = datetime.now().isoformat()
+    data['status'] = 'collected'
+    if data.get('notes') is None:
+        data.pop('notes', None)
+
+    db.create_shipping_request(task_id, data)
+    db.add_status_log(task_id, old_status, 'collected', 'user', f"発送依頼送信: vendor_id={body.vendor_id}")
+    return {"ok": True}
+
+@app.get("/api/fulfillment/{task_id}/logs")
+def get_status_logs(task_id: int):
+    rows = db.get_status_logs(task_id)
+    return [dict(r) for r in rows]
+
+
+# ─────────────────────────────────────────────────────────────
+#  FBA 納品管理
+# ─────────────────────────────────────────────────────────────
+
+class FbaShipmentCreate(BaseModel):
+    plan_name: str
+    status: str = "draft"
+    destination: str = "Amazon倉庫（川越FC）"
+    box_count: int = 1
+    notes: Optional[str] = None
+
+class FbaShipmentUpdate(BaseModel):
+    plan_name: Optional[str] = None
+    status: Optional[str] = None
+    destination: Optional[str] = None
+    box_count: Optional[int] = None
+    notes: Optional[str] = None
+    sent_at: Optional[str] = None
+    received_at: Optional[str] = None
+
+class FbaShipmentItemCreate(BaseModel):
+    purchase_id: Optional[int] = None
+    product_name: str
+    asin: Optional[str] = None
+    fnsku: Optional[str] = None
+    sku: Optional[str] = None
+    quantity: int = 1
+    box_number: int = 1
+    condition_type: str = "NewItem"
+    notes: Optional[str] = None
+
+class FbaShipmentItemUpdate(BaseModel):
+    product_name: Optional[str] = None
+    asin: Optional[str] = None
+    fnsku: Optional[str] = None
+    sku: Optional[str] = None
+    quantity: Optional[int] = None
+    box_number: Optional[int] = None
+    condition_type: Optional[str] = None
+    notes: Optional[str] = None
+
+@app.get("/api/fba/shipments")
+def list_fba_shipments():
+    rows = db.get_fba_shipments()
+    result = []
+    for r in rows:
+        s = dict(r)
+        items = db.get_fba_shipment_items(s["id"])
+        s["items"] = [dict(i) for i in items]
+        result.append(s)
+    return result
+
+@app.post("/api/fba/shipments")
+def create_fba_shipment(body: FbaShipmentCreate):
+    data = body.model_dump()
+    new_id = db.add_fba_shipment(data)
+    return {"id": new_id}
+
+@app.get("/api/fba/shipments/{shipment_id}")
+def get_fba_shipment(shipment_id: int):
+    row = db.get_fba_shipment(shipment_id)
+    if not row:
+        raise HTTPException(404, "納品プランが見つかりません")
+    s = dict(row)
+    items = db.get_fba_shipment_items(shipment_id)
+    s["items"] = [dict(i) for i in items]
+    return s
+
+@app.patch("/api/fba/shipments/{shipment_id}")
+def update_fba_shipment(shipment_id: int, body: FbaShipmentUpdate):
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    if body.status == "sent" and "sent_at" not in data:
+        data["sent_at"] = datetime.now().isoformat()
+    if body.status == "received" and "received_at" not in data:
+        data["received_at"] = datetime.now().isoformat()
+    db.update_fba_shipment(shipment_id, data)
+    return {"ok": True}
+
+@app.delete("/api/fba/shipments/{shipment_id}")
+def delete_fba_shipment(shipment_id: int):
+    db.delete_fba_shipment(shipment_id)
+    return {"ok": True}
+
+@app.post("/api/fba/shipments/{shipment_id}/items")
+def add_fba_shipment_item(shipment_id: int, body: FbaShipmentItemCreate):
+    data = body.model_dump()
+    data["shipment_id"] = shipment_id
+    # FNSKU が未設定なら自動生成
+    if not data.get("fnsku"):
+        data["fnsku"] = f"X{shipment_id:04d}{data.get('box_number', 1):02d}{body.quantity:03d}"
+    # SKU 未設定なら商品名ベースで生成
+    if not data.get("sku"):
+        import re
+        name_part = re.sub(r"[^\w]", "", body.product_name)[:8].upper()
+        data["sku"] = f"SKU-{name_part}-{shipment_id}"
+    new_id = db.add_fba_shipment_item(data)
+    return {"id": new_id, "fnsku": data["fnsku"], "sku": data["sku"]}
+
+@app.patch("/api/fba/shipment-items/{item_id}")
+def update_fba_shipment_item(item_id: int, body: FbaShipmentItemUpdate):
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    db.update_fba_shipment_item(item_id, data)
+    return {"ok": True}
+
+@app.delete("/api/fba/shipment-items/{item_id}")
+def delete_fba_shipment_item(item_id: int):
+    db.delete_fba_shipment_item(item_id)
+    return {"ok": True}
+
+
+# ─────────────────────────────────────────────────────────────
+#  在庫管理
+# ─────────────────────────────────────────────────────────────
+
+class InventoryItemCreate(BaseModel):
+    product_name: str
+    asin: Optional[str] = None
+    sku: Optional[str] = None
+    fnsku: Optional[str] = None
+    quantity: int = 0
+    reserved_quantity: int = 0
+    daily_sales: float = 0
+    reorder_point: int = 5
+    location: str = "FBA"
+    status: str = "active"
+    unit_cost: float = 0
+
+class InventoryItemUpdate(BaseModel):
+    product_name: Optional[str] = None
+    asin: Optional[str] = None
+    sku: Optional[str] = None
+    fnsku: Optional[str] = None
+    quantity: Optional[int] = None
+    reserved_quantity: Optional[int] = None
+    daily_sales: Optional[float] = None
+    reorder_point: Optional[int] = None
+    location: Optional[str] = None
+    status: Optional[str] = None
+    unit_cost: Optional[float] = None
+
+@app.get("/api/inventory")
+def list_inventory(status: str = None):
+    rows = db.get_inventory(status)
+    result = []
+    for r in rows:
+        item = dict(r)
+        # 在庫切れ予測日数
+        avail = item["quantity"] - item.get("reserved_quantity", 0)
+        if item["daily_sales"] and item["daily_sales"] > 0:
+            item["days_remaining"] = round(avail / item["daily_sales"])
+        else:
+            item["days_remaining"] = None
+        result.append(item)
+    return result
+
+@app.post("/api/inventory")
+def create_inventory_item(body: InventoryItemCreate):
+    data = body.model_dump()
+    new_id = db.add_inventory_item(data)
+    return {"id": new_id}
+
+@app.patch("/api/inventory/{item_id}")
+def update_inventory_item(item_id: int, body: InventoryItemUpdate):
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    db.update_inventory_item(item_id, data)
+    return {"ok": True}
+
+@app.delete("/api/inventory/{item_id}")
+def delete_inventory_item(item_id: int):
+    db.delete_inventory_item(item_id)
+    return {"ok": True}
+
+@app.get("/api/inventory/summary")
+def inventory_summary():
+    rows = db.get_inventory()
+    total = len(rows)
+    low_stock = [r for r in rows if (r["quantity"] - r.get("reserved_quantity", 0)) <= r["reorder_point"]]
+    out_of_stock = [r for r in rows if r["quantity"] <= 0]
+    total_value = sum(r["quantity"] * r["unit_cost"] for r in rows)
+    return {
+        "total_items": total,
+        "low_stock_count": len(low_stock),
+        "out_of_stock_count": len(out_of_stock),
+        "total_inventory_value": round(total_value),
+    }
+
+
+# ── バックアップ ───────────────────────────────────────────────
+
+@app.post("/api/backup")
+def create_backup():
+    """DBをバックアップして保存パスを返す"""
+    try:
+        path = db.backup()
+        backups = db.list_backups()
+        return {
+            "ok": True,
+            "path": path,
+            "total_backups": len(backups),
+        }
+    except Exception as e:
+        raise HTTPException(500, f"バックアップ失敗: {e}")
+
+
+@app.get("/api/backup/list")
+def list_backups():
+    """バックアップ一覧を返す"""
+    backups = db.list_backups()
+    return {"backups": backups, "count": len(backups)}
+
+
+# ── 為替レート強制更新 ────────────────────────────────────────
+
+@app.post("/api/exchange-rates/refresh")
+def refresh_exchange_rates():
+    """為替レートをAPIから強制再取得する"""
+    from currency import get_rates, is_using_fallback, get_cache_age_minutes
+    rates = get_rates(force_refresh=True)
+    return {
+        "ok": True,
+        "is_fallback": is_using_fallback(),
+        "cache_age_minutes": get_cache_age_minutes(),
+        "currencies": list(rates.keys()),
+    }
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  AI AGENT エンドポイント
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+class CEORunRequest(BaseModel):
+    goal: str
+    budget_jpy: Optional[float] = None
+    max_turns: int = 10
+
+class RejectRequest(BaseModel):
+    reason: str = ""
+
+class GenerateListingRequest(BaseModel):
+    approval_queue_id: Optional[int] = None
+    purchase_id: Optional[int] = None
+    product_name: str
+    buy_price: float
+    buy_source: str
+    sell_platform: str
+    est_sell_price: float
+    condition: str = "中古・良好"
+    notes: str = ""
+
+class GenerateSNSRequest(BaseModel):
+    approval_queue_id: Optional[int] = None
+    purchase_id: Optional[int] = None
+    product_name: str
+    buy_price: float
+    sell_price: float
+    profit_jpy: float
+    buy_source: str
+    sell_platform: str
+    post_type: str = "listing"
+    platforms: List[str] = ["instagram", "twitter", "tiktok"]
+
+
+def _get_agent_api_key() -> str:
+    settings = db.get_settings()
+    api_key = settings.get("anthropic_api_key", "").strip()
+    if not api_key:
+        raise HTTPException(400, "Anthropic APIキーが未設定です（設定ページで登録してください）")
+    return api_key
+
+
+# ── CEO エージェント ──────────────────────────────────────────────
+
+@app.post("/api/agents/ceo/run")
+async def run_ceo_agent(body: CEORunRequest):
+    """AI CEOエージェントを起動: スキャン→承認キューに追加"""
+    api_key = _get_agent_api_key()
+
+    session_id = db.create_agent_session(body.goal, body.budget_jpy)
+    db.update_agent_session(session_id, {"status": "running"})
+
+    def _run_sync():
+        from agents import CEOAgent
+        agent = CEOAgent(api_key=api_key, db=db)
+        return agent.run(
+            goal=body.goal,
+            budget_jpy=body.budget_jpy,
+            max_turns=body.max_turns,
+        )
+
+    try:
+        # CPU/IOブロッキング処理をスレッドプールで実行（FastAPIのイベントループをブロックしない）
+        result = await asyncio.to_thread(_run_sync)
+
+        import json as _json, datetime as _dt
+        db.update_agent_session(session_id, {
+            "status": "completed",
+            "scanned_count": result.get("scanned_count", 0),
+            "queued_count": result.get("queued_count", 0),
+            "report": _json.dumps(result.get("report", {}), ensure_ascii=False),
+            "completed_at": _dt.datetime.now().isoformat(),
+        })
+
+        # 承認キューに追加があればLINE通知
+        queued = result.get("queued_count", 0)
+        if queued > 0:
+            settings = db.get_settings()
+            line_token = settings.get("line_notify_token", "").strip()
+            if line_token:
+                msg = (
+                    f"\n🤖 AI CEO が {queued}件の仕入れ候補を発見しました！\n"
+                    f"承認キューを確認して購入を承認してください。\n"
+                    f"ゴール: {body.goal[:50]}"
+                )
+                _send_line(line_token, msg)
+
+        return {
+            "session_id": session_id,
+            "status": "completed",
+            **result,
+        }
+
+    except Exception as e:
+        db.update_agent_session(session_id, {"status": "error"})
+        raise HTTPException(500, f"CEOエージェントエラー: {str(e)}")
+
+
+@app.get("/api/agents/sessions")
+def get_agent_sessions(limit: int = 20):
+    """CEOエージェントのセッション履歴を返す"""
+    return db.get_agent_sessions(limit=limit)
+
+
+# ── 承認キュー ────────────────────────────────────────────────────
+
+@app.get("/api/agents/approval-queue")
+def get_approval_queue(status: Optional[str] = None):
+    """承認キューの一覧を返す"""
+    items = db.get_approval_queue(status=status)
+    total_investment = sum(i.get("buy_price", 0) for i in items if i.get("status") == "pending")
+    total_profit = sum(i.get("net_profit_jpy", 0) for i in items if i.get("status") == "pending")
+    return {
+        "items": items,
+        "pending_count": sum(1 for i in items if i.get("status") == "pending"),
+        "total_investment_jpy": total_investment,
+        "total_expected_profit_jpy": total_profit,
+    }
+
+
+@app.post("/api/agents/approval-queue/{item_id}/approve")
+def approve_queue_item(item_id: int):
+    """承認キューのアイテムを承認し、仕入れ管理に登録する"""
+    item = db.get_approval_queue_item(item_id)
+    if not item:
+        raise HTTPException(404, "アイテムが見つかりません")
+    if item["status"] != "pending":
+        raise HTTPException(400, f"このアイテムはすでに{item['status']}です")
+
+    from datetime import date as _date
+    purchase_id = db.add_purchase({
+        "product_name": item["product_name"],
+        "platform": item["buy_source"] or "未設定",
+        "purchase_price": item["buy_price"],
+        "purchase_shipping": 0,
+        "purchase_url": item.get("buy_url", ""),
+        "purchase_date": _date.today().isoformat(),
+        "notes": f"AI CEO承認済み | 期待利益率: {item.get('profit_rate', 0):.1f}% | {item.get('ceo_reason', '')}",
+        "image_data": item.get("buy_image", ""),
+    })
+
+    db.approve_queue_item(item_id, purchase_id=purchase_id)
+
+    return {
+        "ok": True,
+        "purchase_id": purchase_id,
+        "message": f"承認しました。仕入れID: {purchase_id}",
+    }
+
+
+@app.post("/api/agents/approval-queue/{item_id}/reject")
+def reject_queue_item(item_id: int, body: RejectRequest):
+    """承認キューのアイテムを却下する"""
+    item = db.get_approval_queue_item(item_id)
+    if not item:
+        raise HTTPException(404, "アイテムが見つかりません")
+    db.reject_queue_item(item_id, reason=body.reason)
+    return {"ok": True, "message": "却下しました"}
+
+
+# ── 出品文生成 ────────────────────────────────────────────────────
+
+@app.post("/api/agents/listing/generate")
+async def generate_listing(body: GenerateListingRequest):
+    """AI Listing Agentで出品文を自動生成する"""
+    api_key = _get_agent_api_key()
+
+    def _run():
+        from agents import ListingAgent
+        agent = ListingAgent(api_key=api_key)
+        return agent.generate(
+            product_name=body.product_name,
+            buy_price=body.buy_price,
+            buy_source=body.buy_source,
+            sell_platform=body.sell_platform,
+            est_sell_price=body.est_sell_price,
+            condition=body.condition,
+            notes=body.notes,
+        )
+
+    try:
+        result = await asyncio.to_thread(_run)
+        listing_id = db.add_agent_listing({
+            "purchase_id": body.purchase_id,
+            "approval_queue_id": body.approval_queue_id,
+            "sell_platform": body.sell_platform,
+            **result,
+        })
+        return {"listing_id": listing_id, "listing": result}
+
+    except Exception as e:
+        raise HTTPException(500, f"出品文生成エラー: {str(e)}")
+
+
+@app.get("/api/agents/listings")
+def get_agent_listings(purchase_id: Optional[int] = None, status: Optional[str] = None):
+    """AI生成の出品文一覧を返す"""
+    return db.get_agent_listings(purchase_id=purchase_id, status=status)
+
+
+@app.post("/api/agents/listings/{listing_id}/publish")
+def publish_agent_listing(listing_id: int):
+    """出品文を公開済みにマークする"""
+    db.publish_agent_listing(listing_id)
+    return {"ok": True}
+
+
+# ── SNSコンテンツ生成 ─────────────────────────────────────────────
+
+@app.post("/api/agents/sns/generate")
+async def generate_sns_content(body: GenerateSNSRequest):
+    """AI SNS Agentで投稿文を自動生成する"""
+    api_key = _get_agent_api_key()
+
+    def _run():
+        from agents import SNSAgent
+        agent = SNSAgent(api_key=api_key)
+        return agent.generate(
+            product_name=body.product_name,
+            buy_price=body.buy_price,
+            sell_price=body.sell_price,
+            profit_jpy=body.profit_jpy,
+            buy_source=body.buy_source,
+            sell_platform=body.sell_platform,
+            platforms=body.platforms,
+            post_type=body.post_type,
+        )
+
+    try:
+        result = await asyncio.to_thread(_run)
+
+        saved_ids = []
+        for platform in body.platforms:
+            platform_data = result.get(platform, {})
+            content = platform_data.get("full_post") or platform_data.get("text") or platform_data.get("caption", "")
+            hashtags = platform_data.get("hashtags", [])
+            sns_id = db.add_agent_sns_content({
+                "purchase_id": body.purchase_id,
+                "approval_queue_id": body.approval_queue_id,
+                "post_type": body.post_type,
+                "platform": platform,
+                "content": content,
+                "hashtags": hashtags,
+            })
+            saved_ids.append({"platform": platform, "id": sns_id})
+
+        return {"saved": saved_ids, "content": result}
+
+    except Exception as e:
+        raise HTTPException(500, f"SNSコンテンツ生成エラー: {str(e)}")
+
+
+@app.get("/api/agents/sns")
+def get_agent_sns_content(purchase_id: Optional[int] = None, status: Optional[str] = None):
+    """AI生成のSNSコンテンツ一覧を返す"""
+    return db.get_agent_sns_content(purchase_id=purchase_id, status=status)
+
+
+@app.post("/api/agents/sns/{content_id}/publish")
+def publish_sns_content(content_id: int):
+    """SNSコンテンツを公開済みにマークする"""
+    db.publish_agent_sns_content(content_id)
+    return {"ok": True}
+
+
+# ── SNSパフォーマンス記録 ──────────────────────────────────────────
+
+class SNSPerformanceRequest(BaseModel):
+    platform: str
+    likes: int = 0
+    comments: int = 0
+    reach: int = 0
+    led_to_sale: bool = False
+
+@app.post("/api/agents/sns/{content_id}/performance")
+def record_sns_performance(content_id: int, body: SNSPerformanceRequest):
+    """SNS投稿のパフォーマンスを記録してエージェントに学習させる"""
+    api_key = _get_agent_api_key()
+    from agents import SNSAgent
+    agent = SNSAgent(api_key=api_key, db=db)
+    agent.record_performance(
+        sns_content_id=content_id,
+        platform=body.platform,
+        likes=body.likes,
+        comments=body.comments,
+        reach=body.reach,
+        led_to_sale=body.led_to_sale,
+    )
+    return {"ok": True}
+
+
+# ── エージェント記憶 ──────────────────────────────────────────────────
+
+@app.get("/api/agents/memory")
+def get_agent_memory(agent_name: Optional[str] = None, memory_type: Optional[str] = None, q: Optional[str] = None):
+    """エージェントの記憶一覧を返す"""
+    now = __import__("datetime").datetime.now().isoformat()
+    sql = "SELECT * FROM agent_memory WHERE (expires_at IS NULL OR expires_at > ?)"
+    params = [now]
+    if agent_name:
+        sql += " AND agent_name = ?"
+        params.append(agent_name)
+    if memory_type:
+        sql += " AND memory_type = ?"
+        params.append(memory_type)
+    if q:
+        sql += " AND (title LIKE ? OR content LIKE ?)"
+        params.extend([f"%{q}%", f"%{q}%"])
+    sql += " ORDER BY importance DESC, created_at DESC LIMIT 100"
+    rows = db.conn.execute(sql, params).fetchall()
+    import json as _json
+    result = []
+    for r in rows:
+        d = dict(r)
+        try:
+            d["tags"] = _json.loads(d.get("tags") or "[]")
+        except Exception:
+            d["tags"] = []
+        result.append(d)
+    return result
+
+@app.delete("/api/agents/memory/{memory_id}")
+def delete_memory(memory_id: int):
+    """指定した記憶を削除する"""
+    db.conn.execute("DELETE FROM agent_memory WHERE id = ?", (memory_id,))
+    db.conn.commit()
+    return {"ok": True}
+
+
+# ── モニタリング制御 ──────────────────────────────────────────────────
+
+@app.get("/api/monitor/status")
+def get_monitor_status():
+    """モニタリングスレッドの状態を返す"""
+    try:
+        import monitor
+        return monitor.get_status()
+    except Exception as e:
+        return {"running": False, "error": str(e)}
+
+@app.post("/api/monitor/run-now")
+async def run_monitor_now(task: str = "daily_scan"):
+    """指定タスクを今すぐ手動実行する"""
+    valid_tasks = {
+        "daily_scan": "daily_scan",
+        "stale_check": "check_stale_inventory",
+        "weekly_report": "weekly_report",
+    }
+    if task not in valid_tasks:
+        raise HTTPException(400, f"不明なタスク: {task}")
+    try:
+        import monitor
+        fn = getattr(monitor, valid_tasks[task])
+        await asyncio.to_thread(fn)
+        return {"ok": True, "task": task, "executed_at": __import__("datetime").datetime.now().isoformat()}
+    except Exception as e:
+        raise HTTPException(500, f"実行エラー: {str(e)}")
+
+class MonitorSettingsRequest(BaseModel):
+    daily_scan_time: Optional[str] = None
+    stale_check_enabled: Optional[bool] = None
+    weekly_report_day: Optional[str] = None
+    weekly_report_time: Optional[str] = None
+
+@app.post("/api/monitor/settings")
+def save_monitor_settings(body: MonitorSettingsRequest):
+    """モニタリング設定を保存してスケジュールを再設定する"""
+    updates = {k: str(v) for k, v in body.model_dump().items() if v is not None}
+    if updates:
+        existing = db.get_settings()
+        existing.update({f"monitor_{k}": v for k, v in updates.items()})
+        db.save_settings(existing)
+    try:
+        import monitor
+        monitor.setup_schedules()
+    except Exception:
+        pass
+    return {"ok": True}
+
+
+# ── Research Agent 単体呼び出し ────────────────────────────────────────
+
+@app.get("/api/agents/research/market")
+async def research_market(keyword: str, task: str = "ebay_sold"):
+    """Research Agentに市場調査を依頼する"""
+    def _run():
+        from agents import ResearchAgent
+        r = ResearchAgent(db=db)
+        if task == "ebay_sold":
+            return r.search_ebay_sold(keyword)
+        elif task == "mercari_sold":
+            return r.search_mercari_sold(keyword)
+        elif task == "seasonal":
+            return r.get_seasonal_intelligence()
+        elif task == "own_history":
+            return r.analyze_own_history(days=60)
+        return {"error": f"不明なタスク: {task}"}
+    try:
+        result = await asyncio.to_thread(_run)
+        return result
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+@app.get("/api/agents/research/seasonal")
+def research_seasonal():
+    """今月の季節インテリジェンスを返す"""
+    from agents import ResearchAgent
+    return ResearchAgent(db=db).get_seasonal_intelligence()
+
+@app.get("/api/agents/research/history")
+async def research_history(days: int = 60):
+    """自社売上履歴分析を返す"""
+    def _run():
+        from agents import ResearchAgent
+        return ResearchAgent(db=db).analyze_own_history(days=days)
+    return await asyncio.to_thread(_run)

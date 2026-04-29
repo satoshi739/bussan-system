@@ -39,10 +39,23 @@ export default function PricingPage() {
           <h1 style={{ fontSize: 36, fontWeight: 900, color: "#F5F0E8", marginBottom: 14 }}>
             シンプルな料金プラン
           </h1>
-          <p style={{ fontSize: 15, color: "#8A8278", maxWidth: 480, margin: "0 auto" }}>
+          <p style={{ fontSize: 15, color: "#8A8278", maxWidth: 480, margin: "0 auto 20px" }}>
             物販ビジネスの規模に合わせて選べる3つのプラン。<br />
             いつでもアップグレード・ダウングレード可能。
           </p>
+          {/* 価値訴求バナー */}
+          <div style={{ display: "inline-flex", flexWrap: "wrap", justifyContent: "center", gap: 12, margin: "0 auto" }}>
+            {[
+              { icon: "🔍", text: "利益商品を自動スキャン" },
+              { icon: "📊", text: "国内外の相場を瞬時に比較" },
+              { icon: "🤖", text: "AI仕入れ判断（おすすめ度）" },
+              { icon: "🎁", text: "7日間無料トライアル付き" },
+            ].map(({ icon, text }) => (
+              <span key={text} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 20, padding: "6px 14px", fontSize: 12, color: "#D4CCBC", fontWeight: 600 }}>
+                {icon} {text}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Plans */}
@@ -88,7 +101,7 @@ export default function PricingPage() {
 
           {/* Pro */}
           <div style={proCard}>
-            <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(90deg,#1e1608,#00a040)", border: "1px solid rgba(212,175,55,0.5)", borderRadius: 20, padding: "4px 16px", fontSize: 12, fontWeight: 800, color: "#D4AF37", whiteSpace: "nowrap" }}>
+            <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.5)", borderRadius: 20, padding: "4px 16px", fontSize: 12, fontWeight: 800, color: "#D4AF37", whiteSpace: "nowrap" }}>
               おすすめ
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
@@ -178,12 +191,24 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* FAQ */}
-        <div style={{ marginTop: 64, textAlign: "center" }}>
-          <p style={{ fontSize: 14, color: "#8A8278" }}>
-            クレジットカードが必要です。いつでもキャンセル可能。<br />
-            決済はStripeで安全に処理されます。
-          </p>
+        {/* 信頼表示 */}
+        <div style={{ marginTop: 48, background: "rgba(20,20,22,0.7)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 14, padding: "20px 28px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+            {[
+              ["🏢", "運営", "ユニバーサルプラネットジャパン株式会社"],
+              ["🔒", "決済", "Stripe（PCI DSS準拠の安全な決済）"],
+              ["🛡️", "カード情報", "当社サーバーでは保持しません"],
+              ["✅", "解約", "マイページからいつでも即時解約OK"],
+            ].map(([icon, label, desc]) => (
+              <div key={label} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
+                <div>
+                  <div style={{ fontSize: 11, color: "#8A8278", fontWeight: 700, marginBottom: 1 }}>{label}</div>
+                  <div style={{ fontSize: 12, color: "#c0b8a8" }}>{desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
