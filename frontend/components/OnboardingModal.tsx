@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import Link from "next/link";
 import { X, ChevronRight, ChevronLeft, ShoppingCart, TrendingUp, Radar, CheckCircle, Circle, Play } from "lucide-react";
 
@@ -40,7 +40,7 @@ export function useOnboarding() {
   useEffect(() => {
     try {
       const done = localStorage.getItem(STORAGE_KEY);
-      if (!done) setShow(true);
+      if (!done) startTransition(() => setShow(true));
     } catch { /* ignore */ }
   }, []);
 
@@ -58,7 +58,7 @@ export function useChecklist() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(CHECKLIST_KEY);
-      if (saved) setItems(JSON.parse(saved));
+      if (saved) startTransition(() => setItems(JSON.parse(saved)));
     } catch { /* ignore */ }
   }, []);
 

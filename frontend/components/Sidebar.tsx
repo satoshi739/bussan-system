@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { T } from "@/lib/tokens";
@@ -86,7 +86,7 @@ export default function Sidebar() {
     fetch("/api/subscription/plan").then(r => r.json()).then(d => setPlan(d.plan ?? "FREE")).catch(() => {});
   }, [session]);
 
-  useEffect(() => { setMobileMenu(false); }, [pathname]);
+  useEffect(() => { startTransition(() => setMobileMenu(false)); }, [pathname]);
 
   const sidebarContent = (
     <aside style={{
