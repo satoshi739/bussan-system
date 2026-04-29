@@ -17,10 +17,12 @@ export default function CalculatorPage() {
   const [tab, setTab] = useState<Tab>("profit");
   const [platforms, setPlatforms] = useState<Record<string, PlatformInfo>>({});
   const [categories, setCategories] = useState<string[]>([]);
+  const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
-    getPlatforms().then(setPlatforms).catch(console.error);
-    getCategories().then(setCategories).catch(console.error);
+    Promise.all([getPlatforms(), getCategories()])
+      .then(([p, c]) => { setPlatforms(p); setCategories(c); })
+      .catch(() => setApiError(true));
   }, []);
 
   const domestic = Object.entries(platforms).filter(([, v]) => v.area === "国内");
@@ -29,6 +31,13 @@ export default function CalculatorPage() {
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 20 }}>利益計算</h1>
+      {apiError && (
+        <div style={{ background: "rgba(255,120,50,0.08)", border: "1px solid rgba(255,120,50,0.3)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
+          <span style={{ fontSize: 18 }}>⚠️</span>
+          <span style={{ color: "#ff9966" }}>バックエンドに接続できません。プラットフォーム情報を読み込めませんでした。</span>
+          <button onClick={() => window.location.reload()} style={{ marginLeft: "auto", background: "transparent", border: "1px solid rgba(255,120,50,0.4)", borderRadius: 6, color: "#ff9966", padding: "4px 12px", fontSize: 12, cursor: "pointer" }}>再読み込み</button>
+        </div>
+      )}
 
       {/* タブ */}
       <div style={{ display: "flex", gap: 6, marginBottom: 20, background: "rgba(0,10,3,0.8)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12, padding: 5, width: "fit-content" }}>

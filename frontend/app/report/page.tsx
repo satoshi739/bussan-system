@@ -46,16 +46,36 @@ function AnalyticsTab() {
   const [byPlatform, setByPlatform] = useState<{ selling_platform: string; count: number; total_profit: number; avg_profit: number; avg_rate: number }[]>([]);
   const [byBuy, setByBuy] = useState<{ platform: string; count: number; total_profit: number; avg_profit: number }[]>([]);
   const [bestProducts, setBestProducts] = useState<BestProduct[]>([]);
+  const [apiError, setApiError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getAnalyticsByPlatform().then(setByPlatform).catch(console.error);
-    getAnalyticsByBuyPlatform().then(setByBuy).catch(console.error);
-    getBestProducts(10).then(setBestProducts).catch(console.error);
+    Promise.all([
+      getAnalyticsByPlatform(),
+      getAnalyticsByBuyPlatform(),
+      getBestProducts(10),
+    ])
+      .then(([p, b, bp]) => { setByPlatform(p); setByBuy(b); setBestProducts(bp); })
+      .catch(() => setApiError(true))
+      .finally(() => setLoading(false));
   }, []);
 
   const maxProfit = Math.max(...byPlatform.map(r => r.total_profit), 1);
   const maxBuy = Math.max(...byBuy.map(r => r.total_profit), 1);
   const noData = byPlatform.length === 0 && byBuy.length === 0 && bestProducts.length === 0;
+
+  if (loading) return <div style={{ ...card, textAlign: "center", padding: 60, color: "#8A8278" }}>読み込み中...</div>;
+
+  if (apiError) {
+    return (
+      <div style={{ ...card, textAlign: "center", padding: 60 }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+        <div style={{ color: "#ff9966", fontWeight: 700, marginBottom: 8 }}>サーバーに接続できませんでした</div>
+        <div style={{ color: "#8A8278", fontSize: 13 }}>しばらくしてから再読み込みしてください。</div>
+        <button onClick={() => window.location.reload()} style={{ marginTop: 16, background: "transparent", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#D4AF37", padding: "8px 20px", fontSize: 13, cursor: "pointer" }}>再読み込み</button>
+      </div>
+    );
+  }
 
   if (noData) {
     return (
