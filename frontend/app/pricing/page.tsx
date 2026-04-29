@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Check, X, Zap, Building2, Gift, ChevronDown, ChevronUp } from "lucide-react";
 import { PLANS } from "@/lib/stripe";
 
@@ -70,11 +71,16 @@ function CellVal({ val }: { val: boolean | string }) {
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { data: session } = useSession();
 
   const handleSubscribe = (paymentLink: string | null, planKey: string) => {
     if (!paymentLink) return;
     setLoading(planKey);
-    window.location.href = paymentLink;
+    const url = new URL(paymentLink);
+    if (session?.user?.id) {
+      url.searchParams.set("client_reference_id", session.user.id);
+    }
+    window.location.href = url.toString();
   };
 
   return (
@@ -221,6 +227,32 @@ export default function PricingPage() {
             >
               {loading === "BUSINESS" ? "処理中..." : "Proプランを始める"}
             </button>
+          </div>
+        </div>
+
+        {/* ── 社会的証明 ── */}
+        <div style={{ marginBottom: 48 }}>
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <div style={{ fontSize: 13, color: "#D4AF37", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>USERS</div>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>使った人の声</h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            {[
+              { name: "T.K さん（会社員・副業）", plan: "Standard", profit: "+¥64,000/月", body: "eBayで何を仕入れたらいいか全然わからなかったけど、スキャナーで候補が一覧で出てくるのが助かる。利益率の計算を手動でやってた頃が嘘みたいです。" },
+              { name: "M.S さん（専業物販）", plan: "Pro", profit: "+¥130,000/月", body: "複数プラットフォームの相場を一括で見られるのがいい。メルカリとAmazonで価格差がある商品を拾いやすくなった。毎朝これを開くのが日課になっています。" },
+              { name: "R.N さん（大学生）", plan: "Standard", profit: "+¥38,000/月", body: "無料トライアルで試したら即課金しました。仕入れ判断が3秒で出るのが衝撃的。バイトより稼げる月が出てきて嬉しいです。" },
+            ].map(({ name, plan, profit, body }) => (
+              <div key={name} style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "22px 20px" }}>
+                <div style={{ fontSize: 13, color: "#A09488", lineHeight: 1.8, marginBottom: 16 }}>「{body}」</div>
+                <div style={{ borderTop: "1px solid rgba(212,175,55,0.08)", paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#F5F0E8" }}>{name}</div>
+                    <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>{plan}プラン利用中</div>
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: "#4ade80", fontFamily: "monospace" }}>{profit}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
