@@ -38,6 +38,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 export default function SalesPage() {
   const [sales, setSales]     = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(false);
   const [search, setSearch]   = useState("");
   const [platform, setPlatform] = useState("");
   const [month, setMonth]     = useState("");
@@ -47,7 +48,7 @@ export default function SalesPage() {
   useEffect(() => {
     getSales()
       .then(setSales)
-      .catch(console.error)
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -239,6 +240,17 @@ export default function SalesPage() {
               <Sk w={80} h={20} />
             </div>
           ))
+        ) : error ? (
+          <div style={{ ...card, textAlign: "center", padding: 60 }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
+            <div style={{ color: "#ff9966", fontWeight: 700, marginBottom: 8 }}>サーバーに接続できませんでした</div>
+            <div style={{ color: C.t3, fontSize: 13, lineHeight: 1.8 }}>
+              バックエンドが起動中の可能性があります。<br />しばらくしてから再読み込みしてください。
+            </div>
+            <button onClick={() => window.location.reload()} style={{ marginTop: 16, background: "transparent", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: C.gold, padding: "8px 20px", fontSize: 13, cursor: "pointer" }}>
+              再読み込み
+            </button>
+          </div>
         ) : sales.length === 0 ? (
           <div style={{ ...card, textAlign: "center", padding: 60 }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
