@@ -11,13 +11,20 @@ export const authConfig = {
   pages: {
     signIn: "/login",
     verifyRequest: "/login/verify",
-    error: "/login?error=true",
+    error: "/login",
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isPublic = PUBLIC_PATHS.some((p) => nextUrl.pathname.startsWith(p));
 
+      if (process.env.SKIP_AUTH === "true") {
+        // ログインページにいたらダッシュボードへ
+        if (nextUrl.pathname.startsWith("/login")) {
+          return Response.redirect(new URL("/", nextUrl));
+        }
+        return true;
+      }
       if (isPublic) return true;
       if (!isLoggedIn) {
         const loginUrl = new URL("/login", nextUrl);

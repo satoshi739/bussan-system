@@ -12,20 +12,17 @@ from currency import jpy_to, to_jpy, get_rates, format_price
 # ───────────────────────────────────────────────────────────────
 
 GLOBAL_PLATFORMS = {
-    # eBay
     'eBay': {
         'name': 'eBay',
         'flag': '🌏',
         'currency': 'USD',
-        'fee_rate': 0.1325,    # 13.25%
+        'fee_rate': 0.1325,
         'fixed_fee_jpy': 0,
         'area': '米国・欧州・世界',
         'note': '手数料13.25%・世界190カ国',
         'shipping_note': 'EMS/FedEx推奨',
         'category': 'global',
     },
-
-    # Amazon 各国
     'Amazon.com': {
         'name': 'Amazon.com',
         'flag': '🇺🇸',
@@ -66,13 +63,11 @@ GLOBAL_PLATFORMS = {
         'note': '手数料約15%・豪州向け',
         'category': 'global',
     },
-
-    # Shopee 各国
     'Shopee_SG': {
         'name': 'Shopee SG',
         'flag': '🇸🇬',
         'currency': 'SGD',
-        'fee_rate': 0.08,      # 8%（越境販売）
+        'fee_rate': 0.08,
         'fixed_fee_jpy': 0,
         'area': 'シンガポール',
         'note': '手数料8%・越境販売対応',
@@ -128,8 +123,6 @@ GLOBAL_PLATFORMS = {
         'note': '手数料6%',
         'category': 'sea',
     },
-
-    # Lazada 各国
     'Lazada_SG': {
         'name': 'Lazada SG',
         'flag': '🇸🇬',
@@ -180,14 +173,12 @@ GLOBAL_PLATFORMS = {
         'note': '手数料3%',
         'category': 'sea',
     },
-
-    # Etsy
     'Etsy': {
         'name': 'Etsy',
         'flag': '🎨',
         'currency': 'USD',
         'fee_rate': 0.065,
-        'fixed_fee_jpy': 30,   # 出品料 約$0.20
+        'fixed_fee_jpy': 30,
         'area': '米国・欧州',
         'note': '6.5%＋出品料約30円・ハンドメイド特化',
         'category': 'global',
@@ -195,60 +186,95 @@ GLOBAL_PLATFORMS = {
 }
 
 # ───────────────────────────────────────────────────────────────
-# 国際送料目安（日本→各国・小型荷物500g想定）
+# 国際送料テーブル（日本発 EMS・重量別）
+# 郵便局 EMS 2024年料金に基づく概算
 # ───────────────────────────────────────────────────────────────
 
-# 国コード → EMS送料（円）小型500g
-INTL_SHIPPING_JPY = {
-    'US':  2200,  # 米国
-    'UK':  2000,  # 英国
-    'DE':  2000,  # ドイツ
-    'AU':  2200,  # 豪州
-    'SG':  1200,  # シンガポール
-    'MY':  1200,  # マレーシア
-    'TH':  1200,  # タイ
-    'PH':  1200,  # フィリピン
-    'ID':  1400,  # インドネシア
-    'TW':  900,   # 台湾
-    'HK':  900,   # 香港
-    'KR':  900,   # 韓国
-    'CN':  1000,  # 中国
-    'FR':  2000,  # フランス
-    'IT':  2000,  # イタリア
-    'CA':  2200,  # カナダ
+# 構造: 国コード → [(最大g, 料金円), ...]  ※重量昇順
+_INTL_SHIPPING_TIERS: Dict[str, List[tuple]] = {
+    # 第1地帯：アジア近隣
+    'TW': [(500, 700),  (1000, 950),  (2000, 1450), (5000, 2800),  (10000, 5100)],
+    'HK': [(500, 700),  (1000, 950),  (2000, 1450), (5000, 2800),  (10000, 5100)],
+    'KR': [(500, 700),  (1000, 950),  (2000, 1450), (5000, 2800),  (10000, 5100)],
+    'CN': [(500, 800),  (1000, 1050), (2000, 1600), (5000, 3100),  (10000, 5600)],
+
+    # 第2地帯：東南アジア
+    'SG': [(500, 1000), (1000, 1400), (2000, 2200), (5000, 4200),  (10000, 7700)],
+    'MY': [(500, 1000), (1000, 1400), (2000, 2200), (5000, 4200),  (10000, 7700)],
+    'TH': [(500, 1000), (1000, 1400), (2000, 2200), (5000, 4200),  (10000, 7700)],
+    'PH': [(500, 1100), (1000, 1500), (2000, 2400), (5000, 4600),  (10000, 8400)],
+    'ID': [(500, 1200), (1000, 1700), (2000, 2700), (5000, 5200),  (10000, 9500)],
+
+    # 第3地帯：欧州・豪州
+    'UK': [(500, 1700), (1000, 2400), (2000, 3800), (5000, 7400),  (10000, 13500)],
+    'DE': [(500, 1700), (1000, 2400), (2000, 3800), (5000, 7400),  (10000, 13500)],
+    'FR': [(500, 1700), (1000, 2400), (2000, 3800), (5000, 7400),  (10000, 13500)],
+    'IT': [(500, 1700), (1000, 2400), (2000, 3800), (5000, 7400),  (10000, 13500)],
+    'AU': [(500, 1800), (1000, 2600), (2000, 4100), (5000, 8000),  (10000, 14600)],
+
+    # 第4地帯：北米
+    'US': [(500, 1800), (1000, 2600), (2000, 4100), (5000, 8000),  (10000, 14600)],
+    'CA': [(500, 1900), (1000, 2700), (2000, 4300), (5000, 8300),  (10000, 15200)],
 }
 
 # プラットフォーム → 発送先国コード
 PLATFORM_COUNTRY = {
-    'eBay':         'US',
-    'Amazon.com':   'US',
-    'Amazon.co.uk': 'UK',
-    'Amazon.de':    'DE',
+    'eBay':          'US',
+    'Amazon.com':    'US',
+    'Amazon.co.uk':  'UK',
+    'Amazon.de':     'DE',
     'Amazon.com.au': 'AU',
-    'Shopee_SG':    'SG',
-    'Shopee_MY':    'MY',
-    'Shopee_TH':    'TH',
-    'Shopee_PH':    'PH',
-    'Shopee_ID':    'ID',
-    'Shopee_TW':    'TW',
-    'Lazada_SG':    'SG',
-    'Lazada_MY':    'MY',
-    'Lazada_TH':    'TH',
-    'Lazada_PH':    'PH',
-    'Lazada_ID':    'ID',
-    'Etsy':         'US',
+    'Shopee_SG':     'SG',
+    'Shopee_MY':     'MY',
+    'Shopee_TH':     'TH',
+    'Shopee_PH':     'PH',
+    'Shopee_ID':     'ID',
+    'Shopee_TW':     'TW',
+    'Lazada_SG':     'SG',
+    'Lazada_MY':     'MY',
+    'Lazada_TH':     'TH',
+    'Lazada_PH':     'PH',
+    'Lazada_ID':     'ID',
+    'Etsy':          'US',
 }
+
+# 梱包材費の概算（重量別）
+_PACKAGING_COST: List[tuple] = [
+    (500,   80),   # 〜500g: プチプチ+封筒
+    (2000,  150),  # 〜2kg:  小箱+緩衝材
+    (5000,  250),  # 〜5kg:  中箱
+    (10000, 400),  # 〜10kg: 大箱+補強
+]
 
 
 def get_intl_shipping(platform_key: str, weight_g: float = 500) -> int:
     """プラットフォームへの国際送料を概算（円）"""
     country = PLATFORM_COUNTRY.get(platform_key, 'US')
-    base = INTL_SHIPPING_JPY.get(country, 2000)
-    # 500g 超過分を概算加算
+    tiers = _INTL_SHIPPING_TIERS.get(country)
+
+    if tiers:
+        for max_g, fee in tiers:
+            if weight_g <= max_g:
+                return fee
+        # 最大重量超過: 最終段階 + 超過1kg毎に加算
+        last_max, last_fee = tiers[-1]
+        extra_kg = max(0, (weight_g - last_max) / 1000)
+        return int(last_fee + extra_kg * 800)
+
+    # テーブルにない国は 2,000円をデフォルトとし重量補正
+    base = 2000
     if weight_g > 500:
-        extra_units = (weight_g - 500) / 500
-        base += int(extra_units * 400)
+        extra = (weight_g - 500) / 500
+        base += int(extra * 500)
     return base
+
+
+def get_packaging_cost(weight_g: float = 500) -> int:
+    """梱包材費を概算（円）"""
+    for max_g, cost in _PACKAGING_COST:
+        if weight_g <= max_g:
+            return cost
+    return 400
 
 
 # ───────────────────────────────────────────────────────────────
@@ -257,27 +283,18 @@ def get_intl_shipping(platform_key: str, weight_g: float = 500) -> int:
 
 def calculate_global_profit(
     purchase_price_jpy: float,
-    selling_price_local: float,          # 販売価格（現地通貨）
+    selling_price_local: float,
     platform_key: str,
     purchase_shipping_jpy: float = 0,
-    intl_shipping_jpy: Optional[float] = None,  # None=自動計算
+    intl_shipping_jpy: Optional[float] = None,
     weight_g: float = 500,
-    include_packaging_jpy: float = 0,
+    include_packaging_jpy: Optional[float] = None,  # Noneで自動計算
 ) -> Dict:
     """
     グローバル物販の純利益を計算する。
 
     Args:
-        purchase_price_jpy:    仕入れ価格（円）
-        selling_price_local:   販売価格（現地通貨）
-        platform_key:          プラットフォームキー（例 'Shopee_SG'）
-        purchase_shipping_jpy: 仕入れ時の国内送料（円）
-        intl_shipping_jpy:     国際送料（円）Noneで自動計算
-        weight_g:              商品重量（g）
-        include_packaging_jpy: 梱包材費（円）
-
-    Returns:
-        利益計算の詳細辞書
+        include_packaging_jpy: 梱包材費（円）Noneで重量から自動計算
     """
     pf = GLOBAL_PLATFORMS.get(platform_key)
     if not pf:
@@ -297,6 +314,10 @@ def calculate_global_profit(
     if intl_shipping_jpy is None:
         intl_shipping_jpy = get_intl_shipping(platform_key, weight_g)
 
+    # 梱包材費
+    if include_packaging_jpy is None:
+        include_packaging_jpy = get_packaging_cost(weight_g)
+
     # コスト合計
     total_cost_jpy = (
         purchase_price_jpy
@@ -309,10 +330,7 @@ def calculate_global_profit(
     # 純利益（円）
     net_profit_jpy = selling_price_jpy - total_cost_jpy
 
-    # 利益率
     profit_rate = (net_profit_jpy / selling_price_jpy * 100) if selling_price_jpy > 0 else 0
-
-    # ROI（仕入れ額に対する利益率）
     invest_total = purchase_price_jpy + purchase_shipping_jpy
     roi = (net_profit_jpy / invest_total * 100) if invest_total > 0 else 0
 
@@ -324,56 +342,46 @@ def calculate_global_profit(
         'area': pf['area'],
         'note': pf['note'],
 
-        # 価格
         'selling_price_local': selling_price_local,
         'selling_price_jpy': selling_price_jpy,
         'purchase_price_jpy': purchase_price_jpy,
 
-        # コスト内訳
         'purchase_shipping_jpy': purchase_shipping_jpy,
         'intl_shipping_jpy': intl_shipping_jpy,
         'platform_fee_jpy': round(platform_fee_jpy),
         'platform_fee_rate': fee_rate,
-        'packaging_jpy': include_packaging_jpy,
+        'packaging_jpy': round(include_packaging_jpy),
         'total_cost_jpy': round(total_cost_jpy),
 
-        # 利益
         'net_profit_jpy': round(net_profit_jpy),
         'profit_rate': round(profit_rate, 1),
         'roi': round(roi, 1),
 
-        # 判定
         'is_profitable': net_profit_jpy > 0,
         'rating': _rate_deal(profit_rate),
     }
 
 
 def _rate_deal(profit_rate: float) -> str:
-    """利益率から評価を返す"""
     if profit_rate >= 40:
-        return 'excellent'   # 優秀
+        return 'excellent'
     elif profit_rate >= 25:
-        return 'good'        # 良い
+        return 'good'
     elif profit_rate >= 10:
-        return 'ok'          # まあまあ
+        return 'ok'
     elif profit_rate >= 0:
-        return 'marginal'    # ギリギリ
+        return 'marginal'
     else:
-        return 'loss'        # 赤字
+        return 'loss'
 
 
 def calculate_profit_matrix(
     purchase_price_jpy: float,
-    selling_prices: Dict[str, float],     # {'Shopee_SG': 50.0, 'eBay': 45.0, ...} 現地通貨
+    selling_prices: Dict[str, float],
     purchase_shipping_jpy: float = 0,
     weight_g: float = 500,
 ) -> List[Dict]:
-    """
-    複数プラットフォームの利益を一括計算してランキング形式で返す。
-
-    Args:
-        selling_prices: {platform_key: 現地通貨での販売価格}
-    """
+    """複数プラットフォームの利益を一括計算してランキング形式で返す。"""
     results = []
     for platform_key, price_local in selling_prices.items():
         if price_local and price_local > 0:
@@ -387,7 +395,6 @@ def calculate_profit_matrix(
             if 'error' not in result:
                 results.append(result)
 
-    # 純利益の高い順にソート
     results.sort(key=lambda x: x.get('net_profit_jpy', -9999999), reverse=True)
     return results
 
@@ -397,12 +404,11 @@ def calculate_breakeven_price_local(
     platform_key: str,
     purchase_shipping_jpy: float = 0,
     weight_g: float = 500,
-    target_profit_rate: float = 0.0,    # 0 = 損益分岐のみ
+    target_profit_rate: float = 0.0,
 ) -> Dict:
     """
-    指定プラットフォームで利益ゼロ（または目標利益率）になる最低販売価格を計算。
-
-    Returns: {'price_local': ..., 'price_jpy': ..., 'currency': ...}
+    指定プラットフォームで損益分岐（または目標利益率）になる最低販売価格を計算。
+    梱包材費も自動で含める。
     """
     pf = GLOBAL_PLATFORMS.get(platform_key)
     if not pf:
@@ -412,11 +418,16 @@ def calculate_breakeven_price_local(
     fee_rate = pf['fee_rate']
     fixed_fee_jpy = pf.get('fixed_fee_jpy', 0)
     intl_shipping = get_intl_shipping(platform_key, weight_g)
+    packaging = get_packaging_cost(weight_g)
 
-    total_fixed_cost = purchase_price_jpy + purchase_shipping_jpy + intl_shipping + fixed_fee_jpy
+    total_fixed_cost = (
+        purchase_price_jpy
+        + purchase_shipping_jpy
+        + intl_shipping
+        + fixed_fee_jpy
+        + packaging
+    )
 
-    # selling_jpy * (1 - fee_rate) * (1 - target_profit_rate) >= total_fixed_cost
-    # selling_jpy = total_fixed_cost / ((1 - fee_rate) * (1 - target_profit_rate))
     denominator = (1 - fee_rate) * (1 - target_profit_rate)
     if denominator <= 0:
         return {}
@@ -431,6 +442,8 @@ def calculate_breakeven_price_local(
         'price_local': round(breakeven_local, 2),
         'price_jpy': round(breakeven_jpy),
         'target_profit_rate': target_profit_rate,
+        'intl_shipping_jpy': intl_shipping,
+        'packaging_jpy': packaging,
     }
 
 
@@ -441,9 +454,7 @@ def suggest_selling_price(
     purchase_shipping_jpy: float = 0,
     weight_g: float = 500,
 ) -> Dict:
-    """
-    目標利益率（デフォルト25%）を達成するための推奨販売価格を計算。
-    """
+    """目標利益率（デフォルト25%）を達成するための推奨販売価格を計算。"""
     return calculate_breakeven_price_local(
         purchase_price_jpy,
         platform_key,

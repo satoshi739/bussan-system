@@ -27,3 +27,67 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.25); border-radius: 3px; }
+
+/* ═══ レスポンシブ・グリッドユーティリティ ═══ */
+
+/* 2カラムグリッド → モバイルで1カラムに */
+.rg-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+/* 3カラムグリッド → モバイルで1カラムに */
+.rg-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+/* 4カラムグリッド → モバイルで2カラムに */
+.rg-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+/* 横スクロール可能なテーブルラッパー */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* モバイルのみ非表示 */
+.hide-sm { }
+/* モバイルのみ表示 */
+.show-sm { display: none; }
+
+@media (max-width: 768px) {
+  .rg-2            { grid-template-columns: 1fr; gap: 12px; }
+  .rg-3            { grid-template-columns: 1fr; gap: 12px; }
+  .rg-4            { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hide-sm         { display: none !important; }
+  .show-sm         { display: block !important; }
+
+  /* 全ページ共通：テーブルを横スクロール可能に */
+  table            { min-width: 600px; }
+
+  /* h1 のフォントサイズを縮小 */
+  h1               { font-size: 18px !important; }
+}
+
+/* ═══ タッチデバイス向け：ボタン・リンクの最小タップ領域 ═══ */
+@media (pointer: coarse) {
+  button, a, select, input[type="checkbox"], input[type="radio"] {
+    min-height: 40px;
+  }
+}
+
+/* ═══ スケルトンアニメーション（全ページ共通）═══ */
+@keyframes sk {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}
+
+/* ═══ モーダル・オーバーレイ（スマホでスクロール固定）═══ */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}

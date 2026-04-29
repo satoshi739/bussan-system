@@ -6,7 +6,7 @@
     "min_profit_rate": 20.0,
     "memo": "廃番品が高値",
     "added_at": "2026-04-13T15:38:10.959189",
-    "last_scanned": "2026-04-14T12:26:17.814578",
+    "last_scanned": "2026-04-24T19:44:18.047069",
     "best_profit_rate": 26.0
   },
   {
@@ -16,7 +16,7 @@
     "min_profit_rate": 20.0,
     "memo": "海外需要 No.1",
     "added_at": "2026-04-13T15:51:10.527707",
-    "last_scanned": "2026-04-14T12:26:20.841461",
+    "last_scanned": "2026-04-24T19:44:20.891187",
     "best_profit_rate": 26.0
   },
   {
@@ -26,7 +26,7 @@
     "min_profit_rate": 20.0,
     "memo": "DBZ 高需要",
     "added_at": "2026-04-13T15:51:25.340174",
-    "last_scanned": "2026-04-14T12:26:23.779478",
+    "last_scanned": "2026-04-24T19:44:23.494400",
     "best_profit_rate": 26.0
   },
   {
@@ -36,7 +36,7 @@
     "min_profit_rate": 20.0,
     "memo": "高利益率",
     "added_at": "2026-04-13T15:51:51.441925",
-    "last_scanned": "2026-04-14T12:26:26.724645",
+    "last_scanned": "2026-04-24T19:44:26.135066",
     "best_profit_rate": 26.0
   },
   {
@@ -46,7 +46,7 @@
     "min_profit_rate": 20.0,
     "memo": "北米需要が高い",
     "added_at": "2026-04-14T12:23:28.293299",
-    "last_scanned": "2026-04-14T12:26:29.547643",
+    "last_scanned": "2026-04-24T19:44:28.763065",
     "best_profit_rate": 26.0
   },
   {
@@ -56,7 +56,7 @@
     "min_profit_rate": 20.0,
     "memo": "ヴィンテージ復活",
     "added_at": "2026-04-14T12:23:52.067088",
-    "last_scanned": "2026-04-14T12:26:32.382148",
+    "last_scanned": "2026-04-24T19:44:34.414468",
     "best_profit_rate": 26.0
   },
   {
@@ -66,7 +66,7 @@
     "min_profit_rate": 20.0,
     "memo": "アナログ人気再燃",
     "added_at": "2026-04-14T12:24:06.446685",
-    "last_scanned": "2026-04-14T12:26:35.313719",
+    "last_scanned": "2026-04-24T19:44:37.355914",
     "best_profit_rate": 26.0
   },
   {
@@ -76,7 +76,7 @@
     "min_profit_rate": 20.0,
     "memo": "希少本は高値",
     "added_at": "2026-04-14T12:24:13.517884",
-    "last_scanned": "2026-04-14T12:26:38.052750",
+    "last_scanned": "2026-04-24T19:44:39.965596",
     "best_profit_rate": 26.0
   },
   {
@@ -86,7 +86,7 @@
     "min_profit_rate": 20.0,
     "memo": "レトロ需要あり",
     "added_at": "2026-04-14T12:24:18.858984",
-    "last_scanned": "2026-04-14T12:26:40.765739",
+    "last_scanned": "2026-04-24T19:44:42.701194",
     "best_profit_rate": 26.0
   },
   {
@@ -96,7 +96,7 @@
     "min_profit_rate": 20.0,
     "memo": "SEIKOは海外評価高",
     "added_at": "2026-04-14T12:25:38.251600",
-    "last_scanned": "2026-04-14T12:26:43.703965",
+    "last_scanned": "2026-04-24T19:44:45.106419",
     "best_profit_rate": 26.0
   },
   {
@@ -106,7 +106,7 @@
     "min_profit_rate": 20.0,
     "memo": "旧車ミニカー高値",
     "added_at": "2026-04-14T12:25:42.847141",
-    "last_scanned": "2026-04-14T12:26:46.438249",
+    "last_scanned": "2026-04-24T19:44:47.636755",
     "best_profit_rate": 26.0
   },
   {
@@ -116,7 +116,7 @@
     "min_profit_rate": 20.0,
     "memo": "高利益率",
     "added_at": "2026-04-14T12:25:47.737299",
-    "last_scanned": "2026-04-14T12:26:49.287486",
+    "last_scanned": "2026-04-24T19:44:50.243007",
     "best_profit_rate": 26.0
   },
   {
@@ -126,7 +126,7 @@
     "min_profit_rate": 20.0,
     "memo": "アジア女性需要高",
     "added_at": "2026-04-14T12:25:56.624739",
-    "last_scanned": "2026-04-14T12:26:51.879393",
+    "last_scanned": "2026-04-24T19:44:52.876532",
     "best_profit_rate": 27.6
   },
   {
@@ -136,8 +136,8 @@
     "min_profit_rate": 20.0,
     "memo": "和酒は海外高値",
     "added_at": "2026-04-14T12:26:01.133259",
-    "last_scanned": "2026-04-14T12:26:55.763275",
-    "best_profit_rate": null
+    "last_scanned": "2026-04-24T19:44:55.284186",
+    "best_profit_rate": 26.0
   },
   {
     "keyword": "アイドル グッズ 限定品",
@@ -146,8 +146,8 @@
     "min_profit_rate": 20.0,
     "memo": "限定品は稀少価値",
     "added_at": "2026-04-14T12:26:58.781050",
-    "last_scanned": null,
-    "best_profit_rate": null
+    "last_scanned": "2026-04-24T19:44:57.966655",
+    "best_profit_rate": 26.0
   },
   {
     "keyword": "フィギュア アニメ 限定",
@@ -156,7 +156,17 @@
     "min_profit_rate": 20.0,
     "memo": "コレクター需要高",
     "added_at": "2026-04-14T12:27:02.794703",
-    "last_scanned": null,
-    "best_profit_rate": null
+    "last_scanned": "2026-04-24T19:45:00.636098",
+    "best_profit_rate": 26.0
+  },
+  {
+    "keyword": "アウトドア キャンプ 中古",
+    "target_sell_platform": "eBay",
+    "max_buy_price": 10000.0,
+    "min_profit_rate": 20.0,
+    "memo": "海外でも人気",
+    "added_at": "2026-04-24T19:44:04.542541",
+    "last_scanned": "2026-04-24T19:45:03.353084",
+    "best_profit_rate": 26.0
   }
 ]

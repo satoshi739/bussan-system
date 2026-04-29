@@ -20,13 +20,19 @@ const SELL_PLATFORMS = [
 ];
 
 const today = new Date().toISOString().slice(0, 10);
-const emptyForm = { purchase_id: "", selling_platform: "メルカリ", listing_price: "", category: "その他", listed_date: today };
+const emptyForm = { purchase_id: "", selling_platform: "Amazon", listing_price: "", category: "その他", listed_date: today, asin: "", use_fba: false };
+
+function generateSku(productName: string, purchaseId: number | string): string {
+  const clean = productName.replace(/[^\w぀-鿿]/g, "").slice(0, 6).toUpperCase();
+  const rand = Math.random().toString(36).slice(2, 5).toUpperCase();
+  return `SKU-${clean || "PROD"}-${purchaseId}-${rand}`;
+}
 
 export default function ListingsPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<typeof emptyForm>(emptyForm);
   const [loading, setLoading] = useState(false);
 
   // プラットフォーム比較（出品フォーム内）
@@ -58,7 +64,7 @@ export default function ListingsPage() {
     finally { setCompLoading(false); }
   }, [purchases]);
 
-  const setFormField = (key: keyof typeof form, val: string) => {
+  const setFormField = (key: keyof Omit<typeof emptyForm, "use_fba">, val: string) => {
     const next = { ...form, [key]: val };
     setForm(next);
     if (key === "purchase_id" || key === "listing_price") {
@@ -70,8 +76,19 @@ export default function ListingsPage() {
     if (!form.purchase_id || !form.listing_price) { toast("商品と価格を入力してください", "error"); return; }
     setLoading(true);
     try {
-      await createListing({ purchase_id: Number(form.purchase_id), selling_platform: form.selling_platform, listing_price: Number(form.listing_price), amazon_shipping: 0, use_fba: 0, category: form.category, listed_date: form.listed_date });
-      toast("出品を追加しました ✅");
+      const purchase = purchases.find(p => p.id === Number(form.purchase_id));
+      const autoSku = generateSku(purchase?.product_name ?? "PROD", form.purchase_id);
+      await createListing({
+        purchase_id: Number(form.purchase_id),
+        selling_platform: form.selling_platform,
+        listing_price: Number(form.listing_price),
+        amazon_shipping: 0,
+        use_fba: form.use_fba ? 1 : 0,
+        category: form.category,
+        listed_date: form.listed_date,
+        asin: form.asin || undefined,
+      } as Parameters<typeof createListing>[0]);
+      toast(`出品を追加しました ✅ SKU: ${autoSku}`);
       setForm(emptyForm); setShowForm(false); setFormComparison(null); load();
     } catch { toast("保存に失敗しました", "error"); }
     finally { setLoading(false); }
@@ -133,7 +150,7 @@ export default function ListingsPage() {
         <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 14, padding: "20px 24px", marginBottom: 20 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 16 }}>新規出品登録</div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
             <div>
               <label style={lbl}>仕入れ商品 *</label>
               <select style={inp} value={form.purchase_id} onChange={e => setFormField("purchase_id", e.target.value)}>
@@ -148,6 +165,32 @@ export default function ListingsPage() {
             <div>
               <label style={lbl}>出品日</label>
               <input type="date" style={inp} value={form.listed_date} onChange={e => setFormField("listed_date", e.target.value)} />
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
+            <div>
+              <label style={lbl}>ASIN（Amazon商品ID）</label>
+              <input style={inp} value={form.asin} onChange={e => setForm(p => ({ ...p, asin: e.target.value }))} placeholder="B0XXXXXXXXXX" />
+            </div>
+            <div>
+              <label style={lbl}>SKU（自動生成）</label>
+              <div style={{ ...inp, color: "#5A5248", fontSize: 12, cursor: "not-allowed" }}>
+                {form.purchase_id
+                  ? generateSku(purchases.find(p => p.id === Number(form.purchase_id))?.product_name ?? "PROD", form.purchase_id)
+                  : "商品を選択後に自動生成"
+                }
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: 4 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={form.use_fba}
+                  onChange={e => setForm(p => ({ ...p, use_fba: e.target.checked }))}
+                  style={{ width: 16, height: 16, accentColor: "#D4AF37", cursor: "pointer" }}
+                />
+                <span style={{ fontSize: 13, color: "#C8C0B0", fontWeight: 600 }}>FBA出品（フルフィルメント by Amazon）</span>
+              </label>
             </div>
           </div>
 
