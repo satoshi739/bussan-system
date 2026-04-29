@@ -21,9 +21,8 @@ function WatchlistPageContent() {
   const [maxPrices, setMaxPrices] = useState<Record<string, number>>({});
   const [sellPriceInputs, setSellPriceInputs] = useState<Record<string, string>>({});
 
-  const load = async () => {
-    const data = await getWatchlist().catch(() => []);
-    setItems(data);
+  const load = () => {
+    getWatchlist().catch(() => []).then(data => setItems(data));
   };
   useEffect(() => { load(); }, []);
 
