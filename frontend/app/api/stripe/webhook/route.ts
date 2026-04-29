@@ -65,7 +65,7 @@ function getPeriodEnd(sub: Stripe.Subscription): Date | null {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.userId;
+  const userId = session.metadata?.userId ?? session.client_reference_id ?? null;
   if (!userId) return;
 
   const stripeSubId = session.subscription as string;

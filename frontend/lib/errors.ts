@@ -35,6 +35,11 @@ const RULES: ErrorRule[] = [
     message: "ただいまサービスの接続に問題が発生しています",
     action: "しばらく待ってから再試行してください" },
 
+  // ── 開発者向け内部情報（ユーザーに見せない） ────────
+  { match: /localhost|127\.0\.0\.1|0\.0\.0\.0|api\.py|バックエンド起動|:8000|:3000/i,
+    message: "ただいまサービスの接続に問題が発生しています",
+    action: "しばらく待ってから再試行してください" },
+
   // ── ネットワーク ─────────────────────────────────────
   { match: /aborted|abort|timeout|timed.?out|タイムアウト/i,
     message: "接続がタイムアウトしました",
@@ -85,9 +90,9 @@ export function toJapaneseError(err: unknown): string {
     }
   }
 
-  // ルールにマッチしない場合は元のメッセージを短縮して返す
-  const trimmed = raw.slice(0, 120);
-  return trimmed.length < raw.length ? `${trimmed}…` : trimmed;
+  // ルールにマッチしない場合 — 技術詳細はコンソールのみ、ユーザーには汎用メッセージ
+  console.error("[API Error]", raw);
+  return "ただいまサービスの接続に問題が発生しています。しばらく待ってから再試行してください。";
 }
 
 /**

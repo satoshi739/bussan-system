@@ -469,19 +469,9 @@ export default function DashboardPage() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
                 <span style={{ fontSize: 18 }}>🔥</span>
-                <span style={{ fontSize: 14, fontWeight: 900, color: C.t1, letterSpacing: "-0.01em" }}>今日のおすすめ仕入れ</span>
-                <span style={{
-                  background: `linear-gradient(135deg, ${C.gold}28, ${C.gold}14)`,
-                  border: `1px solid ${C.gold}45`,
-                  borderRadius: 6,
-                  padding: "2px 10px",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  color: C.gold,
-                  letterSpacing: "0.06em",
-                }}>TOP 3</span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: C.t1, letterSpacing: "-0.01em" }}>今日のおすすめ仕入れTOP3</span>
               </div>
-              <div style={{ fontSize: 11, color: C.t3 }}>利益率・想定利益・仕入れ判断をまとめて表示。初心者でも利益商品をすぐに判定できます</div>
+              <div style={{ fontSize: 11, color: C.t3 }}>利益率・想定利益・仕入れ判断をAIがまとめて表示します。初心者でも即判断できます</div>
             </div>
             <span style={{ fontSize: 10, color: C.t4, background: `${C.gold}12`, border: `1px solid ${C.gold}22`, borderRadius: 5, padding: "2px 8px", letterSpacing: "0.06em" }}>SAMPLE</span>
           </div>
