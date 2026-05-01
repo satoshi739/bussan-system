@@ -44,12 +44,17 @@ export default function AgentsPage() {
 
   const handleRun = async () => {
     if (!goal.trim()) { toast("指示（ゴール）を入力してください", "error"); return; }
+    const budgetNum = budget.trim() ? Number(budget) : undefined;
+    if (budgetNum !== undefined && (!Number.isFinite(budgetNum) || budgetNum <= 0)) {
+      toast("予算は正の数値を入力してください", "error");
+      return;
+    }
     setRunning(true);
     setResult(null);
     try {
       const res = await runCEOAgent({
         goal: goal.trim(),
-        budget_jpy: budget ? parseFloat(budget) : undefined,
+        budget_jpy: budgetNum,
         max_turns: 12,
       });
       setResult(res);
