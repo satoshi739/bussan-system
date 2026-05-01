@@ -18,7 +18,7 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isPublic = PUBLIC_PATHS.some((p) => nextUrl.pathname.startsWith(p));
 
-      if (process.env.SKIP_AUTH === "true") {
+      if (process.env.NODE_ENV === "development" && process.env.SKIP_AUTH === "true") {
         // ログインページにいたらダッシュボードへ
         if (nextUrl.pathname.startsWith("/login")) {
           return Response.redirect(new URL("/", nextUrl));
