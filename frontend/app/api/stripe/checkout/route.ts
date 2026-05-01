@@ -17,6 +17,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "priceId required" }, { status: 400 });
   }
 
+  // TODO: emailVerified のチェックも検討 (NextAuth の設定次第)
+  if (!session.user.email) {
+    return NextResponse.json({ error: "Email required" }, { status: 400 });
+  }
+
   const userId = session.user.id;
 
   // 既存のStripe顧客IDを取得
@@ -32,7 +37,7 @@ export async function POST(req: NextRequest) {
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { userId },
     customer: sub?.stripeCustomerId ?? undefined,
-    customer_email: sub?.stripeCustomerId ? undefined : session.user.email!,
+    customer_email: sub?.stripeCustomerId ? undefined : session.user.email,
     success_url: `${process.env.NEXTAUTH_URL}/settings/billing?success=true`,
     cancel_url: `${process.env.NEXTAUTH_URL}/pricing`,
     locale: "ja",
