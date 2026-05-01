@@ -15,7 +15,7 @@ function createPrismaClient() {
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-  } as ConstructorParameters<typeof PrismaClient>[0]);
+  });
 }
 
 export const prisma = globalThis.__prisma ?? createPrismaClient();
