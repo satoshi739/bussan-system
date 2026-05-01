@@ -37,6 +37,9 @@ export async function getUserSubscription() {
 
 // プランが指定したプラン以上かチェック
 export function hasAccess(userPlan: PlanKey, requiredPlan: PlanKey): boolean {
-  const order: PlanKey[] = ["FREE", "PRO", "BUSINESS"];
-  return order.indexOf(userPlan) >= order.indexOf(requiredPlan);
+  const order: PlanKey[] = ["FREE", "STANDARD", "PRO"];
+  const userIdx = order.indexOf(userPlan);
+  const reqIdx = order.indexOf(requiredPlan);
+  if (userIdx === -1 || reqIdx === -1) return false;
+  return userIdx >= reqIdx;
 }
