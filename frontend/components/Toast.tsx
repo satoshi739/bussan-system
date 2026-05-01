@@ -11,10 +11,11 @@ interface ToastMsg {
   duration: number;
 }
 
-let _addToast: ((msg: string, type: ToastType, duration?: number) => void) | null = null;
+let _toastId = 0;
+const _listeners = new Set<(msg: string, type: ToastType, duration?: number) => void>();
 
 export function toast(message: string, type: ToastType = "success", duration?: number) {
-  _addToast?.(message, type, duration);
+  _listeners.forEach(fn => fn(message, type, duration));
 }
 
 const COLORS: Record<ToastType, { bg: string; border: string; text: string; icon: string }> = {
@@ -39,13 +40,14 @@ export function ToastContainer() {
   }, []);
 
   useEffect(() => {
-    _addToast = (message, type, duration) => {
-      const id = Date.now();
+    const handler = (message: string, type: ToastType, duration?: number) => {
+      const id = ++_toastId;
       const ms = duration ?? DEFAULT_DURATION[type];
       setToasts(prev => [...prev.slice(-4), { id, message, type, duration: ms }]);
       setTimeout(() => remove(id), ms);
     };
-    return () => { _addToast = null; };
+    _listeners.add(handler);
+    return () => { _listeners.delete(handler); };
   }, [remove]);
 
   if (toasts.length === 0) return null;
