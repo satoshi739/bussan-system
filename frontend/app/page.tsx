@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type Dashboard, type Purchase } from "@/lib/api";
 import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, RefreshCw, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Brain } from "lucide-react";
@@ -268,25 +268,24 @@ export default function DashboardPage() {
 
   const isGuest = status === "unauthenticated";
 
-  const loadAll = useCallback(async () => {
-    setLoading(true);
-    try {
-      const d = await getDashboard();
-      setData(d); setError(false); setUpdated(new Date());
-      getStalePurchases(14).then(setStale).catch(() => {});
-      getPurchases({ limit: 5 }).then(setRecent).catch(() => {});
-      getGoal().then(setGoalData).catch(() => {});
-    } catch {
-      setError(true);
-      setData(p => p ?? { stats: { total_purchases: 0, total_invested: 0, total_sold: 0, total_profit: 0 }, monthly_profit: [], status_breakdown: [], platform_breakdown: [] });
-    } finally { setLoading(false); }
-  }, []);
-
   useEffect(() => {
     if (status === "loading") return;
     if (isGuest) { setLoading(false); return; }
-    loadAll();
-  }, [status, isGuest, loadAll]);
+    const doLoad = async () => {
+      setLoading(true);
+      try {
+        const d = await getDashboard();
+        setData(d); setError(false); setUpdated(new Date());
+        getStalePurchases(14).then(setStale).catch(() => {});
+        getPurchases({ limit: 5 }).then(setRecent).catch(() => {});
+        getGoal().then(setGoalData).catch(() => {});
+      } catch {
+        setError(true);
+        setData(p => p ?? { stats: { total_purchases: 0, total_invested: 0, total_sold: 0, total_profit: 0 }, monthly_profit: [], status_breakdown: [], platform_breakdown: [] });
+      } finally { setLoading(false); }
+    };
+    doLoad();
+  }, [status, isGuest]);
 
   const saveGoal = async () => {
     const goalNum = Number(goalInput);
