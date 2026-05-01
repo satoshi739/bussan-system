@@ -73,14 +73,21 @@ export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { data: session } = useSession();
 
-  const handleSubscribe = (paymentLink: string | null, planKey: string) => {
-    if (!paymentLink) return;
+  const handleSubscribe = async (planKey: "STANDARD" | "PRO") => {
     setLoading(planKey);
-    const url = new URL(paymentLink);
-    if (session?.user?.id) {
-      url.searchParams.set("client_reference_id", session.user.id);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planKey }),
+      });
+      if (!res.ok) { setLoading(null); return; }
+      const { url } = await res.json();
+      if (url) window.location.href = url;
+      else setLoading(null);
+    } catch {
+      setLoading(null);
     }
-    window.location.href = url.toString();
   };
 
   return (
@@ -158,7 +165,7 @@ export default function PricingPage() {
             </a>
           </div>
 
-          {/* Standard (PLANS.PRO) */}
+          {/* Standard (PLANS.STANDARD) */}
           <div style={proCard}>
             <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.5)", borderRadius: 20, padding: "4px 16px", fontSize: 12, fontWeight: 800, color: "#D4AF37", whiteSpace: "nowrap" }}>
               おすすめ
@@ -167,10 +174,44 @@ export default function PricingPage() {
               <div style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: 8 }}>
                 <Zap size={18} color="#D4AF37" />
               </div>
+              <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.STANDARD.name}</span>
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <span style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>¥{PLANS.STANDARD.price.toLocaleString()}</span>
+              <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <span style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 20, padding: "2px 10px", fontWeight: 700 }}>
+                🎁 7日間無料トライアル
+              </span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+              {PLANS.STANDARD.features.map((f) => (
+                <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#a8d8b8" }}>
+                  <Check size={14} color="#D4AF37" />
+                  {f}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => handleSubscribe("STANDARD")}
+              disabled={loading === "STANDARD"}
+              style={{ width: "100%", background: loading === "STANDARD" ? "rgba(0,50,20,0.5)" : "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.5)", borderRadius: 10, color: "#D4AF37", padding: "13px", fontSize: 14, fontWeight: 800, cursor: loading === "STANDARD" ? "not-allowed" : "pointer" }}
+            >
+              {loading === "STANDARD" ? "処理中..." : "Standardプランを始める"}
+            </button>
+          </div>
+
+          {/* Pro (PLANS.PRO) */}
+          <div style={card}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <div style={{ background: "rgba(100,180,255,0.07)", border: "1px solid rgba(100,180,255,0.2)", borderRadius: 10, padding: 8 }}>
+                <Building2 size={18} color="#66aaff" />
+              </div>
               <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.PRO.name}</span>
             </div>
             <div style={{ marginBottom: 8 }}>
-              <span style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>¥{PLANS.PRO.price.toLocaleString()}</span>
+              <span style={{ fontSize: 36, fontWeight: 900, color: "#66aaff", fontFamily: "monospace" }}>¥{PLANS.PRO.price.toLocaleString()}</span>
               <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
             </div>
             <div style={{ marginBottom: 20 }}>
@@ -181,51 +222,17 @@ export default function PricingPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
               {PLANS.PRO.features.map((f) => (
                 <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#a8d8b8" }}>
-                  <Check size={14} color="#D4AF37" />
-                  {f}
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => handleSubscribe(PLANS.PRO.priceId, "PRO")}
-              disabled={loading === "PRO"}
-              style={{ width: "100%", background: loading === "PRO" ? "rgba(0,50,20,0.5)" : "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.5)", borderRadius: 10, color: "#D4AF37", padding: "13px", fontSize: 14, fontWeight: 800, cursor: loading === "PRO" ? "not-allowed" : "pointer" }}
-            >
-              {loading === "PRO" ? "処理中..." : "Standardプランを始める"}
-            </button>
-          </div>
-
-          {/* Pro (PLANS.BUSINESS) */}
-          <div style={card}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <div style={{ background: "rgba(100,180,255,0.07)", border: "1px solid rgba(100,180,255,0.2)", borderRadius: 10, padding: 8 }}>
-                <Building2 size={18} color="#66aaff" />
-              </div>
-              <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.BUSINESS.name}</span>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <span style={{ fontSize: 36, fontWeight: 900, color: "#66aaff", fontFamily: "monospace" }}>¥{PLANS.BUSINESS.price.toLocaleString()}</span>
-              <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <span style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 20, padding: "2px 10px", fontWeight: 700 }}>
-                🎁 7日間無料トライアル
-              </span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
-              {PLANS.BUSINESS.features.map((f) => (
-                <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#a8d8b8" }}>
                   <Check size={14} color="#66aaff" />
                   {f}
                 </div>
               ))}
             </div>
             <button
-              onClick={() => handleSubscribe(PLANS.BUSINESS.priceId, "BUSINESS")}
-              disabled={loading === "BUSINESS"}
-              style={{ width: "100%", background: "transparent", border: "1px solid rgba(100,180,255,0.35)", borderRadius: 10, color: "#66aaff", padding: "13px", fontSize: 14, fontWeight: 700, cursor: loading === "BUSINESS" ? "not-allowed" : "pointer" }}
+              onClick={() => handleSubscribe("PRO")}
+              disabled={loading === "PRO"}
+              style={{ width: "100%", background: "transparent", border: "1px solid rgba(100,180,255,0.35)", borderRadius: 10, color: "#66aaff", padding: "13px", fontSize: 14, fontWeight: 700, cursor: loading === "PRO" ? "not-allowed" : "pointer" }}
             >
-              {loading === "BUSINESS" ? "処理中..." : "Proプランを始める"}
+              {loading === "PRO" ? "処理中..." : "Proプランを始める"}
             </button>
           </div>
         </div>
@@ -350,11 +357,11 @@ export default function PricingPage() {
             クレジットカード登録後すぐ開始。期間中に解約すれば費用0円。
           </div>
           <button
-            onClick={() => handleSubscribe(PLANS.PRO.priceId, "CTA")}
-            disabled={loading === "CTA"}
+            onClick={() => handleSubscribe("STANDARD")}
+            disabled={loading !== null}
             style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "2px solid rgba(212,175,55,0.6)", borderRadius: 12, color: "#D4AF37", padding: "16px 40px", fontSize: 16, fontWeight: 900, cursor: "pointer", letterSpacing: "0.02em" }}
           >
-            {loading === "CTA" ? "処理中..." : "Standardプランを7日間無料で試す →"}
+            {loading === "STANDARD" ? "処理中..." : "Standardプランを7日間無料で試す →"}
           </button>
         </div>
 
