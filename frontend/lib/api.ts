@@ -279,6 +279,8 @@ export const getPriceHistory = (keyword: string) =>
 // Settings
 export const getSettings = () =>
   fetch(`${BASE}/api/settings`).then(r => r.ok ? r.json() as Promise<Record<string, string>> : {} as Record<string, string>);
+export const saveSettings = (body: Record<string, unknown>) =>
+  req<void>("/api/settings", { method: "POST", body: JSON.stringify(body) }, 20_000);
 
 // LINE notify
 export const testLineNotify = (token: string) =>

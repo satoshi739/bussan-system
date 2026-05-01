@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSettings, testLineNotify, notifyStale, notifyDaily, getSourceSyncSettings, saveSourceSyncSettings, runSourceSyncNow } from "@/lib/api";
+import { getSettings, saveSettings, testLineNotify, notifyStale, notifyDaily, getSourceSyncSettings, saveSourceSyncSettings, runSourceSyncNow } from "@/lib/api";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 import { Bell, Send, AlertTriangle, Key, Globe, RefreshCw, Sparkles, Truck, ChevronDown, ChevronUp } from "lucide-react";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
 const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 14, width: "100%", outline: "none", fontFamily: "monospace", boxSizing: "border-box" };
 const lbl: React.CSSProperties = { fontSize: 12, color: "#8A8278", fontWeight: 600, display: "block", marginBottom: 6 };
@@ -122,17 +121,13 @@ export default function SettingsPage() {
   const saveSyncSettings = async () => {
     setSyncSaving(true);
     try {
-      await fetch(`${BASE}/api/settings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          yahoo_app_id: yahooAppId.trim(),
-          yahoo_secret: yahooSecret.trim(),
-          yahoo_access_token: yahooAccessToken.trim(),
-          mercari_token: mercariToken.trim(),
-          rakuma_token: rakumaToken.trim(),
-          paypay_token: paypayToken.trim(),
-        }),
+      await saveSettings({
+        yahoo_app_id: yahooAppId.trim(),
+        yahoo_secret: yahooSecret.trim(),
+        yahoo_access_token: yahooAccessToken.trim(),
+        mercari_token: mercariToken.trim(),
+        rakuma_token: rakumaToken.trim(),
+        paypay_token: paypayToken.trim(),
       });
       setSyncSaved(true);
       toast("在庫連携 API を保存しました ✅");
@@ -174,17 +169,13 @@ export default function SettingsPage() {
   const saveApiSettings = async () => {
     setApiSaving(true);
     try {
-      await fetch(`${BASE}/api/settings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          anthropic_api_key: anthropicKey.trim(),
-          ebay_app_id: ebayAppId.trim(),
-          amazon_refresh_token: amazonRefreshToken.trim(),
-          amazon_lwa_client_id: amazonLwaClientId.trim(),
-          amazon_lwa_client_secret: amazonLwaClientSecret.trim(),
-          usd_jpy: usdJpy,
-        }),
+      await saveSettings({
+        anthropic_api_key: anthropicKey.trim(),
+        ebay_app_id: ebayAppId.trim(),
+        amazon_refresh_token: amazonRefreshToken.trim(),
+        amazon_lwa_client_id: amazonLwaClientId.trim(),
+        amazon_lwa_client_secret: amazonLwaClientSecret.trim(),
+        usd_jpy: usdJpy,
       });
       setApiSaved(true);
       toast("API設定を保存しました ✅");
