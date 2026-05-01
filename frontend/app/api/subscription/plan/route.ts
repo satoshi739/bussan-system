@@ -4,17 +4,16 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ plan: "FREE" });
+  if (!session?.user?.id) {
+    return NextResponse.json({ plan: "FREE", status: "INACTIVE" }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { subscription: true },
+  const sub = await prisma.subscription.findUnique({
+    where: { userId: session.user.id },
   });
 
   return NextResponse.json({
-    plan: user?.subscription?.plan ?? "FREE",
-    status: user?.subscription?.status ?? "INACTIVE",
+    plan: sub?.plan ?? "FREE",
+    status: sub?.status ?? "INACTIVE",
   });
 }
