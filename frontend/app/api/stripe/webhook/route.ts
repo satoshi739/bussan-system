@@ -68,6 +68,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId ?? session.client_reference_id ?? null;
   if (!userId) return;
 
+  if (!session.subscription) {
+    console.log("[webhook] checkout.session.completed: no subscription (mode != subscription), skipping");
+    return;
+  }
+
   const stripeSubId = session.subscription as string;
   const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
   const priceId = stripeSub.items.data[0].price.id;
@@ -134,8 +139,8 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 function getPlanFromPriceId(priceId: string) {
+  if (priceId === process.env.STRIPE_STANDARD_PRICE_ID) return "STANDARD" as const;
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "PRO" as const;
-  if (priceId === process.env.STRIPE_BUSINESS_PRICE_ID) return "BUSINESS" as const;
   return "FREE" as const;
 }
 
