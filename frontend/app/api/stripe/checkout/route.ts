@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { stripe, PLANS } from "@/lib/stripe";
+import { stripe, PRICE_IDS } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import type { PlanKey } from "@/lib/plans";
 
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const planKey = body.planKey as PlanKey | undefined;
-  const priceId = planKey ? PLANS[planKey]?.priceId : (body.priceId as string | undefined);
+  const priceId = planKey ? PRICE_IDS[planKey] : (body.priceId as string | undefined);
   if (!priceId) {
     return NextResponse.json({ error: "priceId required" }, { status: 400 });
   }
