@@ -58,7 +58,7 @@ export const createListing = (body: ListingCreate) =>
 
 // Sales
 export const getSales = () => req<Sale[]>("/api/sales");
-export const createSaleSImple = (body: SimpleSaleCreate) =>
+export const createSaleSimple = (body: SimpleSaleCreate) =>
   req<{ net_profit: number; monthly_profit: number }>("/api/sales/simple", { method: "POST", body: JSON.stringify(body) });
 
 // Calc

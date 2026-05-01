@@ -252,8 +252,8 @@ export default function PurchasesPage() {
     if (!quickSell || !sellPrice) { toast("売却価格を入力してください", "error"); return; }
     setLoading(true);
     try {
-      const { createSaleSImple } = await import("@/lib/api");
-      const res = await createSaleSImple({
+      const { createSaleSimple } = await import("@/lib/api");
+      const res = await createSaleSimple({
         purchase_id: quickSell.id, sale_price: Number(sellPrice), sell_platform: sellPlatform,
       });
       setSellResult(res);
@@ -365,7 +365,7 @@ export default function PurchasesPage() {
             </span>
           </div>
           <Link href="/pricing" style={{ fontSize: 12, color: "#D4AF37", fontWeight: 700, textDecoration: "none", background: "rgba(0,60,20,0.8)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 6, padding: "5px 12px", flexShrink: 0 }}>
-            プロにアップグレード →
+            Standardプランへアップグレード →
           </Link>
         </div>
       )}

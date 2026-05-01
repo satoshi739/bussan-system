@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getListings, getPurchases, createListing, createSaleSImple, calcAllPlatforms, type Listing, type Purchase } from "@/lib/api";
+import { getListings, getPurchases, createListing, createSaleSimple, calcAllPlatforms, type Listing, type Purchase } from "@/lib/api";
 import { Plus, DollarSign, X, Tag, TrendingUp, Zap } from "lucide-react";
 import { toast } from "@/components/Toast";
 
@@ -108,7 +108,7 @@ export default function ListingsPage() {
     if (!sellModal || !sellPrice) { toast("売却価格を入力してください", "error"); return; }
     setLoading(true);
     try {
-      const res = await createSaleSImple({ purchase_id: sellModal.purchase_id, sale_price: Number(sellPrice), sell_platform: sellPlatform });
+      const res = await createSaleSimple({ purchase_id: sellModal.purchase_id, sale_price: Number(sellPrice), sell_platform: sellPlatform });
       toast(`売却完了！純利益 ¥${Math.round(res.net_profit).toLocaleString()}`);
       setSellModal(null); setSellPrice(""); setSellComparison(null); load();
     } catch { toast("売却記録に失敗しました", "error"); }
