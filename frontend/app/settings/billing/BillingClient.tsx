@@ -14,14 +14,14 @@ const card: React.CSSProperties = {
 
 const PLAN_ICONS: Record<string, React.ElementType> = {
   FREE: Gift,
-  PRO: Zap,
-  BUSINESS: Building2,
+  STANDARD: Zap,
+  PRO: Building2,
 };
 
 const PLAN_COLORS: Record<string, string> = {
   FREE: "#8A8278",
-  PRO: "#D4AF37",
-  BUSINESS: "#66aaff",
+  STANDARD: "#D4AF37",
+  PRO: "#66aaff",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -67,10 +67,21 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
     }
   };
 
-  const handleUpgrade = (paymentLink: string | null, planKey: string) => {
-    if (!paymentLink) return;
+  const handleUpgrade = async (planKey: string) => {
     setUpgradeLoading(planKey);
-    window.location.href = paymentLink;
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planKey }),
+      });
+      if (!res.ok) { setUpgradeLoading(null); return; }
+      const { url } = await res.json();
+      if (url) window.location.href = url;
+      else setUpgradeLoading(null);
+    } catch {
+      setUpgradeLoading(null);
+    }
   };
 
   return (
@@ -187,8 +198,8 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
                   </span>
                 ) : key !== "FREE" && p.priceId ? (
                   <button
-                    onClick={() => handleUpgrade(p.priceId, key)}
-                    disabled={upgradeLoading === key}
+                    onClick={() => handleUpgrade(key)}
+                    disabled={upgradeLoading !== null}
                     style={{
                       background: "rgba(0,40,15,0.8)",
                       border: `1px solid ${color}40`,
