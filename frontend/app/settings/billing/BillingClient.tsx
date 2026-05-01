@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreditCard, Zap, Building2, Gift, Check, ExternalLink, AlertCircle } from "lucide-react";
 import type { PLANS, PlanKey } from "@/lib/stripe";
 import Link from "next/link";
@@ -44,13 +44,12 @@ interface Props {
 export default function BillingClient({ plan, status, currentPeriodEnd, hasStripeCustomer, plans, email }: Props) {
   const [portalLoading, setPortalLoading] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("success") === "true";
-    }
-    return false;
-  });
+  const [successMsg, setSuccessMsg] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setSuccessMsg(params.get("success") === "true");
+  }, []);
 
   const PlanIcon = PLAN_ICONS[plan] ?? Gift;
   const planColor = PLAN_COLORS[plan] ?? "#8A8278";
