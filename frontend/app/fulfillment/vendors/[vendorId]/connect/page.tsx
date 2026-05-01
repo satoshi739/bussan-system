@@ -128,6 +128,12 @@ export default function VendorConnectPage() {
     }
   }, [isNew, vendorId]);
 
+  useEffect(() => {
+    if (isNew && !preset) {
+      router.replace("/fulfillment/vendors");
+    }
+  }, [isNew, preset, router]);
+
   const upd = (key: keyof typeof form, val: string) =>
     setForm(n => ({ ...n, [key]: val }));
 
@@ -196,6 +202,8 @@ export default function VendorConnectPage() {
   };
 
   const STEPS = ["概要", "認証情報", "テスト・有効化"];
+
+  if (isNew && !preset) return null;
 
   return (
     <div style={{ maxWidth: 680, margin: "0 auto" }}>
