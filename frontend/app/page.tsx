@@ -289,9 +289,19 @@ export default function DashboardPage() {
   }, [status, isGuest, loadAll]);
 
   const saveGoal = async () => {
-    await setGoal(Number(goalInput));
-    const g = await getGoal();
-    setGoalData(g); setEditGoal(false);
+    const goalNum = Number(goalInput);
+    if (!goalInput || isNaN(goalNum) || goalNum <= 0) return;
+    try {
+      await setGoal(goalNum);
+      setGoalData(prev => prev
+        ? { ...prev, goal: goalNum }
+        : { month: "", goal: goalNum, current_profit: 0 }
+      );
+      setEditGoal(false);
+    } catch (err) {
+      console.error("[goal] setGoal failed:", err);
+      // TODO: ユーザーへのエラー通知 (toast 等)
+    }
   };
 
   // data wiring
