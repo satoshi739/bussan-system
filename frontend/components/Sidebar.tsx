@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, startTransition } from "react";
+import { useEffect, useState } from "react";
 import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
 
 const GROUP_LABEL = "#6A6058";
 
-const PLAN_LABELS: Record<string, string> = { FREE: "フリー", PRO: "Standard", BUSINESS: "Pro" };
-const PLAN_COLORS: Record<string, string> = { FREE: T.t3, PRO: T.gold, BUSINESS: T.goldLt };
+const PLAN_LABELS: Record<string, string> = { FREE: "フリー", STANDARD: "Standard", PRO: "Pro" };
+const PLAN_COLORS: Record<string, string> = { FREE: T.t3, STANDARD: T.gold, PRO: T.goldLt };
 
 const navGroups = [
   {
@@ -78,15 +79,10 @@ const BOTTOM_TABS = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [plan,       setPlan]       = useState<string>("FREE");
+  const { plan } = usePlan();
   const [mobileMenu, setMobileMenu] = useState(false);
 
-  useEffect(() => {
-    if (!session?.user) return;
-    fetch("/api/subscription/plan").then(r => r.json()).then(d => setPlan(d.plan ?? "FREE")).catch(() => {});
-  }, [session]);
-
-  useEffect(() => { startTransition(() => setMobileMenu(false)); }, [pathname]);
+  useEffect(() => { setMobileMenu(false); }, [pathname]);
 
   const sidebarContent = (
     <aside style={{
