@@ -58,7 +58,11 @@ export function useChecklist() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(CHECKLIST_KEY);
-      if (saved) startTransition(() => setItems(JSON.parse(saved)));
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // TODO: 配列要素の shape 検証 ({ id, label, done }) も将来的に追加
+        if (Array.isArray(parsed)) startTransition(() => setItems(parsed));
+      }
     } catch { /* ignore */ }
   }, []);
 
