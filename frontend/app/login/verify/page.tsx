@@ -1,6 +1,10 @@
 import { Mail } from "lucide-react";
 
-export default function VerifyPage() {
+type Props = { searchParams: Promise<{ email?: string }> };
+
+export default async function VerifyPage({ searchParams }: Props) {
+  const { email } = await searchParams;
+
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0a0a0b" }}>
       <div style={{
@@ -22,6 +26,9 @@ export default function VerifyPage() {
         </div>
         <div style={{ fontSize: 14, color: "#8A8278", lineHeight: 1.9 }}>
           ログインリンクをメールで送信しました。<br />
+          {email && (
+            <><strong style={{ color: "#D4AF37" }}>{email}</strong><br /></>
+          )}
           メール内のリンクをクリックして<br />
           ログインしてください。
         </div>
