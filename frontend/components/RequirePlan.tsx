@@ -2,15 +2,17 @@
 
 import { Loader } from "lucide-react";
 import { usePlan } from "@/lib/usePlan";
+import PlanGate from "@/components/PlanGate";
+import type { PlanKey } from "@/lib/stripe";
 
 interface Props {
-  requiredPlan: string;
+  requiredPlan: PlanKey;
   featureName?: string;
   children: React.ReactNode;
 }
 
-export default function RequirePlan({ requiredPlan: _r, featureName: _f, children }: Props) {
-  const { loading } = usePlan();
+export default function RequirePlan({ requiredPlan, featureName, children }: Props) {
+  const { plan, loading } = usePlan();
 
   if (loading) {
     return (
@@ -20,6 +22,9 @@ export default function RequirePlan({ requiredPlan: _r, featureName: _f, childre
     );
   }
 
-  // TODO: 本番リリース時にプランチェックを有効化する
-  return <>{children}</>;
+  return (
+    <PlanGate userPlan={plan} requiredPlan={requiredPlan} featureName={featureName}>
+      {children}
+    </PlanGate>
+  );
 }
