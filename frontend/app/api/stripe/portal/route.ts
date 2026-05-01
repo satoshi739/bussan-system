@@ -17,10 +17,19 @@ export async function POST() {
     return NextResponse.json({ error: "No subscription found" }, { status: 404 });
   }
 
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: sub.stripeCustomerId,
-    return_url: `${process.env.NEXTAUTH_URL}/settings/billing`,
-  });
+  try {
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: sub.stripeCustomerId,
+      return_url: `${process.env.NEXTAUTH_URL}/settings/billing`,
+    });
 
-  return NextResponse.json({ url: portalSession.url });
+    return NextResponse.json({ url: portalSession.url });
+  } catch (err) {
+    console.error("[stripe] billingPortal.sessions.create failed:", err);
+    // TODO: BillingClient.tsx の handlePortal でエラーレスポンスをユーザーに表示する
+    return NextResponse.json(
+      { error: "請求ポータルの起動に失敗しました" },
+      { status: 500 }
+    );
+  }
 }
