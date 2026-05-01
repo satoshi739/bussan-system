@@ -31,6 +31,11 @@ export async function POST(req: NextRequest) {
         await handleCheckoutCompleted(session);
         break;
       }
+      case "customer.subscription.created": {
+        const sub = event.data.object as Stripe.Subscription;
+        await handleSubscriptionCreated(sub);
+        break;
+      }
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
         await handleSubscriptionUpdated(sub);
@@ -99,6 +104,44 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       currentPeriodEnd: periodEnd,
     },
   });
+}
+
+async function handleSubscriptionCreated(sub: Stripe.Subscription) {
+  const userId = sub.metadata?.userId ?? null;
+  const priceId = sub.items.data[0].price.id;
+  const plan = getPlanFromPriceId(priceId);
+  const status = mapStripeStatus(sub.status);
+  const periodEnd = getPeriodEnd(sub);
+
+  if (userId) {
+    // checkout.session.completed より先に届いた場合に備えて upsert
+    await prisma.subscription.upsert({
+      where: { userId },
+      create: {
+        userId,
+        stripeCustomerId: sub.customer as string,
+        stripeSubscriptionId: sub.id,
+        stripePriceId: priceId,
+        plan,
+        status,
+        currentPeriodEnd: periodEnd,
+      },
+      update: {
+        stripeCustomerId: sub.customer as string,
+        stripeSubscriptionId: sub.id,
+        stripePriceId: priceId,
+        plan,
+        status,
+        currentPeriodEnd: periodEnd,
+      },
+    });
+  } else {
+    // metadata に userId がない場合は既存行を更新するだけ
+    await prisma.subscription.updateMany({
+      where: { stripeSubscriptionId: sub.id },
+      data: { plan, status, stripePriceId: priceId, currentPeriodEnd: periodEnd },
+    });
+  }
 }
 
 async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
