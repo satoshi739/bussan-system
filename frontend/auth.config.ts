@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 
-const PUBLIC_PATHS = ["/login", "/pricing", "/api/auth", "/api/stripe/webhook"];
+const PUBLIC_PATHS = ["/login", "/pricing", "/deals", "/api/auth", "/api/stripe/webhook"];
 
 /**
  * Edge Runtime でも動くライトウェイトな設定
