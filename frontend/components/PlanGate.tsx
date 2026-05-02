@@ -11,12 +11,12 @@ interface Props {
   featureName?: string;
 }
 
-const PLAN_ORDER: PlanKey[] = ["FREE", "PRO", "BUSINESS"];
+const PLAN_ORDER: PlanKey[] = ["FREE", "STANDARD", "PRO"];
 
 const PLAN_LABELS: Record<PlanKey, string> = {
   FREE: "フリー",
-  PRO: "プロ",
-  BUSINESS: "ビジネス",
+  STANDARD: "Standard",
+  PRO: "Pro",
 };
 
 export default function PlanGate({ userPlan, requiredPlan, children, featureName }: Props) {

@@ -1,4 +1,4 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE = "/api/proxy";
 
 async function req<T>(path: string, options?: RequestInit, timeoutMs = 5000): Promise<T> {
   const controller = new AbortController();

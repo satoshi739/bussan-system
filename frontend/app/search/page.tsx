@@ -576,7 +576,7 @@ function SearchPageContent() {
 
 export default function SearchPage() {
   return (
-    <RequirePlan requiredPlan="PRO" featureName="相場検索">
+    <RequirePlan requiredPlan="STANDARD" featureName="相場検索">
       <SearchPageContent />
     </RequirePlan>
   );

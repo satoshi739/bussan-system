@@ -542,7 +542,7 @@ function GlobalPageContent() {
 
 export default function GlobalPage() {
   return (
-    <RequirePlan requiredPlan="PRO" featureName="グローバル検索">
+    <RequirePlan requiredPlan="STANDARD" featureName="グローバル検索">
       <GlobalPageContent />
     </RequirePlan>
   );

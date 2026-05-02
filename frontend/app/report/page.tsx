@@ -446,7 +446,7 @@ function MonthlyTab() {
 
 export default function ReportPage() {
   return (
-    <RequirePlan requiredPlan="PRO" featureName="レポート・分析">
+    <RequirePlan requiredPlan="STANDARD" featureName="レポート・分析">
       <ReportPageContent />
     </RequirePlan>
   );

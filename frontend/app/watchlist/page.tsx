@@ -138,7 +138,7 @@ function WatchlistPageContent() {
 
 export default function WatchlistPage() {
   return (
-    <RequirePlan requiredPlan="PRO" featureName="ウォッチリスト">
+    <RequirePlan requiredPlan="STANDARD" featureName="ウォッチリスト">
       <WatchlistPageContent />
     </RequirePlan>
   );
