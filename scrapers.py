@@ -34,8 +34,13 @@ HEADERS_SP = {
 def _get_settings() -> Dict:
     try:
         from database import Database
-        return Database().get_settings()
-    except Exception:
+        db = Database()
+        try:
+            return db.get_settings()
+        finally:
+            db.close()
+    except Exception as e:
+        logger.warning(f"設定読み込み失敗: {e}")
         return {}
 
 
