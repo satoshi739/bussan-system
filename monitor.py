@@ -122,8 +122,11 @@ def check_stale_inventory():
 
         lines = [f"\n⚠️ 【売れ残り警告】30日以上経過した在庫が{len(stale)}件あります\n"]
         for row in stale[:5]:
-            days_held = (datetime.now() - datetime.strptime(row[2], "%Y-%m-%d")).days
-            lines.append(f"・{row[0][:20]} (¥{row[1]:,.0f} / {days_held}日経過)")
+            purchase_date = row["purchase_date"]
+            if isinstance(purchase_date, str):
+                purchase_date = datetime.strptime(purchase_date, "%Y-%m-%d").date()
+            days_held = (datetime.now().date() - purchase_date).days
+            lines.append(f"・{row['product_name'][:20]} (¥{row['purchase_price']:,.0f} / {days_held}日経過)")
 
         if len(stale) > 5:
             lines.append(f"…他{len(stale)-5}件")
@@ -162,28 +165,32 @@ def weekly_report():
 
         # 週間仕入れ
         purchases = db.conn.execute(
-            "SELECT COUNT(*), COALESCE(SUM(purchase_price), 0) FROM purchases WHERE purchase_date >= ?",
+            "SELECT COUNT(*) as purchase_count, COALESCE(SUM(purchase_price), 0) as purchase_total"
+            " FROM purchases WHERE purchase_date >= ?",
             (since,)
         ).fetchone()
 
         # エージェントの活動
         sessions = db.conn.execute(
-            "SELECT COUNT(*), COALESCE(SUM(queued_count), 0), COALESCE(SUM(scanned_count), 0) FROM agent_sessions WHERE created_at >= ?",
+            "SELECT COUNT(*) as session_count,"
+            " COALESCE(SUM(queued_count), 0) as queued_total,"
+            " COALESCE(SUM(scanned_count), 0) as scanned_total"
+            " FROM agent_sessions WHERE created_at >= ?",
             (since,)
         ).fetchone()
 
         # 承認キュー
         pending = db.conn.execute(
-            "SELECT COUNT(*) FROM agent_approval_queue WHERE status = 'pending'"
-        ).fetchone()[0]
+            "SELECT COUNT(*) as pending_count FROM agent_approval_queue WHERE status = 'pending'"
+        ).fetchone()["pending_count"]
 
         msg = (
             f"\n📊 【週次レポート】{since} 〜 今日\n\n"
-            f"💰 売上: {sales[0]}件 / 利益 ¥{sales[1]:,.0f} / 平均利益率 {sales[2]:.1f}%\n"
-            f"🛒 仕入れ: {purchases[0]}件 / ¥{purchases[1]:,.0f}\n"
-            f"🤖 AIスキャン: {sessions[0]}回 / {sessions[2]}件スキャン / {sessions[1]}件候補発見\n"
+            f"💰 売上: {sales['count']}件 / 利益 ¥{sales['total_profit']:,.0f} / 平均利益率 {sales['avg_rate']:.1f}%\n"
+            f"🛒 仕入れ: {purchases['purchase_count']}件 / ¥{purchases['purchase_total']:,.0f}\n"
+            f"🤖 AIスキャン: {sessions['session_count']}回 / {sessions['scanned_total']}件スキャン / {sessions['queued_total']}件候補発見\n"
             f"⏳ 承認待ち: {pending}件\n\n"
-            f"{'✅ 好調です！この調子で続けましょう' if sales[2] >= 25 else '📈 利益率改善の余地あり。仕入れ単価を見直しましょう'}"
+            f"{'✅ 好調です！この調子で続けましょう' if sales['avg_rate'] >= 25 else '📈 利益率改善の余地あり。仕入れ単価を見直しましょう'}"
         )
 
         _send_line(line_token, msg)
