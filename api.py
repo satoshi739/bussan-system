@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security.api_key import APIKeyHeader
@@ -44,7 +44,11 @@ _SKIP_AUTH = _os.environ.get("SKIP_AUTH", "false").lower() == "true"
 _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-async def _verify_key(key: Optional[str] = Security(_api_key_header)):
+_PUBLIC_PATHS = {"/health", "/healthz", "/ping", "/docs", "/openapi.json", "/redoc"}
+
+async def _verify_key(request: Request, key: Optional[str] = Security(_api_key_header)):
+    if request.url.path in _PUBLIC_PATHS:
+        return
     if _SKIP_AUTH:
         return
     if not _INTERNAL_API_KEY or key != _INTERNAL_API_KEY:
@@ -56,12 +60,20 @@ app = FastAPI(title="物販チェッカー API", dependencies=[Depends(_verify_k
 
 @app.on_event("startup")
 async def _startup():
-    """サーバー起動時にバックグラウンド監視スレッドを開始する"""
+    import sys as _sys
+    print(f"[Startup] Python {_sys.version}")
+    print(f"[Startup] SKIP_AUTH={_SKIP_AUTH}, HAS_API_KEY={bool(_INTERNAL_API_KEY)}")
+    try:
+        import psycopg2 as _pg
+        print("[Startup] psycopg2 OK")
+    except ImportError:
+        print("[Startup] psycopg2 NOT installed — DB unavailable until installed")
     try:
         import monitor
         monitor.start()
+        print("[Startup] Monitor started OK")
     except Exception as e:
-        print(f"[Monitor] 起動失敗（無視して続行）: {e}")
+        print(f"[Startup] Monitor skip: {e}")
 
 
 @app.on_event("shutdown")
@@ -90,6 +102,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 
 @app.get("/sentry-test")
