@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Check, X, Zap, Building2, Gift, ChevronDown, ChevronUp } from "lucide-react";
 import { PLANS } from "@/lib/stripe";
+import { toast } from "@/components/Toast";
 
 const card: React.CSSProperties = {
   background: "rgba(20,20,22,0.9)",
@@ -81,11 +82,17 @@ export default function PricingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planKey }),
       });
-      if (!res.ok) { setLoading(null); return; }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast((data as { error?: string }).error ?? "決済ページを開けませんでした。再度お試しください。", "error");
+        setLoading(null);
+        return;
+      }
       const { url } = await res.json();
       if (url) window.location.href = url;
       else setLoading(null);
     } catch {
+      toast("ネットワークエラーが発生しました。再度お試しください。", "error");
       setLoading(null);
     }
   };
