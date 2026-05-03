@@ -1131,7 +1131,7 @@ function ScannerPageContent() {
 
 export default function ScannerPage() {
   return (
-    <RequirePlan requiredPlan="STANDARD" featureName="利益スキャナー">
+    <RequirePlan requiredPlan="FREE" featureName="利益スキャナー">
       <ScannerPageContent />
     </RequirePlan>
   );
