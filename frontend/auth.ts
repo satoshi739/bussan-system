@@ -20,11 +20,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+      }
+      const ROLE_TTL = 5 * 60 * 1000;
+      const shouldRefresh = !token.roleCheckedAt || Date.now() - (token.roleCheckedAt as number) > ROLE_TTL;
+      if (token.id && shouldRefresh) {
         const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
+          where: { id: token.id as string },
           select: { role: true },
         });
         token.role = dbUser?.role ?? "USER";
+        token.roleCheckedAt = Date.now();
       }
       return token;
     },
