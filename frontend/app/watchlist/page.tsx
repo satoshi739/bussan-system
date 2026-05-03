@@ -22,7 +22,7 @@ function WatchlistPageContent() {
   const [sellPriceInputs, setSellPriceInputs] = useState<Record<string, string>>({});
 
   const load = () => {
-    getWatchlist().catch(() => []).then(data => setItems(data));
+    getWatchlist().then(data => setItems(data)).catch(() => {});
   };
   useEffect(() => { load(); }, []);
 
