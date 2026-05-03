@@ -112,7 +112,8 @@ def check_stale_inventory():
         stale = db.conn.execute("""
             SELECT p.product_name, p.purchase_price, p.purchase_date, p.platform
             FROM purchases p
-            WHERE p.purchase_date <= ?
+            WHERE p.purchase_date IS NOT NULL
+              AND p.purchase_date <= ?
               AND p.status NOT IN ('sold', 'returned')
             ORDER BY p.purchase_date ASC
             LIMIT 10
@@ -127,7 +128,9 @@ def check_stale_inventory():
             if isinstance(purchase_date, str):
                 purchase_date = datetime.strptime(purchase_date, "%Y-%m-%d").date()
             days_held = (datetime.now().date() - purchase_date).days
-            lines.append(f"・{row['product_name'][:20]} (¥{row['purchase_price']:,.0f} / {days_held}日経過)")
+            price = row["purchase_price"]
+            price_str = f"¥{price:,.0f}" if price is not None else "不明"
+            lines.append(f"・{row['product_name'][:20]} ({price_str} / {days_held}日経過)")
 
         if len(stale) > 5:
             lines.append(f"…他{len(stale)-5}件")
