@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getListings, getPurchases, createListing, createSaleSimple, calcAllPlatforms, type Listing, type Purchase } from "@/lib/api";
+import { getListings, getPurchases, createListing, createSaleSimple, calcAllPlatforms, type Listing, type ListingCreate, type Purchase } from "@/lib/api";
 import { Plus, DollarSign, X, Tag, TrendingUp, Zap } from "lucide-react";
 import { toast } from "@/components/Toast";
 
@@ -79,7 +79,7 @@ export default function ListingsPage() {
     try {
       const purchase = purchases.find(p => p.id === Number(form.purchase_id));
       const autoSku = generateSku(purchase?.product_name ?? "PROD", form.purchase_id);
-      await createListing({
+      const body: ListingCreate = {
         purchase_id: Number(form.purchase_id),
         selling_platform: form.selling_platform,
         listing_price: Number(form.listing_price),
@@ -88,7 +88,8 @@ export default function ListingsPage() {
         category: form.category,
         listed_date: form.listed_date,
         asin: form.asin || undefined,
-      } as Parameters<typeof createListing>[0]);
+      };
+      await createListing(body);
       toast(`出品を追加しました ✅ SKU: ${autoSku}`);
       setForm(emptyForm); setShowForm(false); setFormComparison(null); load();
     } catch { toast("保存に失敗しました", "error"); }
