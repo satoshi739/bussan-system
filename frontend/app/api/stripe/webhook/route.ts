@@ -209,7 +209,7 @@ function getPlanFromPriceId(priceId: string) {
   }
   if (priceId === process.env.STRIPE_STANDARD_PRICE_ID) return "STANDARD" as const;
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "PRO" as const;
-  return "FREE" as const;
+  throw new Error(`Unknown priceId: ${priceId}`);
 }
 
 function mapStripeStatus(status: Stripe.Subscription.Status) {
