@@ -174,6 +174,7 @@ function SearchPageContent() {
 
   // 国内相場 state
   const [domLoading, setDomLoading] = useState(false);
+  const [domError, setDomError] = useState("");
   const [results, setResults] = useState<MarketResult[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [history, setHistory] = useState<HistoryRow[]>([]);
@@ -236,12 +237,15 @@ function SearchPageContent() {
   const doDomSearch = useCallback(async (kw: string) => {
     if (!kw.trim()) return;
     setDomLoading(true);
+    setDomError("");
     setMaxPrice(null);
     try {
       const [market, hist] = await Promise.all([searchMarket(kw, 10), getPriceHistory(kw)]);
       setResults(market.results);
       setStats(market.stats);
       setHistory(hist);
+    } catch {
+      setDomError("検索に失敗しました。APIサーバーが起動しているか確認してください。");
     } finally {
       setDomLoading(false);
     }
@@ -360,6 +364,7 @@ function SearchPageContent() {
       {/* ══ 国内相場タブ ══ */}
       {tab === "domestic" && (
         <>
+          {domError && <div style={{ ...card, borderColor: "rgba(255,80,80,0.3)", color: "#ff6644", marginBottom: 20 }}>{domError}</div>}
           {stats && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 20 }}>
               {[
