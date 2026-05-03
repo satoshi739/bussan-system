@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function RequirePlan({ requiredPlan, featureName, children }: Props) {
-  const { plan, loading } = usePlan();
+  const { plan, loading, error } = usePlan();
 
   if (loading) {
     return (
@@ -20,6 +20,11 @@ export default function RequirePlan({ requiredPlan, featureName, children }: Pro
         <Loader size={22} color="#8A8278" style={{ animation: "spin 1s linear infinite" }} />
       </div>
     );
+  }
+
+  // プラン取得エラー時は機能制限せずそのままアクセスを許可する
+  if (error) {
+    return <>{children}</>;
   }
 
   return (
