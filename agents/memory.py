@@ -37,6 +37,7 @@ class AgentMemory:
             INSERT INTO agent_memory
             (agent_name, memory_type, title, content, tags, importance, expires_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
+            RETURNING id
         """, (self.agent_name, memory_type, title, content, tags_json, importance, expires_at))
         self.db.conn.commit()
         return cursor.lastrowid
