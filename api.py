@@ -24,7 +24,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security,
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security.api_key import APIKeyHeader
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict
 from datetime import date
 import os as _os
@@ -41,7 +41,7 @@ from database import Database
 from calculators import calculate_profit, find_breakeven_price, max_purchase_price, SELLING_PLATFORMS, CATEGORIES
 
 _INTERNAL_API_KEY = _os.environ.get("INTERNAL_API_KEY", "")
-_SKIP_AUTH = _os.environ.get("SKIP_AUTH", "false").lower() == "true"
+_SKIP_AUTH = _os.environ.get("SKIP_AUTH", "false").lower() in ("true", "1", "yes")
 _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
@@ -483,9 +483,24 @@ def get_settings():
             masked[k] = v
     return masked
 
+class SettingsUpdate(BaseModel):
+    line_token: Optional[str] = None
+    ebay_app_id: Optional[str] = None
+    ebay_cert_id: Optional[str] = None
+    anthropic_api_key: Optional[str] = None
+    auto_scan_enabled: Optional[bool] = None
+    auto_scan_interval_min: Optional[int] = Field(None, ge=5, le=1440)
+    source_sync_enabled: Optional[bool] = None
+    source_sync_interval_min: Optional[int] = Field(None, ge=5, le=1440)
+    watchlist: Optional[list] = None
+    usd_jpy: Optional[float] = Field(None, gt=0, lt=10000)
+    php_jpy: Optional[float] = Field(None, gt=0, lt=10000)
+    monthly_budget: Optional[float] = Field(None, ge=0)
+
 @app.post("/api/settings")
-def save_settings(body: dict):
-    db.save_settings(body)
+def save_settings(body: SettingsUpdate):
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    db.save_settings(data)
     return {"ok": True}
 
 
@@ -1472,8 +1487,11 @@ def quick_purchase_and_list(body: QuickPurchaseAndListRequest):
         body.condition,
         body.image_url,
     ))
-    purchase_id = cursor.lastrowid
+    row = cursor.fetchone()
+    purchase_id = row["id"] if row else None
     db.conn.commit()
+    if not purchase_id:
+        raise HTTPException(status_code=500, detail="購入記録の作成に失敗しました")
 
     # 2. 販売価格を計算（指定なしなら推奨価格）
     pf = GLOBAL_PLATFORMS.get(body.sell_platform, {})
@@ -1703,6 +1721,13 @@ def _generate_listing_deeplinks(
 class ImageIdentifyRequest(BaseModel):
     image_data: str   # base64 or data URL
     media_type: str = "image/jpeg"
+
+    @field_validator("image_data")
+    @classmethod
+    def check_size(cls, v: str) -> str:
+        if len(v) > 10_000_000:  # 約7.5MB
+            raise ValueError("画像サイズが大きすぎます（最大7.5MB）")
+        return v
 
 _CLAUDE_VISION_MONTHLY_LIMIT = 200   # 月200回まで
 
@@ -1981,6 +2006,36 @@ def _send_source_sync_alert(message: str):
         _send_line(token, message)
 
 
+def _is_safe_url(url: str) -> bool:
+    """SSRF 対策: 許可ドメイン以外・プライベートIPへのアクセスをブロック"""
+    import ipaddress
+    from urllib.parse import urlparse
+    _ALLOWED_HOSTS = {
+        "yahoo.co.jp", "auctions.yahoo.co.jp", "page.auctions.yahoo.co.jp",
+        "mercari.com", "jp.mercari.com", "rakuma.jp",
+        "amazon.co.jp", "www.amazon.co.jp",
+        "ebay.com", "www.ebay.com",
+        "shopee.sg", "shopee.com",
+        "lazada.sg", "lazada.com",
+    }
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return False
+        host = parsed.hostname or ""
+        if host in ("169.254.169.254", "metadata.google.internal", "localhost", "127.0.0.1"):
+            return False
+        try:
+            addr = ipaddress.ip_address(host)
+            if addr.is_private or addr.is_loopback or addr.is_link_local:
+                return False
+        except ValueError:
+            pass
+        return any(host == h or host.endswith("." + h) for h in _ALLOWED_HOSTS)
+    except Exception:
+        return False
+
+
 def run_source_sync_once() -> Dict:
     """
     仕入れ元在庫/価格を1回チェック:
@@ -2021,6 +2076,9 @@ def run_source_sync_once() -> Dict:
         # 1) URLがある場合はページ売り切れを優先チェック
         if purchase_url.startswith("http"):
             try:
+                if not _is_safe_url(purchase_url):
+                    print(f"[SourceSync] 安全でない URL をスキップ: {purchase_url}")
+                    continue
                 req = urllib.request.Request(
                     purchase_url,
                     headers={"User-Agent": "Mozilla/5.0"},
@@ -2033,6 +2091,7 @@ def run_source_sync_once() -> Dict:
                             "UPDATE listings SET status = 'paused' WHERE id = ?",
                             (r["listing_id"],),
                         )
+                        db.conn.commit()
                         sold_out_count += 1
                         sold_out_items.append(product_name)
             except Exception:
