@@ -33,7 +33,8 @@ export default function ListingsPage() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<typeof emptyForm>(emptyForm);
-  const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+  const [sellLoading, setSellLoading] = useState(false);
 
   // プラットフォーム比較（出品フォーム内）
   const [formComparison, setFormComparison] = useState<Record<string, { gross_profit: number; profit_rate: number; emoji: string }> | null>(null);
@@ -74,7 +75,7 @@ export default function ListingsPage() {
 
   const handleList = async () => {
     if (!form.purchase_id || !form.listing_price) { toast("商品と価格を入力してください", "error"); return; }
-    setLoading(true);
+    setListLoading(true);
     try {
       const purchase = purchases.find(p => p.id === Number(form.purchase_id));
       const autoSku = generateSku(purchase?.product_name ?? "PROD", form.purchase_id);
@@ -91,7 +92,7 @@ export default function ListingsPage() {
       toast(`出品を追加しました ✅ SKU: ${autoSku}`);
       setForm(emptyForm); setShowForm(false); setFormComparison(null); load();
     } catch { toast("保存に失敗しました", "error"); }
-    finally { setLoading(false); }
+    finally { setListLoading(false); }
   };
 
   // 売却モーダルの比較更新
@@ -106,13 +107,13 @@ export default function ListingsPage() {
 
   const handleSell = async () => {
     if (!sellModal || !sellPrice) { toast("売却価格を入力してください", "error"); return; }
-    setLoading(true);
+    setSellLoading(true);
     try {
       const res = await createSaleSimple({ purchase_id: sellModal.purchase_id, sale_price: Number(sellPrice), sell_platform: sellPlatform });
       toast(`売却完了！純利益 ¥${Math.round(res.net_profit).toLocaleString()}`);
       setSellModal(null); setSellPrice(""); setSellComparison(null); load();
     } catch { toast("売却記録に失敗しました", "error"); }
-    finally { setLoading(false); }
+    finally { setSellLoading(false); }
   };
 
   const openSell = (item: Listing) => {
@@ -241,8 +242,8 @@ export default function ListingsPage() {
           )}
 
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={handleList} disabled={loading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "10px 28px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
-              {loading ? "保存中..." : `${form.selling_platform} に出品登録`}
+            <button onClick={handleList} disabled={listLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "10px 28px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+              {listLoading ? "保存中..." : `${form.selling_platform} に出品登録`}
             </button>
             <button onClick={() => { setShowForm(false); setFormComparison(null); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "10px 16px", cursor: "pointer" }}>キャンセル</button>
           </div>
@@ -289,8 +290,8 @@ export default function ListingsPage() {
               </div>
             )}
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={handleSell} disabled={loading || !sellPrice} style={{ flex: 1, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "12px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: (!sellPrice || loading) ? 0.5 : 1 }}>
-                {loading ? "記録中..." : "売却を記録する"}
+              <button onClick={handleSell} disabled={sellLoading || !sellPrice} style={{ flex: 1, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "12px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: (!sellPrice || sellLoading) ? 0.5 : 1 }}>
+                {sellLoading ? "記録中..." : "売却を記録する"}
               </button>
               <button onClick={() => setSellModal(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "12px 16px", cursor: "pointer" }}>キャンセル</button>
             </div>
