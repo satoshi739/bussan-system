@@ -3,6 +3,18 @@
 """
 
 import logging
+import os as _sentry_os
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
+
+_sentry_dsn = _sentry_os.environ.get("SENTRY_DSN")
+if _sentry_dsn:
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        integrations=[StarletteIntegration(), FastApiIntegration()],
+        traces_sample_rate=0.2,
+    )
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
@@ -75,6 +87,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/sentry-test")
+async def sentry_test():
+    raise Exception("Sentry動作確認テスト — 物販チェッカー バックエンド")
 
 db = Database()
 
