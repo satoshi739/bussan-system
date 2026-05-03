@@ -247,8 +247,8 @@ export default function PlatformAnalysisPage() {
               <YAxis tick={{ fill: C.t3, fontSize: 11 }} tickFormatter={v => `¥${(v / 1000).toFixed(0)}k`} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="total_profit" radius={[4, 4, 0, 0]}>
-                {sellData.map((r, i) => (
-                  <Cell key={i} fill={r.total_profit >= 0 ? C.gold : C.dn} fillOpacity={0.85} />
+                {sellData.map((r) => (
+                  <Cell key={r.selling_platform} fill={r.total_profit >= 0 ? C.gold : C.dn} fillOpacity={0.85} />
                 ))}
               </Bar>
             </BarChart>
@@ -272,8 +272,8 @@ export default function PlatformAnalysisPage() {
               <YAxis tick={{ fill: C.t3, fontSize: 11 }} tickFormatter={v => `¥${(v / 1000).toFixed(0)}k`} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="total_profit" radius={[4, 4, 0, 0]}>
-                {buyData.map((r, i) => (
-                  <Cell key={i} fill={r.total_profit >= 0 ? C.info : C.dn} fillOpacity={0.85} />
+                {buyData.map((r) => (
+                  <Cell key={r.platform} fill={r.total_profit >= 0 ? C.info : C.dn} fillOpacity={0.85} />
                 ))}
               </Bar>
             </BarChart>

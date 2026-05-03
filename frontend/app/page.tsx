@@ -780,7 +780,7 @@ export default function DashboardPage() {
                   <ReferenceLine y={0} stroke={C.bdSub} />
                   <Tooltip contentStyle={{ background: C.bg3, border: `1px solid ${C.bdSt}`, borderRadius: 8, color: C.t1, fontSize: 12, boxShadow: "0 8px 32px rgba(0,0,0,.7)" }} formatter={v => [`¥${Number(v).toLocaleString()}`, "純利益"]} />
                   <Bar dataKey="profit" radius={[4,4,0,0]}>
-                    {chart.map((e, i) => <Cell key={i} fill={e.profit >= 0 ? C.gold : C.dn} fillOpacity={0.85} />)}
+                    {chart.map((e) => <Cell key={e.month} fill={e.profit >= 0 ? C.gold : C.dn} fillOpacity={0.85} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
