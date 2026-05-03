@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
       }
     }
   } catch (err) {
-    console.error("Webhook handler error:", err);
+    Sentry.captureException(err, { tags: { context: "stripe_webhook" } });
     // Stripe のリトライを防ぐため、ビジネスロジックエラーは 200 を返す
     return NextResponse.json({ received: true, warning: "Handler error logged" });
   }
