@@ -230,78 +230,85 @@ def update_purchase(purchase_id: int, body: PurchaseUpdate):
 def get_product_names():
     return db.get_product_names()
 
-@app.post("/api/purchases/import/csv")
-async def import_purchases_csv(file: UploadFile = File(...)):
-    import csv, io as _io
-    content = await file.read()
-    try:
-        text = content.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        text = content.decode("shift-jis", errors="replace")
+try:
+    @app.post("/api/purchases/import/csv")
+    async def import_purchases_csv(file: UploadFile = File(...)):
+        import csv, io as _io
+        content = await file.read()
+        try:
+            text = content.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            text = content.decode("shift-jis", errors="replace")
 
-    try:
-        reader = csv.DictReader(_io.StringIO(text))
-        COL = {
-            "product_name":      ["商品名", "product_name", "name", "商品"],
-            "platform":          ["仕入れ先", "仕入れ元", "platform", "購入先", "買い先"],
-            "purchase_price":    ["仕入れ価格", "purchase_price", "price", "価格", "金額"],
-            "purchase_shipping": ["仕入れ送料", "purchase_shipping", "shipping", "送料"],
-            "purchase_url":      ["URL", "purchase_url", "url", "リンク"],
-            "purchase_date":     ["仕入れ日", "purchase_date", "date", "日付", "購入日"],
-            "notes":             ["メモ", "notes", "note", "備考", "コメント"],
-        }
+        try:
+            reader = csv.DictReader(_io.StringIO(text))
+            COL = {
+                "product_name":      ["商品名", "product_name", "name", "商品"],
+                "platform":          ["仕入れ先", "仕入れ元", "platform", "購入先", "買い先"],
+                "purchase_price":    ["仕入れ価格", "purchase_price", "price", "価格", "金額"],
+                "purchase_shipping": ["仕入れ送料", "purchase_shipping", "shipping", "送料"],
+                "purchase_url":      ["URL", "purchase_url", "url", "リンク"],
+                "purchase_date":     ["仕入れ日", "purchase_date", "date", "日付", "購入日"],
+                "notes":             ["メモ", "notes", "note", "備考", "コメント"],
+            }
 
-        # ヘッダー行が認識できる列名を含むか確認
-        fieldnames = reader.fieldnames or []
-        required_candidates = COL["product_name"] + COL["purchase_price"]
-        if not any(col in fieldnames for col in required_candidates):
-            raise ValueError(f"列名が不正です。認識できる列名が見つかりません。検出された列: {list(fieldnames)}")
+            # ヘッダー行が認識できる列名を含むか確認
+            fieldnames = reader.fieldnames or []
+            required_candidates = COL["product_name"] + COL["purchase_price"]
+            if not any(col in fieldnames for col in required_candidates):
+                raise ValueError(f"列名が不正です。認識できる列名が見つかりません。検出された列: {list(fieldnames)}")
 
-        def pick(row: dict, key: str):
-            for col in COL[key]:
-                v = row.get(col, "")
-                if v:
-                    return v.strip()
-            return ""
+            def pick(row: dict, key: str):
+                for col in COL[key]:
+                    v = row.get(col, "")
+                    if v:
+                        return v.strip()
+                return ""
 
-        rows = []
-        errors = []
-        for i, row in enumerate(reader, 1):
-            name = pick(row, "product_name")
-            if not name:
-                errors.append(f"行{i}: 商品名が空です")
-                continue
-            price_str = pick(row, "purchase_price")
-            if not price_str:
-                errors.append(f"行{i}: 仕入れ価格が空です")
-                continue
-            try:
-                price = float(price_str.replace(",", "").replace("¥", "").replace("円", ""))
-            except ValueError:
-                err_msg = f"行{i}: 仕入れ価格が数値ではありません ({price_str})"
-                errors.append(err_msg)
-                continue
-            shipping_str = pick(row, "purchase_shipping")
-            try:
-                shipping = float(shipping_str.replace(",", "").replace("¥", "").replace("円", "")) if shipping_str else 0.0
-            except ValueError:
-                shipping = 0.0
-            rows.append({
-                "product_name":      name,
-                "platform":          pick(row, "platform") or "その他",
-                "purchase_price":    price,
-                "purchase_shipping": shipping,
-                "purchase_url":      pick(row, "purchase_url") or None,
-                "purchase_date":     pick(row, "purchase_date") or date.today().isoformat(),
-                "notes":             pick(row, "notes") or None,
-            })
+            rows = []
+            errors = []
+            for i, row in enumerate(reader, 1):
+                name = pick(row, "product_name")
+                if not name:
+                    errors.append(f"行{i}: 商品名が空です")
+                    continue
+                price_str = pick(row, "purchase_price")
+                if not price_str:
+                    errors.append(f"行{i}: 仕入れ価格が空です")
+                    continue
+                try:
+                    price = float(price_str.replace(",", "").replace("¥", "").replace("円", ""))
+                except ValueError:
+                    err_msg = f"行{i}: 仕入れ価格が数値ではありません ({price_str})"
+                    errors.append(err_msg)
+                    continue
+                shipping_str = pick(row, "purchase_shipping")
+                try:
+                    shipping = float(shipping_str.replace(",", "").replace("¥", "").replace("円", "")) if shipping_str else 0.0
+                except ValueError:
+                    shipping = 0.0
+                rows.append({
+                    "product_name":      name,
+                    "platform":          pick(row, "platform") or "その他",
+                    "purchase_price":    price,
+                    "purchase_shipping": shipping,
+                    "purchase_url":      pick(row, "purchase_url") or None,
+                    "purchase_date":     pick(row, "purchase_date") or date.today().isoformat(),
+                    "notes":             pick(row, "notes") or None,
+                })
 
-        result = db.import_purchases_csv(rows)
-        result["parse_errors"] = errors
-        return result
+            result = db.import_purchases_csv(rows)
+            result["parse_errors"] = errors
+            return result
 
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+except RuntimeError as _multipart_err:
+    # python-multipart 未インストール時のフォールバック
+    @app.post("/api/purchases/import/csv")
+    async def import_purchases_csv(_req: Request):  # noqa: F811
+        raise HTTPException(status_code=503, detail="CSVインポートにはサーバーの再デプロイが必要です")
 
 @app.delete("/api/purchases/{purchase_id}")
 def delete_purchase(purchase_id: int):
