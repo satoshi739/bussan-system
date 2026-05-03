@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { Mail, Loader } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -137,9 +138,9 @@ export default function LoginPage() {
         </form>
 
         <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(212,175,55,0.1)", textAlign: "center" }}>
-          <a href="/pricing" style={{ fontSize: 13, color: "#8A8278", textDecoration: "none" }}>
+          <Link href="/pricing" style={{ fontSize: 13, color: "#8A8278", textDecoration: "none" }}>
             プランを確認する →
-          </a>
+          </Link>
         </div>
       </div>
     </div>

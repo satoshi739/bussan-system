@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { getSales, type Sale } from "@/lib/api";
 import { TrendingUp, TrendingDown, BarChart2, Download, Search, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import Link from "next/link";
 
 const C = {
   bg1:    "rgba(20,20,22,0.9)",
@@ -260,9 +261,9 @@ export default function SalesPage() {
             </div>
             <div style={{ color: C.t3, fontSize: 14, marginBottom: 12 }}>まだ売上データがありません</div>
             <div style={{ color: "#3a5a4a", fontSize: 12, marginBottom: 16 }}>仕入れ管理ページから売却を記録してください</div>
-            <a href="/purchases" style={{ display: "inline-block", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: C.gold, padding: "10px 22px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+            <Link href="/purchases" style={{ display: "inline-block", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: C.gold, padding: "10px 22px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
               まずはこれから：仕入れを登録する →
-            </a>
+            </Link>
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ ...card, textAlign: "center", padding: 40 }}>
