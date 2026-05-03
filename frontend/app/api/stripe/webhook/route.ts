@@ -96,7 +96,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const stripeSubId = session.subscription as string;
   const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
-  const priceId = stripeSub.items.data[0].price.id;
+  const subItem = stripeSub.items.data[0];
+  if (!subItem) return;
+  const priceId = subItem.price.id;
   const plan = getPlanFromPriceId(priceId);
   const periodEnd = getPeriodEnd(stripeSub);
 
@@ -124,7 +126,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
 async function handleSubscriptionCreated(sub: Stripe.Subscription) {
   const userId = sub.metadata?.userId ?? null;
-  const priceId = sub.items.data[0].price.id;
+  const subItem = sub.items.data[0];
+  if (!subItem) return;
+  const priceId = subItem.price.id;
   const plan = getPlanFromPriceId(priceId);
   const status = mapStripeStatus(sub.status);
   const periodEnd = getPeriodEnd(sub);
@@ -161,7 +165,9 @@ async function handleSubscriptionCreated(sub: Stripe.Subscription) {
 }
 
 async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
-  const priceId = sub.items.data[0].price.id;
+  const subItem = sub.items.data[0];
+  if (!subItem) return;
+  const priceId = subItem.price.id;
   const plan = getPlanFromPriceId(priceId);
   const status = mapStripeStatus(sub.status);
   const periodEnd = getPeriodEnd(sub);
