@@ -4,17 +4,20 @@
 
 import logging
 import os as _sentry_os
-import sentry_sdk
-from sentry_sdk.integrations.fastapi import FastApiIntegration
-from sentry_sdk.integrations.starlette import StarletteIntegration
 
-_sentry_dsn = _sentry_os.environ.get("SENTRY_DSN")
-if _sentry_dsn:
-    sentry_sdk.init(
-        dsn=_sentry_dsn,
-        integrations=[StarletteIntegration(), FastApiIntegration()],
-        traces_sample_rate=0.2,
-    )
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.starlette import StarletteIntegration
+    _sentry_dsn = _sentry_os.environ.get("SENTRY_DSN")
+    if _sentry_dsn:
+        sentry_sdk.init(
+            dsn=_sentry_dsn,
+            integrations=[StarletteIntegration(), FastApiIntegration()],
+            traces_sample_rate=0.2,
+        )
+except ImportError:
+    pass
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
@@ -93,7 +96,20 @@ app.add_middleware(
 async def sentry_test():
     raise Exception("Sentry動作確認テスト — 物販チェッカー バックエンド")
 
-db = Database()
+_db: "Database | None" = None
+
+def db_instance() -> "Database":
+    global _db
+    if _db is None:
+        _db = Database()
+    return _db
+
+# グローバル db 変数 — 既存コードとの互換性を維持
+class _LazyDb:
+    def __getattr__(self, name):
+        return getattr(db_instance(), name)
+
+db = _LazyDb()
 
 
 # ── モデル ──────────────────────────────────────────────

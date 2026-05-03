@@ -1,0 +1,8 @@
+frontend/
+.claude/
+.vercel/
+*.md
+__pycache__/
+*.pyc
+.git/
+node_modules/

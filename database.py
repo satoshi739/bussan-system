@@ -4,8 +4,18 @@ import threading
 from datetime import date, datetime
 from typing import List, Dict, Optional
 
-import psycopg2
-import psycopg2.extras
+try:
+    import psycopg2
+    import psycopg2.extras
+except ImportError:
+    import types as _types
+    psycopg2 = _types.ModuleType("psycopg2")
+    psycopg2.ProgrammingError = Exception
+    psycopg2.OperationalError = OSError
+    psycopg2.InterfaceError = OSError
+    psycopg2.extras = _types.SimpleNamespace(RealDictCursor=None)
+    psycopg2.extensions = _types.SimpleNamespace(connection=object)
+    psycopg2.connect = lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("psycopg2-binary が未インストールです"))  # noqa
 
 
 class _Cursor:
