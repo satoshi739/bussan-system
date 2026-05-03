@@ -49,10 +49,14 @@ export const getProductNames = () => req<string[]>("/api/purchases/product-names
 export const importPurchasesCSV = (file: File): Promise<{ imported: number; errors: string[]; parse_errors: string[] }> => {
   const form = new FormData();
   form.append("file", file);
-  return fetch(`${BASE}/api/purchases/import/csv`, { method: "POST", body: form }).then(r => {
-    if (!r.ok) throw new Error("インポートに失敗しました");
-    return r.json();
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60_000);
+  return fetch(`${BASE}/api/purchases/import/csv`, { method: "POST", body: form, signal: controller.signal })
+    .then(r => {
+      if (!r.ok) throw new Error("インポートに失敗しました");
+      return r.json();
+    })
+    .finally(() => clearTimeout(timer));
 };
 
 // Listings
@@ -258,7 +262,7 @@ export const globalSearch = (body: {
   buy_platforms?: string[];
   sell_platforms?: string[];
   limit?: number;
-}) => req<GlobalSearchResult>("/api/global/search", { method: "POST", body: JSON.stringify(body) });
+}) => req<GlobalSearchResult>("/api/global/search", { method: "POST", body: JSON.stringify(body) }, 30_000);
 
 export const calcGlobalProfitMatrix = (body: {
   purchase_price_jpy: number;
@@ -277,7 +281,7 @@ export const getGlobalSuggestPrices = (body: {
 
 // Market search
 export const searchMarket = (keyword: string, limit?: number) =>
-  req<{ results: { source: string; name: string; price: number; url: string; image: string; condition: string }[]; stats: { min: number; max: number; avg: number; count: number } }>(`/api/search/market?keyword=${encodeURIComponent(keyword)}${limit ? "&limit=" + limit : ""}`);
+  req<{ results: { source: string; name: string; price: number; url: string; image: string; condition: string }[]; stats: { min: number; max: number; avg: number; count: number } }>(`/api/search/market?keyword=${encodeURIComponent(keyword)}${limit ? "&limit=" + limit : ""}`, undefined, 20_000);
 export const getPriceHistory = (keyword: string) =>
   req<{ date: string; avg_price: number; min_price: number; max_price: number; count: number }[]>(`/api/search/history?keyword=${encodeURIComponent(keyword)}`);
 
@@ -315,7 +319,7 @@ export const saveSourceSyncSettings = (body: {
   active_only: boolean;
 }) => req<{ ok: boolean }>("/api/source-sync/settings", { method: "POST", body: JSON.stringify(body) });
 export const runSourceSyncNow = () =>
-  req<{ ok: boolean; checked: number; sold_out_detected: number; price_rise_detected: number; checked_at: string }>("/api/source-sync/run", { method: "POST" });
+  req<{ ok: boolean; checked: number; sold_out_detected: number; price_rise_detected: number; checked_at: string }>("/api/source-sync/run", { method: "POST" }, 30_000);
 
 // ── 価格変動アラート ──────────────────────────────────────────────
 export interface PriceAlert {
@@ -361,7 +365,7 @@ export interface CompetitionResult {
 }
 
 export const getCompetitionAnalysis = () =>
-  req<{ results: CompetitionResult[] }>("/api/analytics/competition");
+  req<{ results: CompetitionResult[] }>("/api/analytics/competition", undefined, 30_000);
 
 // ── AI リサーチアシスタント ──────────────────────────────────────
 export const aiResearch = (message: string, include_data = true) =>
@@ -803,7 +807,7 @@ export interface SeasonalIntelligence {
 }
 
 export const researchMarket = (keyword: string, task = "ebay_sold") =>
-  req<Record<string, unknown>>(`/api/agents/research/market?keyword=${encodeURIComponent(keyword)}&task=${task}`);
+  req<Record<string, unknown>>(`/api/agents/research/market?keyword=${encodeURIComponent(keyword)}&task=${task}`, undefined, 30_000);
 export const getSeasonalIntelligence = () => req<SeasonalIntelligence>("/api/agents/research/seasonal");
 export const getOwnHistory = (days = 60) =>
   req<Record<string, unknown>>(`/api/agents/research/history?days=${days}`);
