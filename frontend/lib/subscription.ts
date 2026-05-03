@@ -49,11 +49,16 @@ export async function getUserSubscription() {
   };
 }
 
+const PLAN_HIERARCHY: Record<PlanKey, number> = {
+  FREE: 0,
+  STANDARD: 1,
+  PRO: 2,
+};
+
 // プランが指定したプラン以上かチェック
 export function hasAccess(userPlan: PlanKey, requiredPlan: PlanKey): boolean {
-  const order: PlanKey[] = ["FREE", "STANDARD", "PRO"];
-  const userIdx = order.indexOf(userPlan);
-  const reqIdx = order.indexOf(requiredPlan);
-  if (userIdx === -1 || reqIdx === -1) return false;
-  return userIdx >= reqIdx;
+  const userLevel = PLAN_HIERARCHY[userPlan] ?? -1;
+  const reqLevel = PLAN_HIERARCHY[requiredPlan] ?? -1;
+  if (userLevel === -1 || reqLevel === -1) return false;
+  return userLevel >= reqLevel;
 }
