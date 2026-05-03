@@ -20,7 +20,7 @@ except ImportError:
     pass
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security.api_key import APIKeyHeader
@@ -43,6 +43,10 @@ from calculators import calculate_profit, find_breakeven_price, max_purchase_pri
 _INTERNAL_API_KEY = _os.environ.get("INTERNAL_API_KEY", "")
 _SKIP_AUTH = _os.environ.get("SKIP_AUTH", "false").lower() in ("true", "1", "yes")
 _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def get_user_id(x_user_id: str = Header(default="default")) -> str:
+    return x_user_id
 
 
 _PUBLIC_PATHS = {"/health", "/healthz", "/ping", "/docs", "/openapi.json", "/redoc"}
@@ -200,18 +204,19 @@ def get_dashboard():
 # ── 仕入れ ───────────────────────────────────────────────
 
 @app.get("/api/purchases")
-def get_purchases(status: Optional[str] = None, platform: Optional[str] = None, limit: Optional[int] = None):
-    rows = db.get_purchases(status=status, platform=platform, limit=limit)
+def get_purchases(status: Optional[str] = None, platform: Optional[str] = None,
+                  limit: Optional[int] = None, user_id: str = Depends(get_user_id)):
+    rows = db.get_purchases(status=status, platform=platform, limit=limit, user_id=user_id)
     return [dict(r) for r in rows]
 
 @app.post("/api/purchases")
-def create_purchase(body: PurchaseCreate):
-    pid = db.add_purchase(body.model_dump())
+def create_purchase(body: PurchaseCreate, user_id: str = Depends(get_user_id)):
+    pid = db.add_purchase(body.model_dump(), user_id=user_id)
     return {"id": pid}
 
 @app.patch("/api/purchases/{purchase_id}/status")
-def update_purchase_status(purchase_id: int, body: StatusUpdate):
-    db.update_purchase_status(purchase_id, body.status)
+def update_purchase_status(purchase_id: int, body: StatusUpdate, user_id: str = Depends(get_user_id)):
+    db.update_purchase_status(purchase_id, body.status, user_id=user_id)
     return {"ok": True}
 
 class PurchaseUpdate(BaseModel):
@@ -224,20 +229,20 @@ class PurchaseUpdate(BaseModel):
     notes: Optional[str] = None
 
 @app.patch("/api/purchases/{purchase_id}")
-def update_purchase(purchase_id: int, body: PurchaseUpdate):
+def update_purchase(purchase_id: int, body: PurchaseUpdate, user_id: str = Depends(get_user_id)):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
     if not data:
         raise HTTPException(400, "No fields to update")
-    db.update_purchase(purchase_id, data)
+    db.update_purchase(purchase_id, data, user_id=user_id)
     return {"ok": True}
 
 @app.get("/api/purchases/product-names")
-def get_product_names():
-    return db.get_product_names()
+def get_product_names(user_id: str = Depends(get_user_id)):
+    return db.get_product_names(user_id=user_id)
 
 try:
     @app.post("/api/purchases/import/csv")
-    async def import_purchases_csv(file: UploadFile = File(...)):
+    async def import_purchases_csv(file: UploadFile = File(...), user_id: str = Depends(get_user_id)):
         import csv, io as _io
         content = await file.read()
         try:
@@ -302,7 +307,7 @@ try:
                     "notes":             pick(row, "notes") or None,
                 })
 
-            result = db.import_purchases_csv(rows)
+            result = db.import_purchases_csv(rows, user_id=user_id)
             result["parse_errors"] = errors
             return result
 
@@ -316,8 +321,8 @@ except RuntimeError as _multipart_err:
         raise HTTPException(status_code=503, detail="CSVインポートにはサーバーの再デプロイが必要です")
 
 @app.delete("/api/purchases/{purchase_id}")
-def delete_purchase(purchase_id: int):
-    db.delete_purchase(purchase_id)
+def delete_purchase(purchase_id: int, user_id: str = Depends(get_user_id)):
+    db.delete_purchase(purchase_id, user_id=user_id)
     return {"ok": True}
 
 
@@ -479,8 +484,8 @@ def get_analytics_by_buy_platform():
 _SENSITIVE_KEYS = {"anthropic_api_key", "line_token"}
 
 @app.get("/api/settings")
-def get_settings():
-    settings = db.get_settings()
+def get_settings(user_id: str = Depends(get_user_id)):
+    settings = db.get_settings(user_id=user_id)
     # センシティブなキーはマスクして返す（フロントで「設定済み」判定のみに使用）
     masked = {}
     for k, v in settings.items():
@@ -505,9 +510,9 @@ class SettingsUpdate(BaseModel):
     monthly_budget: Optional[float] = Field(None, ge=0)
 
 @app.post("/api/settings")
-def save_settings(body: SettingsUpdate):
+def save_settings(body: SettingsUpdate, user_id: str = Depends(get_user_id)):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
-    db.save_settings(data)
+    db.save_settings(data, user_id=user_id)
     return {"ok": True}
 
 
@@ -571,8 +576,8 @@ def set_goal(body: GoalSet):
 # ── ウォッチリスト ────────────────────────────────────────
 
 @app.get("/api/watchlist")
-def get_watchlist():
-    return db.get_watchlist()
+def get_watchlist(user_id: str = Depends(get_user_id)):
+    return db.get_watchlist(user_id=user_id)
 
 class WatchlistItem(BaseModel):
     keyword: str
@@ -581,8 +586,8 @@ class WatchlistItem(BaseModel):
     memo: Optional[str] = None
 
 @app.post("/api/watchlist")
-def add_watchlist(body: WatchlistItem):
-    items = db.get_watchlist()
+def add_watchlist(body: WatchlistItem, user_id: str = Depends(get_user_id)):
+    items = db.get_watchlist(user_id=user_id)
     if any(i["keyword"] == body.keyword for i in items):
         return {"ok": True, "msg": "already exists"}
     items.append({
@@ -591,12 +596,12 @@ def add_watchlist(body: WatchlistItem):
         "target_rate": body.target_rate,
         "memo": body.memo or "",
     })
-    db.save_watchlist(items)
+    db.save_watchlist(items, user_id=user_id)
     return {"ok": True}
 
 @app.delete("/api/watchlist/{keyword}")
-def remove_watchlist(keyword: str):
-    db.remove_watchlist_item(keyword)
+def remove_watchlist(keyword: str, user_id: str = Depends(get_user_id)):
+    db.remove_watchlist_item(keyword, user_id=user_id)
     return {"ok": True}
 
 
@@ -1266,13 +1271,13 @@ class ScanKeywordCreate(BaseModel):
 
 
 @app.get("/api/scanner/keywords")
-def get_scan_keywords():
+def get_scan_keywords(user_id: str = Depends(get_user_id)):
     """スキャン対象キーワード一覧"""
-    return db.load_scan_keywords()
+    return db.load_scan_keywords(user_id=user_id)
 
 
 @app.post("/api/scanner/keywords")
-def add_keyword(body: ScanKeywordCreate):
+def add_keyword(body: ScanKeywordCreate, user_id: str = Depends(get_user_id)):
     """スキャン対象キーワードを追加"""
     ok = db.add_scan_keyword(
         keyword=body.keyword,
@@ -1280,21 +1285,22 @@ def add_keyword(body: ScanKeywordCreate):
         max_buy_price=body.max_buy_price,
         min_profit_rate=body.min_profit_rate,
         memo=body.memo,
+        user_id=user_id,
     )
     return {"ok": ok, "msg": "already exists" if not ok else "added"}
 
 
 @app.delete("/api/scanner/keywords/{keyword}")
-def delete_keyword(keyword: str):
+def delete_keyword(keyword: str, user_id: str = Depends(get_user_id)):
     """スキャン対象キーワードを削除"""
-    db.remove_scan_keyword(keyword)
+    db.remove_scan_keyword(keyword, user_id=user_id)
     return {"ok": True}
 
 
 @app.get("/api/scanner/results")
-def get_scan_results():
+def get_scan_results(user_id: str = Depends(get_user_id)):
     """最新のスキャン結果（キャッシュ）を返す"""
-    return db.load_scan_cache()
+    return db.load_scan_cache(user_id=user_id)
 
 
 @app.post("/api/scanner/demand-check")
@@ -1431,7 +1437,8 @@ def scanner_demand_check(keyword: str, buy_price: float, sell_platform: str = "e
 
 
 @app.post("/api/scanner/run")
-async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit: int = 8):
+async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit: int = 8,
+                   user_id: str = Depends(get_user_id)):
     """
     スキャンを実行する。
     - keyword 指定あり: そのキーワードのみスキャン
@@ -1442,7 +1449,7 @@ async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit:
     else:
         results = await asyncio.to_thread(scan_all_keywords, limit, db)
 
-    await asyncio.to_thread(db.save_scan_cache, results)
+    await asyncio.to_thread(db.save_scan_cache, results, None, user_id)
     return {
         "ok": True,
         "count": len(results),
@@ -2833,26 +2840,26 @@ class FulfillmentUpdate(BaseModel):
     notes: Optional[str] = None
 
 @app.get("/api/fulfillment")
-def get_fulfillments(status: Optional[str] = None):
-    rows = db.get_fulfillments(status=status)
+def get_fulfillments(status: Optional[str] = None, user_id: str = Depends(get_user_id)):
+    rows = db.get_fulfillments(status=status, user_id=user_id)
     return [dict(r) for r in rows]
 
 @app.post("/api/fulfillment")
-def create_fulfillment(body: FulfillmentCreate):
-    fid = db.add_fulfillment(body.model_dump())
+def create_fulfillment(body: FulfillmentCreate, user_id: str = Depends(get_user_id)):
+    fid = db.add_fulfillment(body.model_dump(), user_id=user_id)
     return {"id": fid}
 
 @app.patch("/api/fulfillment/{fulfillment_id}")
-def update_fulfillment(fulfillment_id: int, body: FulfillmentUpdate):
+def update_fulfillment(fulfillment_id: int, body: FulfillmentUpdate, user_id: str = Depends(get_user_id)):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
     if not data:
         raise HTTPException(400, "更新するフィールドがありません")
-    db.update_fulfillment(fulfillment_id, data)
+    db.update_fulfillment(fulfillment_id, data, user_id=user_id)
     return {"ok": True}
 
 @app.delete("/api/fulfillment/{fulfillment_id}")
-def delete_fulfillment(fulfillment_id: int):
-    db.delete_fulfillment(fulfillment_id)
+def delete_fulfillment(fulfillment_id: int, user_id: str = Depends(get_user_id)):
+    db.delete_fulfillment(fulfillment_id, user_id=user_id)
     return {"ok": True}
 
 
@@ -2898,33 +2905,33 @@ class ShippingRequestCreate(BaseModel):
     notes: Optional[str] = None
 
 @app.get("/api/fulfillment/vendors")
-def get_vendors():
-    rows = db.get_vendors()
+def get_vendors(user_id: str = Depends(get_user_id)):
+    rows = db.get_vendors(user_id=user_id)
     return [dict(r) for r in rows]
 
 @app.post("/api/fulfillment/vendors")
-def create_vendor(body: VendorCreate):
-    vid = db.add_vendor(body.model_dump())
+def create_vendor(body: VendorCreate, user_id: str = Depends(get_user_id)):
+    vid = db.add_vendor(body.model_dump(), user_id=user_id)
     return {"id": vid}
 
 @app.get("/api/fulfillment/vendors/{vendor_id}")
-def get_vendor(vendor_id: int):
-    row = db.get_vendor(vendor_id)
+def get_vendor(vendor_id: int, user_id: str = Depends(get_user_id)):
+    row = db.get_vendor(vendor_id, user_id=user_id)
     if not row:
         raise HTTPException(404, "業者が見つかりません")
     return dict(row)
 
 @app.patch("/api/fulfillment/vendors/{vendor_id}")
-def update_vendor(vendor_id: int, body: VendorUpdate):
+def update_vendor(vendor_id: int, body: VendorUpdate, user_id: str = Depends(get_user_id)):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
     if not data:
         raise HTTPException(400, "更新フィールドがありません")
-    db.update_vendor(vendor_id, data)
+    db.update_vendor(vendor_id, data, user_id=user_id)
     return {"ok": True}
 
 @app.delete("/api/fulfillment/vendors/{vendor_id}")
-def delete_vendor(vendor_id: int):
-    db.delete_vendor(vendor_id)
+def delete_vendor(vendor_id: int, user_id: str = Depends(get_user_id)):
+    db.delete_vendor(vendor_id, user_id=user_id)
     return {"ok": True}
 
 @app.post("/api/fulfillment/vendors/{vendor_id}/test")
@@ -2949,9 +2956,9 @@ def test_vendor(vendor_id: int):
     return {"ok": True, "message": "手動管理モードです"}
 
 @app.post("/api/fulfillment/{task_id}/request")
-def create_shipping_request(task_id: int, body: ShippingRequestCreate):
+def create_shipping_request(task_id: int, body: ShippingRequestCreate, user_id: str = Depends(get_user_id)):
     from datetime import datetime
-    rows = db.get_fulfillments()
+    rows = db.get_fulfillments(user_id=user_id)
     task = next((dict(r) for r in rows if r['id'] == task_id), None)
     if not task:
         raise HTTPException(404, "タスクが見つかりません")
@@ -3015,8 +3022,8 @@ class FbaShipmentItemUpdate(BaseModel):
     notes: Optional[str] = None
 
 @app.get("/api/fba/shipments")
-def list_fba_shipments():
-    rows = db.get_fba_shipments()
+def list_fba_shipments(user_id: str = Depends(get_user_id)):
+    rows = db.get_fba_shipments(user_id=user_id)
     result = []
     for r in rows:
         s = dict(r)
@@ -3026,14 +3033,14 @@ def list_fba_shipments():
     return result
 
 @app.post("/api/fba/shipments")
-def create_fba_shipment(body: FbaShipmentCreate):
+def create_fba_shipment(body: FbaShipmentCreate, user_id: str = Depends(get_user_id)):
     data = body.model_dump()
-    new_id = db.add_fba_shipment(data)
+    new_id = db.add_fba_shipment(data, user_id=user_id)
     return {"id": new_id}
 
 @app.get("/api/fba/shipments/{shipment_id}")
-def get_fba_shipment(shipment_id: int):
-    row = db.get_fba_shipment(shipment_id)
+def get_fba_shipment(shipment_id: int, user_id: str = Depends(get_user_id)):
+    row = db.get_fba_shipment(shipment_id, user_id=user_id)
     if not row:
         raise HTTPException(404, "納品プランが見つかりません")
     s = dict(row)
@@ -3042,19 +3049,19 @@ def get_fba_shipment(shipment_id: int):
     return s
 
 @app.patch("/api/fba/shipments/{shipment_id}")
-def update_fba_shipment(shipment_id: int, body: FbaShipmentUpdate):
+def update_fba_shipment(shipment_id: int, body: FbaShipmentUpdate, user_id: str = Depends(get_user_id)):
     from datetime import datetime as _dt
     data = {k: v for k, v in body.model_dump().items() if v is not None}
     if body.status == "sent" and "sent_at" not in data:
         data["sent_at"] = _dt.now().isoformat()
     if body.status == "received" and "received_at" not in data:
         data["received_at"] = _dt.now().isoformat()
-    db.update_fba_shipment(shipment_id, data)
+    db.update_fba_shipment(shipment_id, data, user_id=user_id)
     return {"ok": True}
 
 @app.delete("/api/fba/shipments/{shipment_id}")
-def delete_fba_shipment(shipment_id: int):
-    db.delete_fba_shipment(shipment_id)
+def delete_fba_shipment(shipment_id: int, user_id: str = Depends(get_user_id)):
+    db.delete_fba_shipment(shipment_id, user_id=user_id)
     return {"ok": True}
 
 @app.post("/api/fba/shipments/{shipment_id}/items")
@@ -3115,8 +3122,8 @@ class InventoryItemUpdate(BaseModel):
     unit_cost: Optional[float] = None
 
 @app.get("/api/inventory")
-def list_inventory(status: str = None):
-    rows = db.get_inventory(status)
+def list_inventory(status: str = None, user_id: str = Depends(get_user_id)):
+    rows = db.get_inventory(status, user_id=user_id)
     result = []
     for r in rows:
         item = dict(r)
@@ -3130,25 +3137,25 @@ def list_inventory(status: str = None):
     return result
 
 @app.post("/api/inventory")
-def create_inventory_item(body: InventoryItemCreate):
+def create_inventory_item(body: InventoryItemCreate, user_id: str = Depends(get_user_id)):
     data = body.model_dump()
-    new_id = db.add_inventory_item(data)
+    new_id = db.add_inventory_item(data, user_id=user_id)
     return {"id": new_id}
 
 @app.patch("/api/inventory/{item_id}")
-def update_inventory_item(item_id: int, body: InventoryItemUpdate):
+def update_inventory_item(item_id: int, body: InventoryItemUpdate, user_id: str = Depends(get_user_id)):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
-    db.update_inventory_item(item_id, data)
+    db.update_inventory_item(item_id, data, user_id=user_id)
     return {"ok": True}
 
 @app.delete("/api/inventory/{item_id}")
-def delete_inventory_item(item_id: int):
-    db.delete_inventory_item(item_id)
+def delete_inventory_item(item_id: int, user_id: str = Depends(get_user_id)):
+    db.delete_inventory_item(item_id, user_id=user_id)
     return {"ok": True}
 
 @app.get("/api/inventory/summary")
-def inventory_summary():
-    rows = db.get_inventory()
+def inventory_summary(user_id: str = Depends(get_user_id)):
+    rows = db.get_inventory(user_id=user_id)
     total = len(rows)
     low_stock = [r for r in rows if (r["quantity"] - r.get("reserved_quantity", 0)) <= r["reorder_point"]]
     out_of_stock = [r for r in rows if r["quantity"] <= 0]
@@ -3247,11 +3254,11 @@ def _get_agent_api_key() -> str:
 # ── CEO エージェント ──────────────────────────────────────────────
 
 @app.post("/api/agents/ceo/run")
-async def run_ceo_agent(body: CEORunRequest):
+async def run_ceo_agent(body: CEORunRequest, user_id: str = Depends(get_user_id)):
     """AI CEOエージェントを起動: スキャン→承認キューに追加"""
     api_key = _get_agent_api_key()
 
-    session_id = db.create_agent_session(body.goal, body.budget_jpy)
+    session_id = db.create_agent_session(body.goal, body.budget_jpy, user_id=user_id)
     db.update_agent_session(session_id, {"status": "running"})
 
     def _run_sync():
@@ -3302,13 +3309,14 @@ async def run_ceo_agent(body: CEORunRequest):
 
 
 @app.get("/api/agents/ceo/stream")
-async def stream_ceo_agent(goal: str, budget_jpy: Optional[float] = None, max_turns: int = 12):
+async def stream_ceo_agent(goal: str, budget_jpy: Optional[float] = None, max_turns: int = 12,
+                            user_id: str = Depends(get_user_id)):
     """CEOエージェントの進捗をSSEでリアルタイム配信する"""
     import json as _json, queue as _queue, threading as _threading, datetime as _dt
     from starlette.responses import StreamingResponse as _StreamingResponse
 
     api_key = _get_agent_api_key()
-    session_id = db.create_agent_session(goal, budget_jpy)
+    session_id = db.create_agent_session(goal, budget_jpy, user_id=user_id)
     db.update_agent_session(session_id, {"status": "running"})
 
     q: _queue.Queue = _queue.Queue()
@@ -3363,17 +3371,17 @@ async def stream_ceo_agent(goal: str, budget_jpy: Optional[float] = None, max_tu
 
 
 @app.get("/api/agents/sessions")
-def get_agent_sessions(limit: int = 20):
+def get_agent_sessions(limit: int = 20, user_id: str = Depends(get_user_id)):
     """CEOエージェントのセッション履歴を返す"""
-    return db.get_agent_sessions(limit=limit)
+    return db.get_agent_sessions(limit=limit, user_id=user_id)
 
 
 # ── 承認キュー ────────────────────────────────────────────────────
 
 @app.get("/api/agents/approval-queue")
-def get_approval_queue(status: Optional[str] = None):
+def get_approval_queue(status: Optional[str] = None, user_id: str = Depends(get_user_id)):
     """承認キューの一覧を返す"""
-    items = db.get_approval_queue(status=status)
+    items = db.get_approval_queue(status=status, user_id=user_id)
     total_investment = sum(i.get("buy_price", 0) for i in items if i.get("status") == "pending")
     total_profit = sum(i.get("net_profit_jpy", 0) for i in items if i.get("status") == "pending")
     return {
@@ -3385,7 +3393,7 @@ def get_approval_queue(status: Optional[str] = None):
 
 
 @app.post("/api/agents/approval-queue/{item_id}/approve")
-def approve_queue_item(item_id: int):
+def approve_queue_item(item_id: int, user_id: str = Depends(get_user_id)):
     """承認キューのアイテムを承認し、仕入れ管理に登録する"""
     item = db.get_approval_queue_item(item_id)
     if not item:
@@ -3403,7 +3411,7 @@ def approve_queue_item(item_id: int):
         "purchase_date": _date.today().isoformat(),
         "notes": f"AI CEO承認済み | 期待利益率: {item.get('profit_rate', 0):.1f}% | {item.get('ceo_reason', '')}",
         "image_data": item.get("buy_image", ""),
-    })
+    }, user_id=user_id)
 
     db.approve_queue_item(item_id, purchase_id=purchase_id)
 
@@ -3427,7 +3435,7 @@ def reject_queue_item(item_id: int, body: RejectRequest):
 # ── 出品文生成 ────────────────────────────────────────────────────
 
 @app.post("/api/agents/listing/generate")
-async def generate_listing(body: GenerateListingRequest):
+async def generate_listing(body: GenerateListingRequest, user_id: str = Depends(get_user_id)):
     """AI Listing Agentで出品文を自動生成する"""
     api_key = _get_agent_api_key()
 
@@ -3451,7 +3459,7 @@ async def generate_listing(body: GenerateListingRequest):
             "approval_queue_id": body.approval_queue_id,
             "sell_platform": body.sell_platform,
             **result,
-        })
+        }, user_id=user_id)
         return {"listing_id": listing_id, "listing": result}
 
     except Exception as e:
@@ -3459,9 +3467,10 @@ async def generate_listing(body: GenerateListingRequest):
 
 
 @app.get("/api/agents/listings")
-def get_agent_listings(purchase_id: Optional[int] = None, status: Optional[str] = None):
+def get_agent_listings(purchase_id: Optional[int] = None, status: Optional[str] = None,
+                       user_id: str = Depends(get_user_id)):
     """AI生成の出品文一覧を返す"""
-    return db.get_agent_listings(purchase_id=purchase_id, status=status)
+    return db.get_agent_listings(purchase_id=purchase_id, status=status, user_id=user_id)
 
 
 @app.post("/api/agents/listings/{listing_id}/publish")
@@ -3474,7 +3483,7 @@ def publish_agent_listing(listing_id: int):
 # ── SNSコンテンツ生成 ─────────────────────────────────────────────
 
 @app.post("/api/agents/sns/generate")
-async def generate_sns_content(body: GenerateSNSRequest):
+async def generate_sns_content(body: GenerateSNSRequest, user_id: str = Depends(get_user_id)):
     """AI SNS Agentで投稿文を自動生成する"""
     api_key = _get_agent_api_key()
 
@@ -3507,7 +3516,7 @@ async def generate_sns_content(body: GenerateSNSRequest):
                 "platform": platform,
                 "content": content,
                 "hashtags": hashtags,
-            })
+            }, user_id=user_id)
             saved_ids.append({"platform": platform, "id": sns_id})
 
         return {"saved": saved_ids, "content": result}
@@ -3517,9 +3526,10 @@ async def generate_sns_content(body: GenerateSNSRequest):
 
 
 @app.get("/api/agents/sns")
-def get_agent_sns_content(purchase_id: Optional[int] = None, status: Optional[str] = None):
+def get_agent_sns_content(purchase_id: Optional[int] = None, status: Optional[str] = None,
+                          user_id: str = Depends(get_user_id)):
     """AI生成のSNSコンテンツ一覧を返す"""
-    return db.get_agent_sns_content(purchase_id=purchase_id, status=status)
+    return db.get_agent_sns_content(purchase_id=purchase_id, status=status, user_id=user_id)
 
 
 @app.post("/api/agents/sns/{content_id}/publish")

@@ -37,6 +37,7 @@ async function forward(req: NextRequest, ctx: Ctx, method: string) {
     headers: {
       "Content-Type": contentType,
       "X-API-Key": process.env.INTERNAL_API_KEY ?? "",
+      "X-User-Id": session.user.id,
     },
     body,
   });

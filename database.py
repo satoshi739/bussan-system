@@ -130,6 +130,7 @@ class Database:
         self.conn.executescript("""
             CREATE TABLE IF NOT EXISTS purchases (
                 id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
                 product_name TEXT NOT NULL,
                 platform TEXT NOT NULL,
                 purchase_price REAL NOT NULL,
@@ -167,13 +168,16 @@ class Database:
             );
 
             CREATE TABLE IF NOT EXISTS settings (
-                key TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
+                key TEXT NOT NULL,
                 value TEXT NOT NULL,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, key)
             );
 
             CREATE TABLE IF NOT EXISTS fulfillment (
                 id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
                 purchase_id INTEGER REFERENCES purchases(id),
                 worker_name TEXT,
                 status TEXT DEFAULT 'waiting',
@@ -200,6 +204,7 @@ class Database:
 
             CREATE TABLE IF NOT EXISTS fulfillment_vendors (
                 id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
                 name TEXT NOT NULL,
                 vendor_type TEXT NOT NULL DEFAULT 'manual',
                 connection_type TEXT NOT NULL DEFAULT 'manual',
@@ -228,6 +233,7 @@ class Database:
 
             CREATE TABLE IF NOT EXISTS fba_shipments (
                 id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
                 plan_name TEXT NOT NULL,
                 status TEXT DEFAULT 'draft',
                 destination TEXT DEFAULT 'Amazon倉庫（川越FC）',
@@ -256,6 +262,7 @@ class Database:
 
             CREATE TABLE IF NOT EXISTS inventory (
                 id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
                 product_name TEXT NOT NULL,
                 asin TEXT,
                 sku TEXT,
@@ -281,6 +288,7 @@ class Database:
 
             CREATE TABLE IF NOT EXISTS agent_approval_queue (
                 id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
                 product_name TEXT NOT NULL,
                 buy_price REAL NOT NULL,
                 buy_url TEXT,
@@ -302,6 +310,7 @@ class Database:
 
             CREATE TABLE IF NOT EXISTS agent_listings (
                 id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
                 purchase_id INTEGER REFERENCES purchases(id),
                 approval_queue_id INTEGER REFERENCES agent_approval_queue(id),
                 sell_platform TEXT NOT NULL,
@@ -320,6 +329,7 @@ class Database:
 
             CREATE TABLE IF NOT EXISTS agent_sns_content (
                 id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
                 purchase_id INTEGER REFERENCES purchases(id),
                 approval_queue_id INTEGER REFERENCES agent_approval_queue(id),
                 post_type TEXT DEFAULT 'listing',
@@ -347,6 +357,7 @@ class Database:
 
             CREATE TABLE IF NOT EXISTS agent_sessions (
                 id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default',
                 goal TEXT,
                 budget_jpy REAL,
                 status TEXT DEFAULT 'running',
@@ -360,7 +371,8 @@ class Database:
         """)
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS scan_cache (
-                id INTEGER PRIMARY KEY DEFAULT 1,
+                id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL DEFAULT 'default' UNIQUE,
                 scanned_at TIMESTAMP,
                 count INTEGER DEFAULT 0,
                 results_json TEXT DEFAULT '[]'
@@ -369,64 +381,70 @@ class Database:
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS scan_keywords (
                 id SERIAL PRIMARY KEY,
-                keyword TEXT UNIQUE NOT NULL,
+                user_id TEXT NOT NULL DEFAULT 'default',
+                keyword TEXT NOT NULL,
                 target_sell_platform TEXT DEFAULT 'eBay',
                 max_buy_price REAL,
                 min_profit_rate REAL DEFAULT 20.0,
                 memo TEXT DEFAULT '',
                 added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_scanned TIMESTAMP,
-                best_profit_rate REAL
+                best_profit_rate REAL,
+                UNIQUE (user_id, keyword)
             )
         """)
         self._migrate()
 
-    def load_scan_keywords(self) -> list:
+    def load_scan_keywords(self, user_id: str = 'default') -> list:
         rows = self.conn.execute(
             "SELECT keyword, target_sell_platform, max_buy_price, min_profit_rate, memo, "
-            "added_at, last_scanned, best_profit_rate FROM scan_keywords ORDER BY added_at"
+            "added_at, last_scanned, best_profit_rate FROM scan_keywords WHERE user_id = %s ORDER BY added_at",
+            (user_id,)
         ).fetchall()
         return [dict(r) for r in rows]
 
     def add_scan_keyword(self, keyword: str, target_sell_platform: str = "eBay",
-                         max_buy_price=None, min_profit_rate: float = 20.0, memo: str = "") -> bool:
+                         max_buy_price=None, min_profit_rate: float = 20.0, memo: str = "",
+                         user_id: str = 'default') -> bool:
         existing = self.conn.execute(
-            "SELECT keyword FROM scan_keywords WHERE keyword = %s", (keyword,)
+            "SELECT keyword FROM scan_keywords WHERE keyword = %s AND user_id = %s", (keyword, user_id)
         ).fetchone()
         if existing:
             return False
         self.conn.execute("""
-            INSERT INTO scan_keywords (keyword, target_sell_platform, max_buy_price, min_profit_rate, memo)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (keyword, target_sell_platform, max_buy_price, min_profit_rate, memo))
+            INSERT INTO scan_keywords (user_id, keyword, target_sell_platform, max_buy_price, min_profit_rate, memo)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (user_id, keyword, target_sell_platform, max_buy_price, min_profit_rate, memo))
         self.conn.commit()
         return True
 
-    def remove_scan_keyword(self, keyword: str) -> None:
-        self.conn.execute("DELETE FROM scan_keywords WHERE keyword = %s", (keyword,))
+    def remove_scan_keyword(self, keyword: str, user_id: str = 'default') -> None:
+        self.conn.execute("DELETE FROM scan_keywords WHERE keyword = %s AND user_id = %s", (keyword, user_id))
         self.conn.commit()
 
-    def update_scan_keyword(self, keyword: str, last_scanned: str, best_profit_rate=None) -> None:
+    def update_scan_keyword(self, keyword: str, last_scanned: str, best_profit_rate=None,
+                            user_id: str = 'default') -> None:
         self.conn.execute(
-            "UPDATE scan_keywords SET last_scanned = %s, best_profit_rate = %s WHERE keyword = %s",
-            (last_scanned, best_profit_rate, keyword)
+            "UPDATE scan_keywords SET last_scanned = %s, best_profit_rate = %s WHERE keyword = %s AND user_id = %s",
+            (last_scanned, best_profit_rate, keyword, user_id)
         )
         self.conn.commit()
 
-    def save_scan_cache(self, results: list, scanned_at: str = None) -> None:
+    def save_scan_cache(self, results: list, scanned_at: str = None, user_id: str = 'default') -> None:
         from datetime import datetime as _dt
         ts = scanned_at or _dt.now().isoformat()
         self.conn.execute("""
-            INSERT INTO scan_cache (id, scanned_at, count, results_json)
-            VALUES (1, %s, %s, %s)
-            ON CONFLICT (id) DO UPDATE SET scanned_at = EXCLUDED.scanned_at,
+            INSERT INTO scan_cache (user_id, scanned_at, count, results_json)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (user_id) DO UPDATE SET scanned_at = EXCLUDED.scanned_at,
                 count = EXCLUDED.count, results_json = EXCLUDED.results_json
-        """, (ts, len(results), json.dumps(results, ensure_ascii=False)))
+        """, (user_id, ts, len(results), json.dumps(results, ensure_ascii=False)))
         self.conn.commit()
 
-    def load_scan_cache(self) -> dict:
+    def load_scan_cache(self, user_id: str = 'default') -> dict:
         row = self.conn.execute(
-            "SELECT scanned_at, count, results_json FROM scan_cache WHERE id = 1"
+            "SELECT scanned_at, count, results_json FROM scan_cache WHERE user_id = %s",
+            (user_id,)
         ).fetchone()
         if not row:
             return {"scanned_at": None, "count": 0, "results": []}
@@ -494,6 +512,24 @@ class Database:
                 )
         self.conn.commit()
 
+        # 既存テーブルへの user_id カラム追加（べき等）
+        migration_tables = [
+            'purchases', 'fulfillment', 'fulfillment_vendors', 'fba_shipments',
+            'inventory', 'agent_approval_queue', 'agent_listings', 'agent_sns_content',
+            'agent_memory', 'agent_sessions', 'scan_keywords', 'scan_cache',
+        ]
+        for tbl in migration_tables:
+            try:
+                self.conn.execute(f"ALTER TABLE {tbl} ADD COLUMN IF NOT EXISTS user_id TEXT NOT NULL DEFAULT 'default'")
+            except Exception:
+                pass
+        # settings テーブルの user_id 追加
+        try:
+            self.conn.execute("ALTER TABLE settings ADD COLUMN IF NOT EXISTS user_id TEXT NOT NULL DEFAULT 'default'")
+        except Exception:
+            pass
+        self.conn.commit()
+
     # ===== BACKUP =====
 
     def backup(self) -> str:
@@ -533,15 +569,15 @@ class Database:
 
     # ===== PURCHASES =====
 
-    def add_purchase(self, data: Dict) -> int:
+    def add_purchase(self, data: Dict, user_id: str = 'default') -> int:
         cur = self.conn.execute("""
             INSERT INTO purchases
-            (product_name, platform, purchase_price, purchase_shipping,
+            (user_id, product_name, platform, purchase_price, purchase_shipping,
              purchase_url, purchase_date, notes, image_data)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
-            data["product_name"], data["platform"], data["purchase_price"],
+            user_id, data["product_name"], data["platform"], data["purchase_price"],
             data.get("purchase_shipping", 0), data.get("purchase_url"),
             data["purchase_date"], data.get("notes"), data.get("image_data"),
         ))
@@ -549,29 +585,30 @@ class Database:
         self.conn.commit()
         return row["id"]
 
-    def get_purchases(self, status: str = None, platform: str = None, limit: int = None) -> List:
-        conditions = []
-        params = []
+    def get_purchases(self, status: str = None, platform: str = None, limit: int = None,
+                      user_id: str = 'default') -> List:
+        conditions = ["user_id = %s"]
+        params = [user_id]
         if status:
             conditions.append("status = %s")
             params.append(status)
         if platform:
             conditions.append("platform = %s")
             params.append(platform)
-        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        where = f"WHERE {' AND '.join(conditions)}"
         lim = f"LIMIT {int(limit)}" if limit else ""
         return self.conn.execute(
             f"SELECT * FROM purchases {where} ORDER BY purchase_date DESC {lim}",
             params
         ).fetchall()
 
-    def update_purchase_status(self, purchase_id: int, status: str):
+    def update_purchase_status(self, purchase_id: int, status: str, user_id: str = 'default'):
         self.conn.execute(
-            "UPDATE purchases SET status = %s WHERE id = %s", (status, purchase_id)
+            "UPDATE purchases SET status = %s WHERE id = %s AND user_id = %s", (status, purchase_id, user_id)
         )
         self.conn.commit()
 
-    def update_purchase(self, purchase_id: int, data: Dict):
+    def update_purchase(self, purchase_id: int, data: Dict, user_id: str = 'default'):
         allowed = {"product_name", "platform", "purchase_price", "purchase_shipping",
                    "purchase_url", "purchase_date", "notes"}
         fields = {k: v for k, v in data.items() if k in allowed}
@@ -579,18 +616,19 @@ class Database:
             return
         set_clause = ", ".join(f"{k} = %s" for k in fields)
         self.conn.execute(
-            f"UPDATE purchases SET {set_clause} WHERE id = %s",
-            list(fields.values()) + [purchase_id]
+            f"UPDATE purchases SET {set_clause} WHERE id = %s AND user_id = %s",
+            list(fields.values()) + [purchase_id, user_id]
         )
         self.conn.commit()
 
-    def get_product_names(self) -> List[str]:
+    def get_product_names(self, user_id: str = 'default') -> List[str]:
         rows = self.conn.execute(
-            "SELECT DISTINCT product_name FROM purchases ORDER BY product_name LIMIT 200"
+            "SELECT DISTINCT product_name FROM purchases WHERE user_id = %s ORDER BY product_name LIMIT 200",
+            (user_id,)
         ).fetchall()
         return [r["product_name"] for r in rows]
 
-    def import_purchases_csv(self, rows: List[Dict]) -> Dict:
+    def import_purchases_csv(self, rows: List[Dict], user_id: str = 'default') -> Dict:
         imported = 0
         errors = []
         for i, row in enumerate(rows, 1):
@@ -604,13 +642,13 @@ class Database:
                     "purchase_date": row.get("purchase_date") or date.today().isoformat(),
                     "notes": row.get("notes") or None,
                     "image_data": None,
-                })
+                }, user_id=user_id)
                 imported += 1
             except Exception as e:
                 errors.append(f"行{i}: {str(e)}")
         return {"imported": imported, "errors": errors}
 
-    def delete_purchase(self, purchase_id: int):
+    def delete_purchase(self, purchase_id: int, user_id: str = 'default'):
         try:
             # sales → listings の FK 制約: sales を先に削除する
             self.conn.execute("""
@@ -619,7 +657,7 @@ class Database:
                 )
             """, (purchase_id,))
             self.conn.execute("DELETE FROM listings WHERE purchase_id = %s", (purchase_id,))
-            self.conn.execute("DELETE FROM purchases WHERE id = %s", (purchase_id,))
+            self.conn.execute("DELETE FROM purchases WHERE id = %s AND user_id = %s", (purchase_id, user_id))
             self.conn.commit()
         except Exception:
             self.conn.rollback()
@@ -767,30 +805,32 @@ class Database:
 
     # ===== SETTINGS =====
 
-    def get_settings(self) -> Dict:
-        rows = self.conn.execute("SELECT key, value FROM settings").fetchall()
+    def get_settings(self, user_id: str = 'default') -> Dict:
+        rows = self.conn.execute(
+            "SELECT key, value FROM settings WHERE user_id = %s", (user_id,)
+        ).fetchall()
         return {r['key']: r['value'] for r in rows}
 
-    def save_settings(self, settings: Dict):
+    def save_settings(self, settings: Dict, user_id: str = 'default'):
         for key, value in settings.items():
             self.conn.execute("""
-                INSERT INTO settings (key, value, updated_at)
-                VALUES (%s, %s, CURRENT_TIMESTAMP)
-                ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
-            """, (key, str(value)))
+                INSERT INTO settings (user_id, key, value, updated_at)
+                VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+                ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+            """, (user_id, key, str(value)))
         self.conn.commit()
 
-    def save_fee_settings(self, fees: Dict):
+    def save_fee_settings(self, fees: Dict, user_id: str = 'default'):
         self.conn.execute("""
-            INSERT INTO settings (key, value, updated_at)
-            VALUES ('custom_fees', %s, CURRENT_TIMESTAMP)
-            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
-        """, (json.dumps(fees),))
+            INSERT INTO settings (user_id, key, value, updated_at)
+            VALUES (%s, 'custom_fees', %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+        """, (user_id, json.dumps(fees)))
         self.conn.commit()
 
-    def get_custom_fees(self) -> Optional[Dict]:
+    def get_custom_fees(self, user_id: str = 'default') -> Optional[Dict]:
         row = self.conn.execute(
-            "SELECT value FROM settings WHERE key = 'custom_fees'"
+            "SELECT value FROM settings WHERE user_id = %s AND key = 'custom_fees'", (user_id,)
         ).fetchone()
         if not row:
             return None
@@ -801,9 +841,9 @@ class Database:
 
     # ===== WATCHLIST =====
 
-    def get_watchlist(self) -> List[Dict]:
+    def get_watchlist(self, user_id: str = 'default') -> List[Dict]:
         row = self.conn.execute(
-            "SELECT value FROM settings WHERE key = 'watchlist'"
+            "SELECT value FROM settings WHERE user_id = %s AND key = 'watchlist'", (user_id,)
         ).fetchone()
         if not row:
             return []
@@ -812,69 +852,70 @@ class Database:
         except Exception:
             return []
 
-    def save_watchlist(self, items: List[Dict]):
+    def save_watchlist(self, items: List[Dict], user_id: str = 'default'):
         self.conn.execute("""
-            INSERT INTO settings (key, value, updated_at)
-            VALUES ('watchlist', %s, CURRENT_TIMESTAMP)
-            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
-        """, (json.dumps(items, ensure_ascii=False),))
+            INSERT INTO settings (user_id, key, value, updated_at)
+            VALUES (%s, 'watchlist', %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+        """, (user_id, json.dumps(items, ensure_ascii=False)))
         self.conn.commit()
 
     def add_watchlist_item(self, keyword: str, sell_platform: str = 'メルカリ',
-                           target_rate: float = 20.0):
-        items = self.get_watchlist()
+                           target_rate: float = 20.0, user_id: str = 'default'):
+        items = self.get_watchlist(user_id=user_id)
         if not any(i['keyword'] == keyword for i in items):
             items.append({'keyword': keyword, 'sell_platform': sell_platform,
                           'target_rate': target_rate})
-            self.save_watchlist(items)
+            self.save_watchlist(items, user_id=user_id)
 
-    def remove_watchlist_item(self, keyword: str):
-        items = [i for i in self.get_watchlist() if i['keyword'] != keyword]
-        self.save_watchlist(items)
+    def remove_watchlist_item(self, keyword: str, user_id: str = 'default'):
+        items = [i for i in self.get_watchlist(user_id=user_id) if i['keyword'] != keyword]
+        self.save_watchlist(items, user_id=user_id)
 
     # ===== API使用量カウンター =====
 
-    def get_monthly_api_calls(self, api_name: str) -> int:
+    def get_monthly_api_calls(self, api_name: str, user_id: str = 'default') -> int:
         month = datetime.now().strftime("%Y-%m")
         key = f"api_calls_{api_name}_{month}"
         row = self.conn.execute(
-            "SELECT value FROM settings WHERE key = %s", (key,)
+            "SELECT value FROM settings WHERE user_id = %s AND key = %s", (user_id, key)
         ).fetchone()
         return int(row['value']) if row else 0
 
-    def increment_api_calls(self, api_name: str) -> int:
+    def increment_api_calls(self, api_name: str, user_id: str = 'default') -> int:
         month = datetime.now().strftime("%Y-%m")
         key = f"api_calls_{api_name}_{month}"
-        new_count = self.get_monthly_api_calls(api_name) + 1
+        new_count = self.get_monthly_api_calls(api_name, user_id=user_id) + 1
         self.conn.execute("""
-            INSERT INTO settings (key, value, updated_at)
-            VALUES (%s, %s, CURRENT_TIMESTAMP)
-            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
-        """, (key, str(new_count)))
+            INSERT INTO settings (user_id, key, value, updated_at)
+            VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+        """, (user_id, key, str(new_count)))
         self.conn.commit()
         return new_count
 
     # ===== FULFILLMENT VENDORS =====
 
-    def get_vendors(self) -> List:
+    def get_vendors(self, user_id: str = 'default') -> List:
         return self.conn.execute(
-            "SELECT * FROM fulfillment_vendors ORDER BY created_at DESC"
+            "SELECT * FROM fulfillment_vendors WHERE user_id = %s ORDER BY created_at DESC",
+            (user_id,)
         ).fetchall()
 
-    def get_vendor(self, vendor_id: int):
+    def get_vendor(self, vendor_id: int, user_id: str = 'default'):
         return self.conn.execute(
-            "SELECT * FROM fulfillment_vendors WHERE id = %s", (vendor_id,)
+            "SELECT * FROM fulfillment_vendors WHERE id = %s AND user_id = %s", (vendor_id, user_id)
         ).fetchone()
 
-    def add_vendor(self, data: Dict) -> int:
+    def add_vendor(self, data: Dict, user_id: str = 'default') -> int:
         cur = self.conn.execute("""
             INSERT INTO fulfillment_vendors
-            (name, vendor_type, connection_type, status, api_key, api_endpoint,
+            (user_id, name, vendor_type, connection_type, status, api_key, api_endpoint,
              contact_email, line_token, base_fee, per_item_fee, supported_methods, notes)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
-            data["name"], data.get("vendor_type", "manual"), data.get("connection_type", "manual"),
+            user_id, data["name"], data.get("vendor_type", "manual"), data.get("connection_type", "manual"),
             data.get("status", "inactive"), data.get("api_key"), data.get("api_endpoint"),
             data.get("contact_email"), data.get("line_token"), data.get("base_fee", 0),
             data.get("per_item_fee", 0), data.get("supported_methods", "[]"), data.get("notes"),
@@ -883,7 +924,7 @@ class Database:
         self.conn.commit()
         return row["id"]
 
-    def update_vendor(self, vendor_id: int, data: Dict):
+    def update_vendor(self, vendor_id: int, data: Dict, user_id: str = 'default'):
         allowed = {"name", "vendor_type", "connection_type", "status", "api_key",
                    "api_endpoint", "contact_email", "line_token", "base_fee",
                    "per_item_fee", "supported_methods", "notes"}
@@ -892,13 +933,13 @@ class Database:
             return
         set_clause = ", ".join(f"{k} = %s" for k in fields)
         self.conn.execute(
-            f"UPDATE fulfillment_vendors SET {set_clause}, updated_at = CURRENT_TIMESTAMP WHERE id = %s",
-            list(fields.values()) + [vendor_id]
+            f"UPDATE fulfillment_vendors SET {set_clause}, updated_at = CURRENT_TIMESTAMP WHERE id = %s AND user_id = %s",
+            list(fields.values()) + [vendor_id, user_id]
         )
         self.conn.commit()
 
-    def delete_vendor(self, vendor_id: int):
-        self.conn.execute("DELETE FROM fulfillment_vendors WHERE id = %s", (vendor_id,))
+    def delete_vendor(self, vendor_id: int, user_id: str = 'default'):
+        self.conn.execute("DELETE FROM fulfillment_vendors WHERE id = %s AND user_id = %s", (vendor_id, user_id))
         self.conn.commit()
 
     # ===== FULFILLMENT STATUS LOGS =====
@@ -934,28 +975,30 @@ class Database:
 
     # ===== FULFILLMENT =====
 
-    def get_fulfillments(self, status: str = None) -> List:
+    def get_fulfillments(self, status: str = None, user_id: str = 'default') -> List:
         query = """
             SELECT f.*, p.product_name, p.platform, p.purchase_price,
                    p.purchase_shipping, p.purchase_url, p.purchase_date
             FROM fulfillment f
             JOIN purchases p ON f.purchase_id = p.id
+            WHERE f.user_id = %s
         """
+        params = [user_id]
         if status:
             return self.conn.execute(
-                query + " WHERE f.status = %s ORDER BY f.created_at DESC", (status,)
+                query + " AND f.status = %s ORDER BY f.created_at DESC", params + [status]
             ).fetchall()
-        return self.conn.execute(query + " ORDER BY f.created_at DESC").fetchall()
+        return self.conn.execute(query + " ORDER BY f.created_at DESC", params).fetchall()
 
-    def add_fulfillment(self, data: Dict) -> int:
+    def add_fulfillment(self, data: Dict, user_id: str = 'default') -> int:
         cur = self.conn.execute("""
             INSERT INTO fulfillment
-            (purchase_id, worker_name, status, tracking_number, shipping_company,
+            (user_id, purchase_id, worker_name, status, tracking_number, shipping_company,
              pickup_date, pack_date, ship_date, notes)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
-            data["purchase_id"], data.get("worker_name"), data.get("status", "waiting"),
+            user_id, data["purchase_id"], data.get("worker_name"), data.get("status", "waiting"),
             data.get("tracking_number"), data.get("shipping_company"), data.get("pickup_date"),
             data.get("pack_date"), data.get("ship_date"), data.get("notes"),
         ))
@@ -963,7 +1006,7 @@ class Database:
         self.conn.commit()
         return row["id"]
 
-    def update_fulfillment(self, fulfillment_id: int, data: Dict):
+    def update_fulfillment(self, fulfillment_id: int, data: Dict, user_id: str = 'default'):
         allowed = {"worker_name", "status", "tracking_number", "shipping_company",
                    "pickup_date", "pack_date", "ship_date", "notes", "vendor_id",
                    "vendor_task_id", "shipping_method", "shipping_cost", "vendor_fee",
@@ -974,41 +1017,42 @@ class Database:
             return
         set_clause = ", ".join(f"{k} = %s" for k in fields)
         self.conn.execute(
-            f"UPDATE fulfillment SET {set_clause} WHERE id = %s",
-            list(fields.values()) + [fulfillment_id]
+            f"UPDATE fulfillment SET {set_clause} WHERE id = %s AND user_id = %s",
+            list(fields.values()) + [fulfillment_id, user_id]
         )
         self.conn.commit()
 
-    def delete_fulfillment(self, fulfillment_id: int):
-        self.conn.execute("DELETE FROM fulfillment WHERE id = %s", (fulfillment_id,))
+    def delete_fulfillment(self, fulfillment_id: int, user_id: str = 'default'):
+        self.conn.execute("DELETE FROM fulfillment WHERE id = %s AND user_id = %s", (fulfillment_id, user_id))
         self.conn.commit()
 
     # ===== FBA SHIPMENTS =====
 
-    def get_fba_shipments(self) -> List:
+    def get_fba_shipments(self, user_id: str = 'default') -> List:
         return self.conn.execute(
-            "SELECT * FROM fba_shipments ORDER BY created_at DESC"
+            "SELECT * FROM fba_shipments WHERE user_id = %s ORDER BY created_at DESC",
+            (user_id,)
         ).fetchall()
 
-    def get_fba_shipment(self, shipment_id: int):
+    def get_fba_shipment(self, shipment_id: int, user_id: str = 'default'):
         return self.conn.execute(
-            "SELECT * FROM fba_shipments WHERE id = %s", (shipment_id,)
+            "SELECT * FROM fba_shipments WHERE id = %s AND user_id = %s", (shipment_id, user_id)
         ).fetchone()
 
-    def add_fba_shipment(self, data: Dict) -> int:
+    def add_fba_shipment(self, data: Dict, user_id: str = 'default') -> int:
         cur = self.conn.execute("""
-            INSERT INTO fba_shipments (plan_name, status, destination, box_count, notes)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO fba_shipments (user_id, plan_name, status, destination, box_count, notes)
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
-            data["plan_name"], data.get("status", "draft"), data.get("destination", "Amazon倉庫（川越FC）"),
+            user_id, data["plan_name"], data.get("status", "draft"), data.get("destination", "Amazon倉庫（川越FC）"),
             data.get("box_count", 1), data.get("notes"),
         ))
         row = cur.fetchone()
         self.conn.commit()
         return row["id"]
 
-    def update_fba_shipment(self, shipment_id: int, data: Dict):
+    def update_fba_shipment(self, shipment_id: int, data: Dict, user_id: str = 'default'):
         allowed = {"plan_name", "status", "destination", "box_count", "total_items",
                    "notes", "sent_at", "received_at"}
         fields = {k: v for k, v in data.items() if k in allowed}
@@ -1016,13 +1060,13 @@ class Database:
             return
         set_clause = ", ".join(f"{k} = %s" for k in fields)
         self.conn.execute(
-            f"UPDATE fba_shipments SET {set_clause} WHERE id = %s",
-            list(fields.values()) + [shipment_id]
+            f"UPDATE fba_shipments SET {set_clause} WHERE id = %s AND user_id = %s",
+            list(fields.values()) + [shipment_id, user_id]
         )
         self.conn.commit()
 
-    def delete_fba_shipment(self, shipment_id: int):
-        self.conn.execute("DELETE FROM fba_shipments WHERE id = %s", (shipment_id,))
+    def delete_fba_shipment(self, shipment_id: int, user_id: str = 'default'):
+        self.conn.execute("DELETE FROM fba_shipments WHERE id = %s AND user_id = %s", (shipment_id, user_id))
         self.conn.commit()
 
     def get_fba_shipment_items(self, shipment_id: int) -> List:
@@ -1076,26 +1120,30 @@ class Database:
 
     # ===== INVENTORY =====
 
-    def get_inventory(self, status: str = None) -> List:
+    def get_inventory(self, status: str = None, user_id: str = 'default') -> List:
         if status:
             return self.conn.execute(
-                "SELECT * FROM inventory WHERE status = %s ORDER BY quantity ASC",
-                (status,)
+                "SELECT * FROM inventory WHERE user_id = %s AND status = %s ORDER BY quantity ASC",
+                (user_id, status)
             ).fetchall()
-        return self.conn.execute("SELECT * FROM inventory ORDER BY quantity ASC").fetchall()
+        return self.conn.execute(
+            "SELECT * FROM inventory WHERE user_id = %s ORDER BY quantity ASC", (user_id,)
+        ).fetchall()
 
-    def get_inventory_item(self, item_id: int):
-        return self.conn.execute("SELECT * FROM inventory WHERE id = %s", (item_id,)).fetchone()
+    def get_inventory_item(self, item_id: int, user_id: str = 'default'):
+        return self.conn.execute(
+            "SELECT * FROM inventory WHERE id = %s AND user_id = %s", (item_id, user_id)
+        ).fetchone()
 
-    def add_inventory_item(self, data: Dict) -> int:
+    def add_inventory_item(self, data: Dict, user_id: str = 'default') -> int:
         cur = self.conn.execute("""
             INSERT INTO inventory
-            (product_name, asin, sku, fnsku, quantity, reserved_quantity, daily_sales,
+            (user_id, product_name, asin, sku, fnsku, quantity, reserved_quantity, daily_sales,
              reorder_point, location, status, unit_cost)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
-            data["product_name"], data.get("asin"), data.get("sku"), data.get("fnsku"),
+            user_id, data["product_name"], data.get("asin"), data.get("sku"), data.get("fnsku"),
             data.get("quantity", 0), data.get("reserved_quantity", 0), data.get("daily_sales", 0),
             data.get("reorder_point", 5), data.get("location", "FBA"), data.get("status", "active"),
             data.get("unit_cost", 0),
@@ -1104,7 +1152,7 @@ class Database:
         self.conn.commit()
         return row["id"]
 
-    def update_inventory_item(self, item_id: int, data: Dict):
+    def update_inventory_item(self, item_id: int, data: Dict, user_id: str = 'default'):
         allowed = {"product_name", "asin", "sku", "fnsku", "quantity", "reserved_quantity",
                    "daily_sales", "reorder_point", "location", "status", "unit_cost"}
         fields = {k: v for k, v in data.items() if k in allowed}
@@ -1113,26 +1161,26 @@ class Database:
         fields["last_updated"] = datetime.now()
         set_clause = ", ".join(f"{k} = %s" for k in fields)
         self.conn.execute(
-            f"UPDATE inventory SET {set_clause} WHERE id = %s",
-            list(fields.values()) + [item_id]
+            f"UPDATE inventory SET {set_clause} WHERE id = %s AND user_id = %s",
+            list(fields.values()) + [item_id, user_id]
         )
         self.conn.commit()
 
-    def delete_inventory_item(self, item_id: int):
-        self.conn.execute("DELETE FROM inventory WHERE id = %s", (item_id,))
+    def delete_inventory_item(self, item_id: int, user_id: str = 'default'):
+        self.conn.execute("DELETE FROM inventory WHERE id = %s AND user_id = %s", (item_id, user_id))
         self.conn.commit()
 
     # ===== AGENT: APPROVAL QUEUE =====
 
-    def add_approval_queue_item(self, data: dict) -> int:
+    def add_approval_queue_item(self, data: dict, user_id: str = 'default') -> int:
         cur = self.conn.execute("""
             INSERT INTO agent_approval_queue
-            (product_name, buy_price, buy_url, buy_source, buy_image,
+            (user_id, product_name, buy_price, buy_url, buy_source, buy_image,
              sell_platform, est_sell_price, net_profit_jpy, profit_rate, score, ceo_reason)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
-            data.get("product_name", ""), data.get("buy_price", 0), data.get("buy_url", ""),
+            user_id, data.get("product_name", ""), data.get("buy_price", 0), data.get("buy_url", ""),
             data.get("buy_source", ""), data.get("buy_image", ""), data.get("sell_platform", ""),
             data.get("est_sell_price", 0), data.get("net_profit_jpy", 0), data.get("profit_rate", 0),
             data.get("score", 0), data.get("ceo_reason", ""),
@@ -1141,15 +1189,16 @@ class Database:
         self.conn.commit()
         return row["id"]
 
-    def get_approval_queue(self, status: str = None) -> List[Dict]:
+    def get_approval_queue(self, status: str = None, user_id: str = 'default') -> List[Dict]:
         if status:
             rows = self.conn.execute(
-                "SELECT * FROM agent_approval_queue WHERE status = %s ORDER BY score DESC, created_at DESC",
-                (status,)
+                "SELECT * FROM agent_approval_queue WHERE user_id = %s AND status = %s ORDER BY score DESC, created_at DESC",
+                (user_id, status)
             ).fetchall()
         else:
             rows = self.conn.execute(
-                "SELECT * FROM agent_approval_queue ORDER BY created_at DESC"
+                "SELECT * FROM agent_approval_queue WHERE user_id = %s ORDER BY created_at DESC",
+                (user_id,)
             ).fetchall()
         return [dict(r) for r in rows]
 
@@ -1179,15 +1228,15 @@ class Database:
 
     # ===== AGENT: LISTINGS =====
 
-    def add_agent_listing(self, data: dict) -> int:
+    def add_agent_listing(self, data: dict, user_id: str = 'default') -> int:
         cur = self.conn.execute("""
             INSERT INTO agent_listings
-            (purchase_id, approval_queue_id, sell_platform, title, description,
+            (user_id, purchase_id, approval_queue_id, sell_platform, title, description,
              price, price_currency, tags, category_suggestion, shipping_notes, seo_keywords)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
-            data.get("purchase_id"), data.get("approval_queue_id"), data.get("sell_platform", ""),
+            user_id, data.get("purchase_id"), data.get("approval_queue_id"), data.get("sell_platform", ""),
             data.get("title", ""), data.get("description", ""), data.get("price", 0),
             data.get("price_currency", "JPY"), json.dumps(data.get("tags", []), ensure_ascii=False),
             data.get("category_suggestion", ""), data.get("shipping_notes", ""),
@@ -1197,9 +1246,10 @@ class Database:
         self.conn.commit()
         return row["id"]
 
-    def get_agent_listings(self, purchase_id: int = None, status: str = None) -> List[Dict]:
-        conditions = ["1=1"]
-        params = []
+    def get_agent_listings(self, purchase_id: int = None, status: str = None,
+                           user_id: str = 'default') -> List[Dict]:
+        conditions = ["user_id = %s"]
+        params = [user_id]
         if purchase_id:
             conditions.append("purchase_id = %s")
             params.append(purchase_id)
@@ -1234,14 +1284,14 @@ class Database:
 
     # ===== AGENT: SNS CONTENT =====
 
-    def add_agent_sns_content(self, data: dict) -> int:
+    def add_agent_sns_content(self, data: dict, user_id: str = 'default') -> int:
         cur = self.conn.execute("""
             INSERT INTO agent_sns_content
-            (purchase_id, approval_queue_id, post_type, platform, content, hashtags)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            (user_id, purchase_id, approval_queue_id, post_type, platform, content, hashtags)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
-            data.get("purchase_id"), data.get("approval_queue_id"), data.get("post_type", "listing"),
+            user_id, data.get("purchase_id"), data.get("approval_queue_id"), data.get("post_type", "listing"),
             data.get("platform", ""), data.get("content", ""),
             json.dumps(data.get("hashtags", []), ensure_ascii=False),
         ))
@@ -1249,9 +1299,10 @@ class Database:
         self.conn.commit()
         return row["id"]
 
-    def get_agent_sns_content(self, purchase_id: int = None, status: str = None) -> List[Dict]:
-        conditions = ["1=1"]
-        params = []
+    def get_agent_sns_content(self, purchase_id: int = None, status: str = None,
+                              user_id: str = 'default') -> List[Dict]:
+        conditions = ["user_id = %s"]
+        params = [user_id]
         if purchase_id:
             conditions.append("purchase_id = %s")
             params.append(purchase_id)
@@ -1282,10 +1333,11 @@ class Database:
 
     # ===== AGENT: SESSIONS =====
 
-    def create_agent_session(self, goal: str, budget_jpy: float = None) -> int:
+    def create_agent_session(self, goal: str, budget_jpy: float = None,
+                             user_id: str = 'default') -> int:
         cur = self.conn.execute(
-            "INSERT INTO agent_sessions (goal, budget_jpy) VALUES (%s, %s) RETURNING id",
-            (goal, budget_jpy)
+            "INSERT INTO agent_sessions (user_id, goal, budget_jpy) VALUES (%s, %s, %s) RETURNING id",
+            (user_id, goal, budget_jpy)
         )
         row = cur.fetchone()
         self.conn.commit()
@@ -1304,9 +1356,10 @@ class Database:
         )
         self.conn.commit()
 
-    def get_agent_sessions(self, limit: int = 20) -> List[Dict]:
+    def get_agent_sessions(self, limit: int = 20, user_id: str = 'default') -> List[Dict]:
         rows = self.conn.execute(
-            "SELECT * FROM agent_sessions ORDER BY created_at DESC LIMIT %s", (limit,)
+            "SELECT * FROM agent_sessions WHERE user_id = %s ORDER BY created_at DESC LIMIT %s",
+            (user_id, limit)
         ).fetchall()
         result = []
         for r in rows:
