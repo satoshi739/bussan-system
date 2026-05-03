@@ -39,10 +39,19 @@ class _Connection:
     psycopg2 接続を sqlite3 の conn.execute() インターフェース互換にラップ。
     - ? プレースホルダーを %s に自動変換
     - BEGIN / COMMIT / ROLLBACK をネイティブ処理に変換
+    - OperationalError / InterfaceError 時に自動再接続 (Railway idle timeout 対策)
     """
     def __init__(self, conn):
         self._conn = conn
         self._lock = threading.Lock()
+
+    def _reconnect(self):
+        try:
+            self._conn.close()
+        except Exception:
+            pass
+        self._conn = _pg_connect()
+        print("[DB] 接続を再確立しました")
 
     def execute(self, sql: str, params=()):
         stripped = sql.strip().upper().split()[0] if sql.strip() else ""
@@ -57,9 +66,16 @@ class _Connection:
 
         sql_pg = sql.replace("?", "%s")
         with self._lock:
-            cur = self._new_cursor()
-            cur.execute(sql_pg, params or ())
-            return _Cursor(cur)
+            try:
+                cur = self._new_cursor()
+                cur.execute(sql_pg, params or ())
+                return _Cursor(cur)
+            except (psycopg2.OperationalError, psycopg2.InterfaceError):
+                # Railway idle timeout 等でコネクションが切断された場合に再接続して1回リトライ
+                self._reconnect()
+                cur = self._new_cursor()
+                cur.execute(sql_pg, params or ())
+                return _Cursor(cur)
 
     def executescript(self, script: str):
         statements = [s.strip() for s in script.split(";") if s.strip()]
@@ -93,6 +109,12 @@ class Database:
         self.conn = _Connection(_pg_connect())
         self._create_tables()
         self._add_indexes()
+
+    def close(self):
+        try:
+            self.conn._conn.close()
+        except Exception:
+            pass
 
     def _create_tables(self):
         self.conn.executescript("""

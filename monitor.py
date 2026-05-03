@@ -30,12 +30,12 @@ def _send_line(token: str, message: str) -> bool:
         return False
 
 
-def _get_settings_and_db():
+def _get_db():
+    """呼び出し元が必ず close() する前提の Database インスタンスを返す"""
     import sys
     sys.path.insert(0, str(Path(__file__).parent))
     from database import Database
-    db = Database()
-    return db.get_settings(), db
+    return Database()
 
 
 # ── 定期タスク ───────────────────────────────────────────────────────
@@ -43,8 +43,10 @@ def _get_settings_and_db():
 def daily_scan():
     """毎朝自動スキャン: 登録キーワードをスキャンしてLINE通知"""
     print(f"[Monitor] daily_scan 開始: {datetime.now().isoformat()}")
+    db = None
     try:
-        settings, db = _get_settings_and_db()
+        db = _get_db()
+        settings = db.get_settings()
         api_key = settings.get("anthropic_api_key", "").strip()
         line_token = settings.get("line_notify_token", "").strip()
 
@@ -62,7 +64,6 @@ def daily_scan():
         queued = result.get("queued_count", 0)
         scanned = result.get("scanned_count", 0)
 
-        # セッションをDBに保存
         session_id = db.create_agent_session("自動デイリースキャン", None)
         db.update_agent_session(session_id, {
             "status": "completed",
@@ -90,13 +91,18 @@ def daily_scan():
 
     except Exception as e:
         print(f"[Monitor] daily_scan エラー: {e}")
+    finally:
+        if db:
+            db.close()
 
 
 def check_stale_inventory():
     """売れ残り在庫チェック: 30日以上売れていない商品をLINEで警告"""
     print(f"[Monitor] stale_inventory チェック: {datetime.now().isoformat()}")
+    db = None
     try:
-        settings, db = _get_settings_and_db()
+        db = _get_db()
+        settings = db.get_settings()
         line_token = settings.get("line_notify_token", "").strip()
         if not line_token:
             return
@@ -128,13 +134,18 @@ def check_stale_inventory():
 
     except Exception as e:
         print(f"[Monitor] stale_inventory エラー: {e}")
+    finally:
+        if db:
+            db.close()
 
 
 def weekly_report():
     """週次レポート: 週間の売上・利益・エージェント活動をまとめてLINE送信"""
     print(f"[Monitor] weekly_report 開始: {datetime.now().isoformat()}")
+    db = None
     try:
-        settings, db = _get_settings_and_db()
+        db = _get_db()
+        settings = db.get_settings()
         line_token = settings.get("line_notify_token", "").strip()
         if not line_token:
             return
@@ -180,26 +191,34 @@ def weekly_report():
 
     except Exception as e:
         print(f"[Monitor] weekly_report エラー: {e}")
+    finally:
+        if db:
+            db.close()
 
 
 def cleanup_memory():
     """期限切れの記憶を定期削除"""
+    db = None
     try:
-        _, db = _get_settings_and_db()
+        db = _get_db()
         from agents import AgentMemory
         for agent_name in ["ceo", "research", "listing", "sns"]:
             AgentMemory(agent_name, db).delete_expired()
         print(f"[Monitor] memory cleanup 完了")
     except Exception as e:
         print(f"[Monitor] memory cleanup エラー: {e}")
+    finally:
+        if db:
+            db.close()
 
 
 # ── スケジューラー ────────────────────────────────────────────────────
 
 def _load_schedule_settings() -> dict:
     """設定からスケジュール設定を読み込む"""
+    db = None
     try:
-        _, db = _get_settings_and_db()
+        db = _get_db()
         settings = db.get_settings()
         return {
             "daily_scan_time": settings.get("monitor_daily_scan_time", "08:00"),
@@ -214,6 +233,9 @@ def _load_schedule_settings() -> dict:
             "weekly_report_day": "monday",
             "weekly_report_time": "09:00",
         }
+    finally:
+        if db:
+            db.close()
 
 
 def setup_schedules():
