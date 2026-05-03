@@ -59,8 +59,15 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
     setPortalLoading(true);
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "支払い管理ページの読み込みに失敗しました");
+      }
       const { url } = await res.json();
       if (url) window.location.href = url;
+    } catch (err) {
+      console.error("[portal]", err);
+      alert(err instanceof Error ? err.message : "支払い管理ページを開けませんでした。しばらく経ってから再度お試しください。");
     } finally {
       setPortalLoading(false);
     }
