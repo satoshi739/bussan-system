@@ -326,6 +326,64 @@ def delete_purchase(purchase_id: int, user_id: str = Depends(get_user_id)):
     return {"ok": True}
 
 
+class BulkStatusBody(BaseModel):
+    ids: List[int]
+    status: str
+
+class BulkDeleteBody(BaseModel):
+    ids: List[int]
+
+@app.patch("/api/purchases/bulk")
+def bulk_update_purchase_status(body: BulkStatusBody, user_id: str = Depends(get_user_id)):
+    if not body.ids:
+        return {"ok": True, "updated": 0}
+    placeholders = ",".join(["%s"] * len(body.ids))
+    db.conn.execute(
+        f"UPDATE purchases SET status = %s WHERE id IN ({placeholders}) AND user_id = %s",
+        [body.status] + body.ids + [user_id]
+    )
+    db.conn.commit()
+    return {"ok": True, "updated": len(body.ids)}
+
+@app.post("/api/purchases/bulk-delete")
+def bulk_delete_purchases(body: BulkDeleteBody, user_id: str = Depends(get_user_id)):
+    if not body.ids:
+        return {"ok": True, "deleted": 0}
+    for pid in body.ids:
+        try:
+            db.delete_purchase(pid, user_id=user_id)
+        except Exception:
+            pass
+    return {"ok": True, "deleted": len(body.ids)}
+
+@app.get("/api/purchases/{purchase_id}/listing-links")
+def get_purchase_listing_links(purchase_id: int, user_id: str = Depends(get_user_id)):
+    row = db.conn.execute(
+        "SELECT * FROM purchases WHERE id = %s AND user_id = %s",
+        (purchase_id, user_id)
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+    p = dict(row)
+    cost = p["purchase_price"] + p.get("purchase_shipping", 0)
+    suggested_price = int(round(cost * 1.3 / 100) * 100) or int(cost * 1.3)
+    links = _generate_listing_deeplinks(
+        product_name=p["product_name"],
+        price_local=float(suggested_price),
+        currency="JPY",
+        platform_key=p.get("platform", ""),
+        buy_url=p.get("purchase_url"),
+        buy_price_jpy=cost,
+    )
+    return {
+        "purchase_id": purchase_id,
+        "product_name": p["product_name"],
+        "cost_jpy": cost,
+        "suggested_price_jpy": suggested_price,
+        "links": links,
+    }
+
+
 # ── 出品 ─────────────────────────────────────────────────
 
 @app.get("/api/listings")

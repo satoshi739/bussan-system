@@ -46,6 +46,15 @@ export const updatePurchase = (id: number, body: Partial<Omit<Purchase, "id" | "
 export const deletePurchase = (id: number) =>
   req("/api/purchases/" + id, { method: "DELETE" });
 export const getProductNames = () => req<string[]>("/api/purchases/product-names");
+export const bulkUpdatePurchases = (ids: number[], status: string) =>
+  req<{ ok: boolean; updated: number }>("/api/purchases/bulk", { method: "PATCH", body: JSON.stringify({ ids, status }) });
+export const bulkDeletePurchases = (ids: number[]) =>
+  req<{ ok: boolean; deleted: number }>("/api/purchases/bulk-delete", { method: "POST", body: JSON.stringify({ ids }) });
+export const getPurchaseListingLinks = (id: number) =>
+  req<{
+    purchase_id: number; product_name: string; cost_jpy: number; suggested_price_jpy: number;
+    links: Record<string, { label: string; flag: string; url: string; note: string; category: string; recommended: boolean; price_display: string }>;
+  }>(`/api/purchases/${id}/listing-links`);
 export const importPurchasesCSV = (file: File): Promise<{ imported: number; errors: string[]; parse_errors: string[] }> => {
   const form = new FormData();
   form.append("file", file);

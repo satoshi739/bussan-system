@@ -4,11 +4,13 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import {
   getPurchases, createPurchase, updatePurchase, updatePurchaseStatus, deletePurchase,
   calcAllPlatforms, createFulfillment, getProductNames, importPurchasesCSV,
+  bulkUpdatePurchases, bulkDeletePurchases, getPurchaseListingLinks,
   type Purchase,
 } from "@/lib/api";
 import {
   Plus, Trash2, ExternalLink, Search, DollarSign, X, TrendingUp, Package,
   ShoppingCart, CheckCircle, Download, AlertTriangle, Pencil, Save, Truck, Upload,
+  Store,
 } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
@@ -98,6 +100,16 @@ export default function PurchasesPage() {
 
   // 削除確認モーダル
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
+
+  // 一括操作
+  const [selectedIds,    setSelectedIds]   = useState<Set<number>>(new Set());
+  const [bulkStatus,     setBulkStatus]    = useState("listed");
+  const [bulkLoading,    setBulkLoading]   = useState(false);
+
+  // 出品モーダル
+  type ListingLink = { label: string; flag: string; url: string; note: string; category: string; recommended: boolean; price_display: string };
+  const [listingModal,   setListingModal]  = useState<{ purchase_id: number; product_name: string; cost_jpy: number; suggested_price_jpy: number; links: Record<string, ListingLink> } | null>(null);
+  const [listingLoading, setListingLoading] = useState<number | null>(null);
 
   // CSVインポート
   const [showCsv,      setShowCsv]     = useState(false);
@@ -223,6 +235,64 @@ export default function PurchasesPage() {
     finally {
       setFulfillmentLoading(prev => { const n = new Set(prev); n.delete(item.id); return n; });
     }
+  };
+
+  // ── 一括操作 ──────────────────────────────────────────────
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(i => i.id)));
+    }
+  };
+
+  const handleBulkStatus = async () => {
+    if (!selectedIds.size) return;
+    setBulkLoading(true);
+    try {
+      await bulkUpdatePurchases(Array.from(selectedIds), bulkStatus);
+      toast(`${selectedIds.size}件のステータスを変更しました ✅`);
+      setSelectedIds(new Set());
+      load();
+    } catch (e) { toast(errMsg(e), "error"); }
+    finally { setBulkLoading(false); }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.size) return;
+    setBulkLoading(true);
+    try {
+      await bulkDeletePurchases(Array.from(selectedIds));
+      toast(`${selectedIds.size}件を削除しました`, "info");
+      setSelectedIds(new Set());
+      load();
+    } catch (e) { toast(errMsg(e), "error"); }
+    finally { setBulkLoading(false); }
+  };
+
+  // ── 出品モーダル ──────────────────────────────────────────
+  const openListingModal = async (item: Purchase) => {
+    setListingLoading(item.id);
+    try {
+      const data = await getPurchaseListingLinks(item.id);
+      setListingModal(data);
+    } catch (e) { toast(errMsg(e), "error"); }
+    finally { setListingLoading(null); }
+  };
+
+  const markAsListed = async (id: number) => {
+    await updatePurchaseStatus(id, "listed");
+    toast("出品中に変更しました ✅");
+    setListingModal(null);
+    load();
   };
 
   // ── 売却モーダル ──────────────────────────────────────────
@@ -483,6 +553,84 @@ export default function PurchasesPage() {
           ))}
         </div>
       </div>
+
+      {/* ── 一括操作バー（選択中のみ表示） ── */}
+      {selectedIds.size > 0 && (
+        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 500, background: "#0a0a0b", border: "1px solid rgba(212,175,55,0.5)", borderRadius: 14, padding: "12px 20px", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.7)", minWidth: 400 }}>
+          <span style={{ fontSize: 13, color: "#D4AF37", fontWeight: 700, flexShrink: 0 }}>{selectedIds.size}件選択中</span>
+          <div style={{ height: 20, width: 1, background: "rgba(212,175,55,0.2)" }} />
+          <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)} style={{ background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "6px 10px", fontSize: 12, cursor: "pointer" }}>
+            {Object.entries(STATUS).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
+          </select>
+          <button onClick={handleBulkStatus} disabled={bulkLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", opacity: bulkLoading ? 0.6 : 1 }}>
+            {bulkLoading ? "処理中..." : "一括変更"}
+          </button>
+          <button onClick={handleBulkDelete} disabled={bulkLoading} style={{ background: "rgba(255,50,50,0.08)", border: "1px solid rgba(255,80,80,0.3)", borderRadius: 8, color: "#ff6666", padding: "7px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, opacity: bulkLoading ? 0.6 : 1 }}>
+            <Trash2 size={12} /> 一括削除
+          </button>
+          <button onClick={() => setSelectedIds(new Set())} style={{ background: "transparent", border: "none", color: "#8A8278", cursor: "pointer", padding: "4px", marginLeft: 4 }}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* ── 出品リンクモーダル ── */}
+      {listingModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 450, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={e => e.target === e.currentTarget && setListingModal(null)}
+        >
+          <div style={{ background: "#0a0a0b", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 18, padding: 28, width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+            <button onClick={() => setListingModal(null)} style={{ position: "absolute", top: 14, right: 14, background: "transparent", border: "none", color: "#8A8278", cursor: "pointer" }}>
+              <X size={18} />
+            </button>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F0E8", marginBottom: 4 }}>🏪 出品する</div>
+            <div style={{ fontSize: 13, color: "#C8C0B0", marginBottom: 4 }}>{listingModal.product_name}</div>
+            <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20 }}>
+              仕入れコスト ¥{listingModal.cost_jpy.toLocaleString()} · 推奨売価 <span style={{ color: "#D4AF37", fontWeight: 700 }}>¥{listingModal.suggested_price_jpy.toLocaleString()}</span>（利益率30%目安）
+            </div>
+
+            {(["国内", "海外"] as const).map(cat => {
+              const entries = Object.entries(listingModal.links).filter(([, v]) => v.category === cat);
+              if (!entries.length) return null;
+              return (
+                <div key={cat} style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, color: "#8A8278", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>{cat}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {entries.map(([key, link]) => (
+                      <a key={key} href={link.url} target="_blank" rel="noreferrer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 14px", borderRadius: 10, border: link.recommended ? "1px solid rgba(212,175,55,0.4)" : "1px solid rgba(212,175,55,0.1)", background: link.recommended ? "rgba(212,175,55,0.06)" : "rgba(10,10,11,0.6)", textDecoration: "none", cursor: "pointer" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ fontSize: 18 }}>{link.flag}</span>
+                          <div>
+                            <div style={{ fontSize: 13, color: "#F5F0E8", fontWeight: 600 }}>
+                              {link.label}
+                              {link.recommended && <span style={{ marginLeft: 6, fontSize: 10, background: "rgba(212,175,55,0.2)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: "1px 6px", color: "#D4AF37" }}>おすすめ</span>}
+                            </div>
+                            <div style={{ fontSize: 11, color: "#8A8278", marginTop: 1 }}>{link.note}</div>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {link.price_display && <span style={{ fontSize: 13, color: "#D4AF37", fontWeight: 700, fontFamily: "monospace" }}>{link.price_display}</span>}
+                          <ExternalLink size={13} color="#8A8278" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(212,175,55,0.1)" }}>
+              <button
+                onClick={() => listingModal && markAsListed(listingModal.purchase_id)}
+                style={{ width: "100%", background: "linear-gradient(135deg,#003060,#004080)", border: "1px solid rgba(102,204,255,0.4)", borderRadius: 10, color: "#66ccff", padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}
+              >
+                ✅ 出品済みにする（ステータスを「出品中」に変更）
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── 削除確認モーダル ── */}
       {deleteConfirm && (
@@ -783,10 +931,17 @@ export default function PurchasesPage() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 16px", fontSize: 10, color: "#3A3830", fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase" }}>
+            <input
+              type="checkbox"
+              checked={filtered.length > 0 && selectedIds.size === filtered.length}
+              onChange={toggleSelectAll}
+              style={{ width: 15, height: 15, flexShrink: 0, accentColor: "#D4AF37", cursor: "pointer" }}
+              title="全選択"
+            />
             <div style={{ width: 80, flexShrink: 0 }}>ステータス</div>
             <div style={{ flex: 1 }}>商品名</div>
             <div style={{ width: 100, textAlign: "right", flexShrink: 0 }}>コスト</div>
-            <div style={{ width: 140, flexShrink: 0 }} />
+            <div style={{ width: 200, flexShrink: 0 }} />
           </div>
 
           {filtered.map(item => {
@@ -849,6 +1004,14 @@ export default function PurchasesPage() {
                   </>
                 ) : (
                   <>
+                    {/* チェックボックス */}
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(item.id)}
+                      onChange={() => toggleSelect(item.id)}
+                      onClick={e => e.stopPropagation()}
+                      style={{ width: 15, height: 15, flexShrink: 0, accentColor: "#D4AF37", cursor: "pointer" }}
+                    />
                     {/* ステータス */}
                     <select
                       value={item.status}
@@ -877,6 +1040,15 @@ export default function PurchasesPage() {
 
                     {/* アクション */}
                     <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
+                      {item.status !== "sold" && item.status !== "cancelled" && (
+                        <button
+                          onClick={() => openListingModal(item)}
+                          disabled={listingLoading === item.id}
+                          style={{ background: "rgba(0,40,80,0.7)", border: "1px solid rgba(102,170,255,0.35)", borderRadius: 8, color: "#66aaff", cursor: "pointer", padding: "6px 10px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 3, opacity: listingLoading === item.id ? 0.6 : 1 }}
+                        >
+                          <Store size={12} /> 出品
+                        </button>
+                      )}
                       {item.status !== "sold" && item.status !== "cancelled" && (
                         <button onClick={() => openSell(item)} style={{ background: "rgba(0,80,30,0.7)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#9A7D25", cursor: "pointer", padding: "6px 10px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
                           <DollarSign size={12} /> 売却
