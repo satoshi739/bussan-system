@@ -2,6 +2,8 @@
 
 import RequirePlan from "@/components/RequirePlan";
 import { useEffect, useState } from "react";
+import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 import {
   getAnalyticsByPlatform, getAnalyticsByBuyPlatform, getBestProducts,
   getSalesTrends, getMonthlyReport, sendMonthlyReportLine,
@@ -168,7 +170,7 @@ function TrendsTab() {
   useEffect(() => {
     getSalesTrends(6)
       .then(setData)
-      .catch(console.error)
+      .catch(e => toast(errMsg(e), "error"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -296,7 +298,7 @@ function MonthlyTab() {
     setReport(null);
     getMonthlyReport(m)
       .then(setReport)
-      .catch(console.error)
+      .catch(e => toast(errMsg(e), "error"))
       .finally(() => setLoading(false));
   };
 

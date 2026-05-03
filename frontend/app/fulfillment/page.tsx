@@ -9,6 +9,7 @@ import {
 } from "@/lib/api";
 import { Plus, Trash2, Truck, Package, CheckCircle, Search, X, ExternalLink, Edit2, Send, Settings } from "lucide-react";
 import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 
 const SHIPPING_METHODS = [
   { key: "nekoposu",          label: "ネコポス",          price: 385 },
@@ -77,13 +78,13 @@ export default function FulfillmentPage() {
   const [reqLoading, setReqLoading] = useState(false);
 
   const load = useCallback(() => {
-    getFulfillments().then(setItems).catch(console.error);
+    getFulfillments().then(setItems).catch(e => toast(errMsg(e), "error"));
   }, []);
 
   useEffect(() => {
     load();
-    getPurchases().then(setPurchases).catch(console.error);
-    getFulfillmentVendors().then(vs => setVendors(vs.filter(v => v.status === "active"))).catch(console.error);
+    getPurchases().then(setPurchases).catch(e => toast(errMsg(e), "error"));
+    getFulfillmentVendors().then(vs => setVendors(vs.filter(v => v.status === "active"))).catch(e => toast(errMsg(e), "error"));
   }, [load]);
 
   const openRequestModal = (task: Fulfillment) => {

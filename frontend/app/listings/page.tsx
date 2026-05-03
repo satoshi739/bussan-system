@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { getListings, getPurchases, createListing, createSaleSimple, calcAllPlatforms, type Listing, type ListingCreate, type Purchase } from "@/lib/api";
 import { Plus, DollarSign, X, Tag, TrendingUp, Zap } from "lucide-react";
 import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 
 const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "8px 12px", fontSize: 14, width: "100%", outline: "none", boxSizing: "border-box" };
 const lbl: React.CSSProperties = { fontSize: 12, color: "#8A8278", fontWeight: 600, display: "block", marginBottom: 4 };
@@ -47,8 +48,8 @@ export default function ListingsPage() {
   const [sellComparison, setSellComparison] = useState<Record<string, { gross_profit: number; profit_rate: number; emoji: string }> | null>(null);
 
   const load = useCallback(() => {
-    getListings().then(setListings).catch(console.error);
-    getPurchases({ status: "purchased" }).then(setPurchases).catch(console.error);
+    getListings().then(setListings).catch(e => toast(errMsg(e), "error"));
+    getPurchases({ status: "purchased" }).then(setPurchases).catch(e => toast(errMsg(e), "error"));
   }, []);
   useEffect(() => { load(); }, [load]);
 

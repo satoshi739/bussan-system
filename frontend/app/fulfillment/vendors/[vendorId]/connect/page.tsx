@@ -9,6 +9,7 @@ import {
 } from "@/lib/api";
 import { ArrowLeft, CheckCircle, Loader, Eye, EyeOff, ExternalLink, Zap, Mail, MessageCircle, Hand } from "lucide-react";
 import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 
 const S = {
   bg:       "#0f0f10",
@@ -124,7 +125,7 @@ export default function VendorConnectPage() {
           per_item_fee: String(v.per_item_fee ?? 0),
           notes: v.notes ?? "",
         });
-      }).catch(console.error);
+      }).catch(e => toast(errMsg(e), "error"));
     }
   }, [isNew, vendorId]);
 

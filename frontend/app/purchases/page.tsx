@@ -119,7 +119,7 @@ export default function PurchasesPage() {
   const f_notes     = useRef<HTMLInputElement>(null);
 
   const load = useCallback(() => {
-    getPurchases().then(setItems).catch(console.error);
+    getPurchases().then(setItems).catch(e => toast(errMsg(e), "error"));
     getProductNames().then(setProductNames).catch(() => {});
   }, []);
 

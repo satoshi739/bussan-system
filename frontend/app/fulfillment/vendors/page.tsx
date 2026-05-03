@@ -8,6 +8,7 @@ import {
 } from "@/lib/api";
 import { Plus, Settings, Trash2, CheckCircle, Zap, Mail, MessageCircle, Hand, ArrowLeft, ExternalLink } from "lucide-react";
 import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 
 const S = {
   bg:       "#0f0f10",
@@ -127,7 +128,7 @@ export default function VendorsPage() {
   const load = useCallback(() => {
     getFulfillmentVendors()
       .then(setVendors)
-      .catch(console.error)
+      .catch(e => toast(errMsg(e), "error"))
       .finally(() => setLoading(false));
   }, []);
 
