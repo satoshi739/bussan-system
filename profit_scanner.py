@@ -203,11 +203,12 @@ def scan_keyword(
     return scored
 
 
-def scan_all_keywords(limit: int = 5) -> List[Dict]:
+def scan_all_keywords(limit: int = 5, db=None) -> List[Dict]:
     """
     登録済みの全キーワードをスキャンし、結果を統合して返す。
+    db が渡された場合はDBからキーワードを読み書きする。
     """
-    keywords = load_scan_keywords()
+    keywords = db.load_scan_keywords() if db is not None else load_scan_keywords()
     all_results = []
 
     for kw_conf in keywords:
@@ -228,13 +229,19 @@ def scan_all_keywords(limit: int = 5) -> List[Dict]:
         all_results.extend(results)
 
         # キーワードの最終スキャン時刻を更新
-        kw_conf["last_scanned"] = datetime.now().isoformat()
-        if results:
-            kw_conf["best_profit_rate"] = max(r["profit_rate"] for r in results)
+        last_scanned = datetime.now().isoformat()
+        best_rate = max(r["profit_rate"] for r in results) if results else None
+        if db is not None:
+            db.update_scan_keyword(keyword, last_scanned, best_rate)
+        else:
+            kw_conf["last_scanned"] = last_scanned
+            if best_rate is not None:
+                kw_conf["best_profit_rate"] = best_rate
 
         time.sleep(0.5)  # レート制限対策
 
-    save_scan_keywords(keywords)
+    if db is None:
+        save_scan_keywords(keywords)
 
     # 全体をスコア順にソート
     all_results.sort(key=lambda x: x["score"], reverse=True)

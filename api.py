@@ -1189,8 +1189,6 @@ def intl_shipping(platform: str, weight_g: float = 500):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 from profit_scanner import (
-    load_scan_keywords, save_scan_keywords,
-    add_scan_keyword, remove_scan_keyword,
     scan_keyword, scan_all_keywords,
 )
 
@@ -1206,13 +1204,13 @@ class ScanKeywordCreate(BaseModel):
 @app.get("/api/scanner/keywords")
 def get_scan_keywords():
     """スキャン対象キーワード一覧"""
-    return load_scan_keywords()
+    return db.load_scan_keywords()
 
 
 @app.post("/api/scanner/keywords")
 def add_keyword(body: ScanKeywordCreate):
     """スキャン対象キーワードを追加"""
-    ok = add_scan_keyword(
+    ok = db.add_scan_keyword(
         keyword=body.keyword,
         target_sell_platform=body.target_sell_platform,
         max_buy_price=body.max_buy_price,
@@ -1225,7 +1223,7 @@ def add_keyword(body: ScanKeywordCreate):
 @app.delete("/api/scanner/keywords/{keyword}")
 def delete_keyword(keyword: str):
     """スキャン対象キーワードを削除"""
-    remove_scan_keyword(keyword)
+    db.remove_scan_keyword(keyword)
     return {"ok": True}
 
 
@@ -1378,7 +1376,7 @@ async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit:
     if keyword:
         results = await asyncio.to_thread(scan_keyword, keyword, platform, limit)
     else:
-        results = await asyncio.to_thread(scan_all_keywords, limit)
+        results = await asyncio.to_thread(scan_all_keywords, limit, db)
 
     await asyncio.to_thread(db.save_scan_cache, results)
     return {
@@ -2168,7 +2166,7 @@ async def _auto_scan_loop():
                 now = _time.time()
                 if now - last_run >= interval_hours * 3600:
                     print(f"[AutoScan] スキャン開始...")
-                    results = await asyncio.to_thread(scan_all_keywords, 8)
+                    results = await asyncio.to_thread(scan_all_keywords, 8, db)
                     await asyncio.to_thread(db.save_scan_cache, results)
                     db.save_settings({"auto_scan_last_run": str(now)})
                     print(f"[AutoScan] 完了: {len(results)}件")

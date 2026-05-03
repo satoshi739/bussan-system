@@ -366,7 +366,52 @@ class Database:
                 results_json TEXT DEFAULT '[]'
             )
         """)
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS scan_keywords (
+                id SERIAL PRIMARY KEY,
+                keyword TEXT UNIQUE NOT NULL,
+                target_sell_platform TEXT DEFAULT 'eBay',
+                max_buy_price REAL,
+                min_profit_rate REAL DEFAULT 20.0,
+                memo TEXT DEFAULT '',
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_scanned TIMESTAMP,
+                best_profit_rate REAL
+            )
+        """)
         self._migrate()
+
+    def load_scan_keywords(self) -> list:
+        rows = self.conn.execute(
+            "SELECT keyword, target_sell_platform, max_buy_price, min_profit_rate, memo, "
+            "added_at, last_scanned, best_profit_rate FROM scan_keywords ORDER BY added_at"
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def add_scan_keyword(self, keyword: str, target_sell_platform: str = "eBay",
+                         max_buy_price=None, min_profit_rate: float = 20.0, memo: str = "") -> bool:
+        existing = self.conn.execute(
+            "SELECT keyword FROM scan_keywords WHERE keyword = %s", (keyword,)
+        ).fetchone()
+        if existing:
+            return False
+        self.conn.execute("""
+            INSERT INTO scan_keywords (keyword, target_sell_platform, max_buy_price, min_profit_rate, memo)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (keyword, target_sell_platform, max_buy_price, min_profit_rate, memo))
+        self.conn.commit()
+        return True
+
+    def remove_scan_keyword(self, keyword: str) -> None:
+        self.conn.execute("DELETE FROM scan_keywords WHERE keyword = %s", (keyword,))
+        self.conn.commit()
+
+    def update_scan_keyword(self, keyword: str, last_scanned: str, best_profit_rate=None) -> None:
+        self.conn.execute(
+            "UPDATE scan_keywords SET last_scanned = %s, best_profit_rate = %s WHERE keyword = %s",
+            (last_scanned, best_profit_rate, keyword)
+        )
+        self.conn.commit()
 
     def save_scan_cache(self, results: list, scanned_at: str = None) -> None:
         from datetime import datetime as _dt
