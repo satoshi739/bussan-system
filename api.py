@@ -605,9 +605,9 @@ def remove_watchlist(keyword: str):
 from scrapers import search_all_buy_sites, search_mercari
 
 @app.get("/api/search/market")
-def search_market(keyword: str, limit: int = 8):
+async def search_market(keyword: str, limit: int = 8):
     """メルカリ・ラクマ・ヤフオクの相場を一括検索し、価格履歴も記録"""
-    results = search_all_buy_sites(keyword, limit)
+    results = await asyncio.to_thread(search_all_buy_sites, keyword, limit)
     
     # 価格履歴テーブルに保存
     from datetime import datetime
@@ -1373,18 +1373,18 @@ def scanner_demand_check(keyword: str, buy_price: float, sell_platform: str = "e
 
 
 @app.post("/api/scanner/run")
-def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit: int = 8):
+async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit: int = 8):
     """
     スキャンを実行する。
     - keyword 指定あり: そのキーワードのみスキャン
     - keyword 指定なし: 登録済み全キーワードをスキャン
     """
     if keyword:
-        results = scan_keyword(keyword, platform, limit=limit)
+        results = await asyncio.to_thread(scan_keyword, keyword, platform, limit)
     else:
-        results = scan_all_keywords(limit=limit)
+        results = await asyncio.to_thread(scan_all_keywords, limit)
 
-    save_scan_results(results)
+    await asyncio.to_thread(save_scan_results, results)
     return {
         "ok": True,
         "count": len(results),
@@ -2262,8 +2262,8 @@ def get_source_sync_settings():
 
 
 @app.post("/api/source-sync/run")
-def source_sync_run_now():
-    return run_source_sync_once()
+async def source_sync_run_now():
+    return await asyncio.to_thread(run_source_sync_once)
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
