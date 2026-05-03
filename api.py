@@ -1192,7 +1192,6 @@ from profit_scanner import (
     load_scan_keywords, save_scan_keywords,
     add_scan_keyword, remove_scan_keyword,
     scan_keyword, scan_all_keywords,
-    save_scan_results, load_scan_results,
 )
 
 
@@ -1233,7 +1232,7 @@ def delete_keyword(keyword: str):
 @app.get("/api/scanner/results")
 def get_scan_results():
     """最新のスキャン結果（キャッシュ）を返す"""
-    return load_scan_results()
+    return db.load_scan_cache()
 
 
 @app.post("/api/scanner/demand-check")
@@ -1381,7 +1380,7 @@ async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit:
     else:
         results = await asyncio.to_thread(scan_all_keywords, limit)
 
-    await asyncio.to_thread(save_scan_results, results)
+    await asyncio.to_thread(db.save_scan_cache, results)
     return {
         "ok": True,
         "count": len(results),
@@ -2170,7 +2169,7 @@ async def _auto_scan_loop():
                 if now - last_run >= interval_hours * 3600:
                     print(f"[AutoScan] スキャン開始...")
                     results = await asyncio.to_thread(scan_all_keywords, 8)
-                    await asyncio.to_thread(save_scan_results, results)
+                    await asyncio.to_thread(db.save_scan_cache, results)
                     db.save_settings({"auto_scan_last_run": str(now)})
                     print(f"[AutoScan] 完了: {len(results)}件")
 

@@ -358,7 +358,38 @@ class Database:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS scan_cache (
+                id INTEGER PRIMARY KEY DEFAULT 1,
+                scanned_at TIMESTAMP,
+                count INTEGER DEFAULT 0,
+                results_json TEXT DEFAULT '[]'
+            )
+        """)
         self._migrate()
+
+    def save_scan_cache(self, results: list, scanned_at: str = None) -> None:
+        from datetime import datetime as _dt
+        ts = scanned_at or _dt.now().isoformat()
+        self.conn.execute("""
+            INSERT INTO scan_cache (id, scanned_at, count, results_json)
+            VALUES (1, %s, %s, %s)
+            ON CONFLICT (id) DO UPDATE SET scanned_at = EXCLUDED.scanned_at,
+                count = EXCLUDED.count, results_json = EXCLUDED.results_json
+        """, (ts, len(results), json.dumps(results, ensure_ascii=False)))
+        self.conn.commit()
+
+    def load_scan_cache(self) -> dict:
+        row = self.conn.execute(
+            "SELECT scanned_at, count, results_json FROM scan_cache WHERE id = 1"
+        ).fetchone()
+        if not row:
+            return {"scanned_at": None, "count": 0, "results": []}
+        try:
+            results = json.loads(row["results_json"] or "[]")
+        except Exception:
+            results = []
+        return {"scanned_at": row["scanned_at"], "count": row["count"], "results": results}
 
     def _add_indexes(self):
         indexes = [
