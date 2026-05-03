@@ -81,11 +81,18 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planKey }),
       });
-      if (!res.ok) { setUpgradeLoading(null); return; }
-      const { url } = await res.json();
-      if (url) window.location.href = url;
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "プランの変更に失敗しました。しばらく経ってから再度お試しください。");
+        setUpgradeLoading(null);
+        return;
+      }
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
       else setUpgradeLoading(null);
-    } catch {
+    } catch (err) {
+      console.error("[upgrade]", err);
+      alert("プランの変更に失敗しました。ネットワークエラーが発生しました。");
       setUpgradeLoading(null);
     }
   };
