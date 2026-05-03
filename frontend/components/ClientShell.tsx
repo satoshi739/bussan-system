@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import OnboardingModal, { useOnboarding } from "@/components/OnboardingModal";
 
-const PUBLIC_PATHS = ["/login", "/pricing"];
+const PUBLIC_PATHS = ["/login", "/pricing", "/deals"];
 
 export default function ClientShell({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
