@@ -398,7 +398,7 @@ def get_analytics_by_buy_platform():
 
 # ── 設定 ─────────────────────────────────────────────────
 
-_SENSITIVE_KEYS = {"anthropic_api_key", "line_notify_token"}
+_SENSITIVE_KEYS = {"anthropic_api_key", "line_token"}
 
 @app.get("/api/settings")
 def get_settings():
@@ -2166,8 +2166,8 @@ def export_purchases_csv():
         writer.writerow([
             r["id"], r["product_name"], r["platform"],
             r["purchase_price"], r["purchase_shipping"],
-            r["purchase_date"], r["status"], r["notes"] or "",
-            r["purchase_url"] or "", r["created_at"],
+            str(r["purchase_date"]), r["status"], r["notes"] or "",
+            r["purchase_url"] or "", str(r["created_at"]),
         ])
 
     output.seek(0)
@@ -2202,7 +2202,7 @@ def export_sales_csv():
         writer.writerow([
             r["id"], r["product_name"], r["buy_platform"],
             r["selling_platform"], r["sale_price"], r["amazon_fees"],
-            r["net_profit"], r["sale_date"],
+            r["net_profit"], str(r["sale_date"]),
             r["purchase_price"], r["purchase_shipping"],
         ])
 
@@ -3074,7 +3074,7 @@ async def run_ceo_agent(body: CEORunRequest):
         queued = result.get("queued_count", 0)
         if queued > 0:
             settings = db.get_settings()
-            line_token = settings.get("line_notify_token", "").strip()
+            line_token = settings.get("line_token", "").strip()
             if line_token:
                 msg = (
                     f"\n🤖 AI CEO が {queued}件の仕入れ候補を発見しました！\n"

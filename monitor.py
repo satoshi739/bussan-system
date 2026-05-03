@@ -48,7 +48,7 @@ def daily_scan():
         db = _get_db()
         settings = db.get_settings()
         api_key = settings.get("anthropic_api_key", "").strip()
-        line_token = settings.get("line_notify_token", "").strip()
+        line_token = settings.get("line_token", "").strip()
 
         if not api_key:
             print("[Monitor] APIキー未設定のためスキップ")
@@ -70,6 +70,7 @@ def daily_scan():
             "scanned_count": scanned,
             "queued_count": queued,
             "report": json.dumps(result.get("report", {}), ensure_ascii=False),
+            "log": json.dumps(result.get("log", []), ensure_ascii=False),
             "completed_at": datetime.now().isoformat(),
         })
 
@@ -103,7 +104,7 @@ def check_stale_inventory():
     try:
         db = _get_db()
         settings = db.get_settings()
-        line_token = settings.get("line_notify_token", "").strip()
+        line_token = settings.get("line_token", "").strip()
         if not line_token:
             return
 
@@ -149,7 +150,7 @@ def weekly_report():
     try:
         db = _get_db()
         settings = db.get_settings()
-        line_token = settings.get("line_notify_token", "").strip()
+        line_token = settings.get("line_token", "").strip()
         if not line_token:
             return
 
