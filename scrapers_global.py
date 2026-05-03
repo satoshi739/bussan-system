@@ -145,7 +145,9 @@ def search_shopee(keyword: str, country: str = 'SG', limit: int = 10) -> List[Di
             item = item_wrap.get('item_basic', item_wrap)
             name = item.get('name', '')
             # Shopee価格は 100000 倍の整数
-            raw_price = item.get('price', 0) or item.get('price_min', 0)
+            raw_price = item.get('price') or item.get('price_min')
+            if raw_price is None or raw_price == 0:
+                continue
             price_local = raw_price / 100000
             if price_local <= 0:
                 continue

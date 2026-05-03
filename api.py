@@ -2,6 +2,8 @@
 物販チェッカー — FastAPI バックエンド
 """
 
+import logging
+
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -14,6 +16,8 @@ import sys
 import asyncio
 import time as _time
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -1173,8 +1177,11 @@ def scanner_demand_check(keyword: str, buy_price: float, sell_platform: str = "e
                 "flag": "🏪",
                 "currency": "JPY",
             }
-    except Exception:
-        pass
+        else:
+            market_prices["メルカリ"] = []
+    except Exception as e:
+        logger.warning(f"[demand_check] メルカリ 失敗: {e}")
+        market_prices["メルカリ"] = []
     _t.sleep(0.2)
 
     # ─ ヤフオク ──────────────────────────────────────────────────
@@ -1190,8 +1197,8 @@ def scanner_demand_check(keyword: str, buy_price: float, sell_platform: str = "e
                 "flag": "🔨",
                 "currency": "JPY",
             }
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"[demand_check] ヤフオク 失敗: {e}")
     _t.sleep(0.2)
 
     # ─ ラクマ ────────────────────────────────────────────────────
@@ -1207,8 +1214,8 @@ def scanner_demand_check(keyword: str, buy_price: float, sell_platform: str = "e
                 "flag": "🛍️",
                 "currency": "JPY",
             }
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"[demand_check] ラクマ 失敗: {e}")
     _t.sleep(0.2)
 
     # ─ eBay（海外販売先の相場）─────────────────────────────────
@@ -1228,8 +1235,8 @@ def scanner_demand_check(keyword: str, buy_price: float, sell_platform: str = "e
                     "flag":    "🌏",
                     "currency": "USD",
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"[demand_check] eBay 失敗: {e}")
 
     # ─ 需要スコア計算 ─────────────────────────────────────────
     # 各プラットフォームの平均価格（円）リスト

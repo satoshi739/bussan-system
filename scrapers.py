@@ -5,9 +5,12 @@
 - Amazon: スクレイピング（不安定）またはKeepa API（有料）
 """
 
+import logging
 import requests
 import re
 from typing import List, Dict
+
+logger = logging.getLogger(__name__)
 
 HEADERS_PC = {
     'User-Agent': (
@@ -43,7 +46,8 @@ def search_ebay(keyword: str, limit: int = 10) -> List[Dict]:
     app_id = settings.get('ebay_app_id', '').strip()
 
     if not app_id:
-        return []  # APIキー未設定
+        logger.warning("eBay APIキー未設定")
+        return []
 
     try:
         usd_jpy = float(settings.get('usd_jpy', 150))
@@ -72,34 +76,45 @@ def search_ebay(keyword: str, limit: int = 10) -> List[Dict]:
 
         results = []
         for item in items:
-            selling = item.get('sellingStatus', [{}])[0]
-            shipping = item.get('shippingInfo', [{}])[0]
+            try:
+                selling_list = item.get('sellingStatus') or [{}]
+                shipping_list = item.get('shippingInfo') or [{}]
+                selling = selling_list[0] if selling_list else {}
+                shipping = shipping_list[0] if shipping_list else {}
 
-            price_usd = float(
-                selling.get('currentPrice', [{}])[0].get('__value__', 0)
-            )
-            ship_usd = float(
-                shipping.get('shippingServiceCost', [{}])[0].get('__value__', 0)
-            )
+                current_price_list = selling.get('currentPrice') or [{}]
+                current_price = current_price_list[0] if current_price_list else {}
+                price_usd = float(current_price.get('__value__', 0) or 0)
 
-            results.append({
-                'item_id': item.get('itemId', [''])[0],
-                'title': item.get('title', [''])[0],
-                'price_usd': price_usd,
-                'shipping_usd': ship_usd,
-                'price_jpy': round(price_usd * usd_jpy),
-                'shipping_jpy': round(ship_usd * usd_jpy),
-                'total_jpy': round((price_usd + ship_usd) * usd_jpy),
-                'condition': item.get('condition', [{}])[0].get(
-                    'conditionDisplayName', [''])[0],
-                'url': item.get('viewItemURL', [''])[0],
-                'image': item.get('galleryURL', [''])[0],
-            })
+                ship_cost_list = shipping.get('shippingServiceCost') or [{}]
+                ship_cost = ship_cost_list[0] if ship_cost_list else {}
+                ship_usd = float(ship_cost.get('__value__', 0) or 0)
+
+                condition_list = item.get('condition') or [{}]
+                condition_obj = condition_list[0] if condition_list else {}
+                cond_name_list = condition_obj.get('conditionDisplayName') or ['']
+                condition_name = cond_name_list[0] if cond_name_list else ''
+
+                results.append({
+                    'item_id': (item.get('itemId') or [''])[0],
+                    'title': (item.get('title') or [''])[0],
+                    'price_usd': price_usd,
+                    'shipping_usd': ship_usd,
+                    'price_jpy': round(price_usd * usd_jpy),
+                    'shipping_jpy': round(ship_usd * usd_jpy),
+                    'total_jpy': round((price_usd + ship_usd) * usd_jpy),
+                    'condition': condition_name,
+                    'url': (item.get('viewItemURL') or [''])[0],
+                    'image': (item.get('galleryURL') or [''])[0],
+                })
+            except Exception as e:
+                logger.warning(f'[eBay] アイテムのパースに失敗: {e}')
+                continue
 
         return results
 
     except Exception as e:
-        print(f'[eBay] エラー: {e}')
+        logger.warning(f'[eBay] エラー: {e}')
         return []
 
 
