@@ -254,6 +254,8 @@ def find_breakeven_price(
     if selling_platform == 'Amazon':
         referral_rate = AMAZON_REFERRAL_FEES.get(category, 0.10)
         fba_fee = calculate_fba_fee('標準', fba_weight_g) if use_fba else 0
+        if referral_rate >= 1.0:
+            return float('inf')
         return (total_cost + fba_fee) / (1 - referral_rate)
     else:
         info = SELLING_PLATFORMS.get(selling_platform, {'fee_rate': 0.10, 'fixed_fee': 0})
