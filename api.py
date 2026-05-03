@@ -19,6 +19,7 @@ try:
 except ImportError:
     pass
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -55,11 +56,8 @@ async def _verify_key(request: Request, key: Optional[str] = Security(_api_key_h
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-app = FastAPI(title="物販チェッカー API", dependencies=[Depends(_verify_key)])
-
-
-@app.on_event("startup")
-async def _startup():
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
     import sys as _sys
     print(f"[Startup] Python {_sys.version}")
     print(f"[Startup] SKIP_AUTH={_SKIP_AUTH}, HAS_API_KEY={bool(_INTERNAL_API_KEY)}")
@@ -67,22 +65,22 @@ async def _startup():
         import psycopg2 as _pg
         print("[Startup] psycopg2 OK")
     except ImportError:
-        print("[Startup] psycopg2 NOT installed — DB unavailable until installed")
+        print("[Startup] psycopg2 NOT installed")
     try:
         import monitor
         monitor.start()
         print("[Startup] Monitor started OK")
     except Exception as e:
         print(f"[Startup] Monitor skip: {e}")
-
-
-@app.on_event("shutdown")
-async def _shutdown():
+    yield
     try:
         import monitor
         monitor.stop()
     except Exception:
         pass
+
+
+app = FastAPI(title="物販チェッカー API", dependencies=[Depends(_verify_key)], lifespan=_lifespan)
 
 _ALLOWED_ORIGINS = [
     "http://localhost:3000",
