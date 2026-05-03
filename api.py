@@ -2,12 +2,14 @@
 物販チェッカー — FastAPI バックエンド
 """
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from datetime import date
+import os as _os
 import sys
 import asyncio
 import time as _time
@@ -18,7 +20,19 @@ sys.path.insert(0, str(Path(__file__).parent))
 from database import Database
 from calculators import calculate_profit, find_breakeven_price, max_purchase_price, SELLING_PLATFORMS, CATEGORIES
 
-app = FastAPI(title="物販チェッカー API")
+_INTERNAL_API_KEY = _os.environ.get("INTERNAL_API_KEY", "")
+_SKIP_AUTH = _os.environ.get("SKIP_AUTH", "false").lower() == "true"
+_api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+async def _verify_key(key: Optional[str] = Security(_api_key_header)):
+    if _SKIP_AUTH:
+        return
+    if not _INTERNAL_API_KEY or key != _INTERNAL_API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+app = FastAPI(title="物販チェッカー API", dependencies=[Depends(_verify_key)])
 
 
 @app.on_event("startup")
@@ -46,7 +60,6 @@ _ALLOWED_ORIGINS = [
     "https://frontend-one-steel-loaau9zmao.vercel.app",
     # 追加ドメインは環境変数 ALLOWED_ORIGINS で "," 区切りで渡す
 ]
-import os as _os
 _extra = _os.environ.get("ALLOWED_ORIGINS", "")
 if _extra:
     _ALLOWED_ORIGINS += [o.strip() for o in _extra.split(",") if o.strip()]
@@ -263,7 +276,7 @@ def create_sale_simple(body: SimpleSaleCreate):
     net_profit = db.record_sale_simple(body.purchase_id, body.sale_price, body.sell_platform)
     month = datetime.today().strftime("%Y-%m")
     row = db.conn.execute(
-        "SELECT COALESCE(SUM(net_profit), 0) as total FROM sales WHERE strftime('%Y-%m', sale_date) = ?",
+        "SELECT COALESCE(SUM(net_profit), 0) as total FROM sales WHERE to_char(sale_date, 'YYYY-MM') = ?",
         (month,)
     ).fetchone()
     monthly_profit = float(row["total"]) if row else 0.0
@@ -439,7 +452,7 @@ def get_goal():
     profit_row = db.conn.execute("""
         SELECT COALESCE(SUM(net_profit), 0) as profit
         FROM sales
-        WHERE strftime('%Y-%m', sale_date) = ?
+        WHERE to_char(sale_date, 'YYYY-MM') = ?
     """, (month,)).fetchone()
     return {
         "month": month,
@@ -455,8 +468,8 @@ def set_goal(body: GoalSet):
     from datetime import datetime
     month = datetime.today().strftime("%Y-%m")
     db.conn.execute("""
-        INSERT OR REPLACE INTO settings (key, value, updated_at)
-        VALUES (?, ?, CURRENT_TIMESTAMP)
+        INSERT INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
     """, (f"goal_{month}", str(body.goal)))
     db.conn.commit()
     return {"ok": True}
@@ -505,15 +518,6 @@ def search_market(keyword: str, limit: int = 8):
     
     # 価格履歴テーブルに保存
     from datetime import datetime
-    db.conn.execute("""
-        CREATE TABLE IF NOT EXISTS price_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            keyword TEXT NOT NULL,
-            source TEXT NOT NULL,
-            price INTEGER NOT NULL,
-            checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
     for r in results:
         if r.get('price', 0) > 0:
             db.conn.execute(
@@ -539,17 +543,8 @@ def search_market(keyword: str, limit: int = 8):
 @app.get("/api/search/history")
 def get_price_history(keyword: str):
     """キーワードの価格履歴を返す"""
-    db.conn.execute("""
-        CREATE TABLE IF NOT EXISTS price_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            keyword TEXT NOT NULL,
-            source TEXT NOT NULL,
-            price INTEGER NOT NULL,
-            checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
     rows = db.conn.execute("""
-        SELECT strftime('%Y-%m-%d', checked_at) as date,
+        SELECT to_char(checked_at, 'YYYY-MM-DD') as date,
                ROUND(AVG(price)) as avg_price,
                MIN(price) as min_price,
                MAX(price) as max_price,
@@ -660,11 +655,11 @@ def notify_daily():
         (today,)
     ).fetchone()
     month_sales = db.conn.execute(
-        "SELECT COUNT(*) as c, COALESCE(SUM(net_profit),0) as p FROM sales WHERE strftime('%Y-%m', sale_date) = ?",
+        "SELECT COUNT(*) as c, COALESCE(SUM(net_profit),0) as p FROM sales WHERE to_char(sale_date, 'YYYY-MM') = ?",
         (month,)
     ).fetchone()
     stale_count = db.conn.execute(
-        "SELECT COUNT(*) as c FROM purchases WHERE status='purchased' AND purchase_date <= date('now','-14 days')"
+        "SELECT COUNT(*) as c FROM purchases WHERE status='purchased' AND purchase_date <= CURRENT_DATE - INTERVAL '14 days'"
     ).fetchone()
     
     msg = f'\n📊 物販チェッカー 日次レポート\n{today}\n\n'
@@ -2233,7 +2228,7 @@ def get_budget():
     row = db.conn.execute(
         """SELECT COALESCE(SUM(purchase_price + purchase_shipping), 0) as spent
            FROM purchases
-           WHERE strftime('%Y-%m', purchase_date) = ?""",
+           WHERE to_char(purchase_date, 'YYYY-MM') = ?""",
         (month,)
     ).fetchone()
 
@@ -2259,16 +2254,6 @@ def get_price_change_alerts(days: int = 7, threshold: float = 5.0):
     threshold: 変化率の閾値（%、デフォルト5%）
     """
     from datetime import datetime, timedelta
-
-    db.conn.execute("""
-        CREATE TABLE IF NOT EXISTS price_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            keyword TEXT NOT NULL,
-            source TEXT NOT NULL,
-            price INTEGER NOT NULL,
-            checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
 
     now = datetime.today()
     cutoff_recent = (now - timedelta(days=days)).isoformat()
@@ -2324,17 +2309,17 @@ def get_price_change_alerts(days: int = 7, threshold: float = 5.0):
 def get_sales_trends(months: int = 6):
     """過去 N ヶ月の売れ筋トレンドを返す"""
     monthly_by_platform = db.conn.execute("""
-        SELECT strftime('%Y-%m', s.sale_date) as month,
+        SELECT to_char(s.sale_date, 'YYYY-MM') as month,
                l.selling_platform,
                COUNT(*) as count,
                ROUND(SUM(s.net_profit)) as total_profit,
                ROUND(AVG(s.net_profit)) as avg_profit
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
-        WHERE s.sale_date >= date('now', ?)
+        WHERE s.sale_date >= CURRENT_DATE - CAST(? || ' months' AS INTERVAL)
         GROUP BY month, l.selling_platform
         ORDER BY month, total_profit DESC
-    """, (f'-{months} months',)).fetchall()
+    """, (str(months),)).fetchall()
 
     trending_products = db.conn.execute("""
         SELECT p.product_name,
@@ -2345,21 +2330,21 @@ def get_sales_trends(months: int = 6):
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
         JOIN purchases p ON l.purchase_id = p.id
-        WHERE s.sale_date >= date('now', ?)
+        WHERE s.sale_date >= CURRENT_DATE - CAST(? || ' months' AS INTERVAL)
         GROUP BY p.product_name
         ORDER BY total_profit DESC
         LIMIT 10
-    """, (f'-{months} months',)).fetchall()
+    """, (str(months),)).fetchall()
 
     monthly_totals = db.conn.execute("""
-        SELECT strftime('%Y-%m', sale_date) as month,
+        SELECT to_char(sale_date, 'YYYY-MM') as month,
                COUNT(*) as count,
                ROUND(SUM(net_profit)) as profit
         FROM sales
-        WHERE sale_date >= date('now', ?)
+        WHERE sale_date >= CURRENT_DATE - CAST(? || ' months' AS INTERVAL)
         GROUP BY month
         ORDER BY month
-    """, (f'-{months} months',)).fetchall()
+    """, (str(months),)).fetchall()
 
     return {
         'monthly_by_platform': [dict(r) for r in monthly_by_platform],
@@ -2511,19 +2496,19 @@ def get_monthly_report(month: Optional[str] = None):
                COALESCE(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100), 0) as avg_rate,
                COALESCE(SUM(s.sale_price), 0) as total_revenue
         FROM sales s
-        WHERE strftime('%Y-%m', s.sale_date) = ?
+        WHERE to_char(s.sale_date, 'YYYY-MM') = ?
     """, (month,)).fetchone()
 
     prev = db.conn.execute("""
         SELECT COUNT(*) as sale_count,
                COALESCE(SUM(net_profit), 0) as total_profit
-        FROM sales WHERE strftime('%Y-%m', sale_date) = ?
+        FROM sales WHERE to_char(sale_date, 'YYYY-MM') = ?
     """, (prev_month,)).fetchone()
 
     purchases = db.conn.execute("""
         SELECT COUNT(*) as count,
                COALESCE(SUM(purchase_price + purchase_shipping), 0) as invested
-        FROM purchases WHERE strftime('%Y-%m', purchase_date) = ?
+        FROM purchases WHERE to_char(purchase_date, 'YYYY-MM') = ?
     """, (month,)).fetchone()
 
     by_platform = db.conn.execute("""
@@ -2531,7 +2516,7 @@ def get_monthly_report(month: Optional[str] = None):
                ROUND(SUM(s.net_profit)) as profit,
                ROUND(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100), 1) as avg_rate
         FROM sales s JOIN listings l ON s.listing_id = l.id
-        WHERE strftime('%Y-%m', s.sale_date) = ?
+        WHERE to_char(s.sale_date, 'YYYY-MM') = ?
         GROUP BY l.selling_platform ORDER BY profit DESC
     """, (month,)).fetchall()
 
@@ -2541,7 +2526,7 @@ def get_monthly_report(month: Optional[str] = None):
                ROUND(s.net_profit / NULLIF(s.sale_price, 0) * 100, 1) as profit_rate
         FROM sales s JOIN listings l ON s.listing_id = l.id
         JOIN purchases p ON l.purchase_id = p.id
-        WHERE strftime('%Y-%m', s.sale_date) = ?
+        WHERE to_char(s.sale_date, 'YYYY-MM') = ?
         ORDER BY s.net_profit DESC LIMIT 5
     """, (month,)).fetchall()
 

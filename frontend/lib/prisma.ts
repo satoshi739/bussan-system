@@ -8,6 +8,9 @@ declare global {
 }
 
 function createPrismaClient() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL 環境変数が設定されていません");
+  }
   const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
   });
