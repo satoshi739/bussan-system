@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { CreditCard, Zap, Building2, Gift, Check, ExternalLink, AlertCircle } from "lucide-react";
 import type { PLANS, PlanKey } from "@/lib/stripe";
 import Link from "next/link";
+import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 
 const card: React.CSSProperties = {
   background: "rgba(20,20,22,0.9)",
@@ -66,8 +68,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
       const { url } = await res.json();
       if (url) window.location.href = url;
     } catch (err) {
-      console.error("[portal]", err);
-      alert(err instanceof Error ? err.message : "支払い管理ページを開けませんでした。しばらく経ってから再度お試しください。");
+      toast(errMsg(err), "error");
     } finally {
       setPortalLoading(false);
     }
@@ -83,7 +84,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.error ?? "プランの変更に失敗しました。しばらく経ってから再度お試しください。");
+        toast((data as { error?: string }).error ?? "プランの変更に失敗しました。しばらく経ってから再度お試しください。", "error");
         setUpgradeLoading(null);
         return;
       }
@@ -91,8 +92,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
       if (data.url) window.location.href = data.url;
       else setUpgradeLoading(null);
     } catch (err) {
-      console.error("[upgrade]", err);
-      alert("プランの変更に失敗しました。ネットワークエラーが発生しました。");
+      toast(errMsg(err), "error");
       setUpgradeLoading(null);
     }
   };

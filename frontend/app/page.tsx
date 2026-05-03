@@ -7,6 +7,8 @@ import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, Ref
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 import { OnboardingChecklist } from "@/components/OnboardingModal";
+import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 
 // ─────────────────────────────────────────────────────────
 //  Design System — Premium Dark × Real Gold
@@ -298,8 +300,7 @@ export default function DashboardPage() {
       );
       setEditGoal(false);
     } catch (err) {
-      console.error("[goal] setGoal failed:", err);
-      // TODO: ユーザーへのエラー通知 (toast 等)
+      toast(errMsg(err), "error");
     }
   };
 
