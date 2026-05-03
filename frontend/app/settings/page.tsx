@@ -61,7 +61,7 @@ export default function SettingsPage() {
       setMercariToken(s["mercari_token"] ?? "");
       setRakumaToken(s["rakuma_token"] ?? "");
       setPaypayToken(s["paypay_token"] ?? "");
-    }).catch(console.error);
+    }).catch(e => toast(errMsg(e), "error"));
 
     getSourceSyncSettings()
       .then((s) => {

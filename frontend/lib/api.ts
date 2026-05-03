@@ -287,7 +287,7 @@ export const getPriceHistory = (keyword: string) =>
 
 // Settings
 export const getSettings = () =>
-  req<Record<string, string>>("/api/settings", undefined, 20_000).catch(() => ({} as Record<string, string>));
+  req<Record<string, string>>("/api/settings", undefined, 20_000);
 export const saveSettings = (body: Record<string, unknown>) =>
   req<void>("/api/settings", { method: "POST", body: JSON.stringify(body) }, 20_000);
 
