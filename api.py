@@ -628,7 +628,13 @@ def notify_stale(days: int = 14):
     
     msg = f'\n⚠️ 売れ残り警告（{len(rows)}件）\n\n'
     for r in rows:
-        days_elapsed = (datetime.today().date() - datetime.fromisoformat(r['purchase_date']).date()).days
+        pd = r['purchase_date']
+        if hasattr(pd, 'year'):
+            # PostgreSQL の date オブジェクトはそのまま使える
+            purchase_date_obj = pd
+        else:
+            purchase_date_obj = datetime.fromisoformat(str(pd)).date()
+        days_elapsed = (datetime.today().date() - purchase_date_obj).days
         msg += f'・{r["product_name"]}\n  {days_elapsed}日経過 / ¥{r["purchase_price"]:,}\n\n'
     
     ok, err = _send_line(token, msg)
@@ -2830,11 +2836,12 @@ def get_fba_shipment(shipment_id: int):
 
 @app.patch("/api/fba/shipments/{shipment_id}")
 def update_fba_shipment(shipment_id: int, body: FbaShipmentUpdate):
+    from datetime import datetime as _dt
     data = {k: v for k, v in body.model_dump().items() if v is not None}
     if body.status == "sent" and "sent_at" not in data:
-        data["sent_at"] = datetime.now().isoformat()
+        data["sent_at"] = _dt.now().isoformat()
     if body.status == "received" and "received_at" not in data:
-        data["received_at"] = datetime.now().isoformat()
+        data["received_at"] = _dt.now().isoformat()
     db.update_fba_shipment(shipment_id, data)
     return {"ok": True}
 
@@ -3059,6 +3066,7 @@ async def run_ceo_agent(body: CEORunRequest):
             "scanned_count": result.get("scanned_count", 0),
             "queued_count": result.get("queued_count", 0),
             "report": _json.dumps(result.get("report", {}), ensure_ascii=False),
+            "log": _json.dumps(result.get("log", []), ensure_ascii=False),
             "completed_at": _dt.datetime.now().isoformat(),
         })
 
