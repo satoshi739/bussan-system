@@ -958,10 +958,12 @@ class AllPlatformSearchRequest(BaseModel):
 
 # 国内プラットフォームの手数料設定（calculators.py の SELLING_PLATFORMS から）
 DOMESTIC_PLATFORMS = {
-    'メルカリ':          {'flag': '🏪', 'fee_rate': 0.10, 'currency': 'JPY', 'area': '日本'},
-    'ラクマ':            {'flag': '🛍️', 'fee_rate': 0.06, 'currency': 'JPY', 'area': '日本'},
-    'PayPayフリマ':      {'flag': '💛', 'fee_rate': 0.05, 'currency': 'JPY', 'area': '日本'},
-    'Yahoo!オークション': {'flag': '🔨', 'fee_rate': 0.088,'currency': 'JPY', 'area': '日本'},
+    'メルカリ':          {'flag': '🏪', 'fee_rate': 0.10,  'currency': 'JPY', 'area': '日本'},
+    'ラクマ':            {'flag': '🛍️', 'fee_rate': 0.06,  'currency': 'JPY', 'area': '日本'},
+    'PayPayフリマ':      {'flag': '💛', 'fee_rate': 0.05,  'currency': 'JPY', 'area': '日本'},
+    'Yahoo!オークション': {'flag': '🔨', 'fee_rate': 0.088, 'currency': 'JPY', 'area': '日本'},
+    'ヤフーショッピング':  {'flag': '🟡', 'fee_rate': 0.074, 'currency': 'JPY', 'area': '日本'},
+    'Amazon.co.jp':      {'flag': '📦', 'fee_rate': 0.10,  'currency': 'JPY', 'area': '日本'},
 }
 
 
@@ -995,11 +997,6 @@ def search_all_platforms(body: AllPlatformSearchRequest):
         ('ヤフーショッピング',   search_yahoo_shopping, 'ヤフーショッピング'),
         ('Amazon.co.jp',        search_amazon_jp,      'Amazon.co.jp'),
     ]
-    DOMESTIC_PLATFORMS.update({
-        'ヤフーショッピング': {'flag': '🟡', 'fee_rate': 0.074, 'currency': 'JPY', 'area': '日本'},
-        'Amazon.co.jp':      {'flag': '📦', 'fee_rate': 0.10,  'currency': 'JPY', 'area': '日本'},
-    })
-
     for pkey, scraper, src_name in domestic_scrapers:
         try:
             items_raw = scraper(keyword, limit)
