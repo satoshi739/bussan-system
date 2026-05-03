@@ -2,6 +2,7 @@
 
 import RequirePlan from "@/components/RequirePlan";
 import { useState, useCallback, useRef } from "react";
+import Image from "next/image";
 import { Search, Globe, TrendingUp, ExternalLink, RefreshCw, ChevronDown, ChevronUp, Camera, X } from "lucide-react";
 
 const BASE = "/api/proxy";
@@ -164,7 +165,7 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
                   }}
                 >
                   {item.image && (
-                    <img src={item.image} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />
+                    <Image src={item.image} alt="" width={44} height={44} unoptimized style={{ objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, color: "#F5F0E8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -300,7 +301,7 @@ function GlobalPageContent() {
           {imagePreview ? (
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
               <div style={{ position: "relative", flexShrink: 0 }}>
-                <img src={imagePreview} alt="アップロード画像" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 10, border: "1px solid rgba(212,175,55,0.25)" }} />
+                <Image src={imagePreview} alt="アップロード画像" width={80} height={80} unoptimized style={{ objectFit: "cover", borderRadius: 10, border: "1px solid rgba(212,175,55,0.25)" }} />
                 <button onClick={clearImage} style={{ position: "absolute", top: -6, right: -6, background: "rgba(255,80,80,0.9)", border: "none", borderRadius: "50%", width: 18, height: 18, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
                   <X size={10} color="white" />
                 </button>

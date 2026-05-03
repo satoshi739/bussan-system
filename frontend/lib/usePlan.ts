@@ -20,7 +20,10 @@ export function usePlan(): PlanState {
 
   useEffect(() => {
     fetch("/api/subscription/plan")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d) => setState({ plan: d.plan ?? "FREE", status: d.status ?? "INACTIVE", loading: false, error: false }))
       .catch((error) => {
         console.warn("プラン情報の取得に失敗しました:", error);

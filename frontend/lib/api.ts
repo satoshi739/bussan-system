@@ -305,6 +305,9 @@ export const searchEbaySold = (keyword: string, limit = 10) =>
 export const getImportShipping = (weight_g: number, source = "US") =>
   req<{ weight_g: number; source: string; shipping_jpy: number }>(`/api/calc/import-shipping?weight_g=${weight_g}&source=${source}`);
 
+export const barcodeLookup = (code: string) =>
+  req<{ found: boolean; code: string; name?: string; price?: number; products: Array<{ name: string; price: number; url: string }> }>(`/api/barcode/lookup?code=${encodeURIComponent(code)}`);
+
 // Source sync (在庫連動・価格上昇監視)
 export interface SourceSyncSettings {
   enabled: boolean;

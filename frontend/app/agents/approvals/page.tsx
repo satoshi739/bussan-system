@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { CheckCircle, XCircle, ExternalLink, RefreshCw } from "lucide-react";
 import {
   getApprovalQueue, approveQueueItem, rejectQueueItem,
@@ -177,11 +178,14 @@ export default function ApprovalsPage() {
               <div style={{ display: "flex", gap: 16 }}>
                 {/* 商品画像 */}
                 {item.buy_image && (
-                  <img
+                  <Image
                     src={item.buy_image}
                     alt=""
-                    style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
-                    onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    width={80}
+                    height={80}
+                    unoptimized
+                    style={{ objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                   />
                 )}
 

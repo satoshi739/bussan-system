@@ -1289,6 +1289,29 @@ def calc_import_shipping(weight_g: float = 500, source: str = "US"):
     return {'weight_g': weight_g, 'source': source, 'shipping_jpy': shipping_jpy}
 
 
+@app.get("/api/barcode/lookup")
+async def barcode_lookup(code: str):
+    """JANコード/バーコードから商品名・価格を検索する"""
+    from scrapers import search_amazon_jp, search_yahoo_shopping
+    items = await asyncio.to_thread(search_amazon_jp, code, 3)
+    if items:
+        return {
+            "found": True, "code": code,
+            "name": items[0]["name"],
+            "price": items[0].get("price", 0),
+            "products": [{"name": i["name"], "price": i.get("price", 0), "url": i.get("url", "")} for i in items],
+        }
+    items2 = await asyncio.to_thread(search_yahoo_shopping, code, 3)
+    if items2:
+        return {
+            "found": True, "code": code,
+            "name": items2[0]["name"],
+            "price": items2[0].get("price", 0),
+            "products": [{"name": i["name"], "price": i.get("price", 0), "url": i.get("url", "")} for i in items2],
+        }
+    return {"found": False, "code": code, "products": []}
+
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 利益スキャナー（仕入れ候補商品の自動発掘）
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

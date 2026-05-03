@@ -9,29 +9,36 @@ const CHECKLIST_KEY = "bussan_checklist";
 
 const STEPS = [
   {
-    icon: <ShoppingCart size={32} color="#D4AF37" />,
-    title: "仕入れを登録する",
-    desc: "商品名・仕入価格・プラットフォームを入力するだけで自動管理がスタートします。eBay、メルカリ、ヤフオクなどに対応しています。",
-    action: { label: "仕入れ管理へ →", href: "/purchases" },
-  },
-  {
     icon: <Radar size={32} color="#D4AF37" />,
     title: "利益スキャナーで商品を探す",
     desc: "キーワードを入力するだけで、国内外の相場を自動比較。利益が出る商品をワンクリックで発見できます。",
     action: { label: "スキャナーを使う →", href: "/scanner" },
   },
   {
+    icon: <span style={{ fontSize: 32 }}>📷</span>,
+    title: "バーコードスキャンで即計算",
+    desc: "スマホのカメラで商品バーコードを読み取るだけ。店頭・倉庫でその場で利益判定できます。",
+    action: { label: "スキャンしてみる →", href: "/barcode" },
+  },
+  {
+    icon: <ShoppingCart size={32} color="#D4AF37" />,
+    title: "仕入れを登録する",
+    desc: "商品名・仕入価格・プラットフォームを入力するだけで自動管理がスタートします。",
+    action: { label: "仕入れ管理へ →", href: "/purchases" },
+  },
+  {
     icon: <TrendingUp size={32} color="#D4AF37" />,
     title: "ダッシュボードで収益を確認",
-    desc: "売上・利益・在庫をリアルタイムで一覧。月次グラフで成長トレンドを把握し、次の仕入れ戦略を立てましょう。",
+    desc: "売上・利益・在庫をリアルタイムで一覧。月次グラフで成長トレンドを把握できます。",
     action: { label: "ダッシュボードへ →", href: "/" },
   },
 ];
 
 const defaultChecklist = [
-  { id: "settings", label: "初期設定を完了する",   href: "/settings",  done: false },
-  { id: "scan",     label: "初回スキャンを試みる", href: "/scanner",   done: false },
-  { id: "register", label: "最初の仕入れを登録する", href: "/purchases", done: false },
+  { id: "settings", label: "初期設定を完了する",         href: "/settings",  done: false },
+  { id: "scan",     label: "初回スキャンを試みる",       href: "/scanner",   done: false },
+  { id: "barcode",  label: "バーコードで商品をスキャン", href: "/barcode",   done: false },
+  { id: "register", label: "最初の仕入れを登録する",     href: "/purchases", done: false },
 ];
 
 export function useOnboarding() {

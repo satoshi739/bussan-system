@@ -2,6 +2,7 @@
 
 import RequirePlan from "@/components/RequirePlan";
 import { useState, useCallback, useMemo, useEffect } from "react";
+import Image from "next/image";
 import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, SlidersHorizontal, TrendingUp, ArrowUpDown, X, Sparkles, ChevronDown, ChevronUp, BarChart2, Activity } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
@@ -856,7 +857,7 @@ function ScannerPageContent() {
                 {/* 商品 */}
                 <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
                   {item.buy_image && (
-                    <img src={item.buy_image} alt="" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, flexShrink: 0, border: "1px solid rgba(212,175,55,0.1)" }} />
+                    <Image src={item.buy_image} alt="" width={64} height={64} unoptimized style={{ objectFit: "cover", borderRadius: 8, flexShrink: 0, border: "1px solid rgba(212,175,55,0.1)" }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, color: "#F5F0E8", fontWeight: 700, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{item.name}</div>

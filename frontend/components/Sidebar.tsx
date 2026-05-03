@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
@@ -36,6 +36,7 @@ const navGroups = [
     label: "商品リサーチ",
     items: [
       { href: "/scanner",     label: "利益スキャナー",  icon: Radar },
+      { href: "/barcode",     label: "バーコードスキャン", icon: ScanLine },
       { href: "/search",      label: "相場検索",        icon: Search },
       { href: "/competition", label: "競合分析",        icon: Target },
       { href: "/watchlist",   label: "ウォッチリスト",  icon: Eye },
@@ -73,7 +74,7 @@ const BOTTOM_TABS = [
   { href: "/",          label: "ホーム",  icon: LayoutDashboard },
   { href: "/scanner",   label: "検索",    icon: Search },
   { href: "/fba",       label: "FBA納品", icon: Package },
-  { href: "/inventory", label: "在庫",    icon: Warehouse },
+  { href: "/barcode",   label: "スキャン", icon: ScanLine },
 ];
 
 export default function Sidebar() {

@@ -421,7 +421,7 @@ export default function DashboardPage() {
             <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>
               まずこれを試す
             </div>
-            <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+            <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
               {([
                 {
                   emoji: "🔍",
@@ -446,6 +446,14 @@ export default function DashboardPage() {
                   cta: "登録する →",
                   href: "/purchases",
                   accent: C.up,
+                },
+                {
+                  emoji: "📷",
+                  label: "バーコードスキャン",
+                  desc: "スマホのカメラで商品バーコードを読み取るだけで即座に利益計算。店頭で使える。",
+                  cta: "スキャンする →",
+                  href: "/barcode",
+                  accent: "#44ccaa",
                 },
               ] as { emoji: string; label: string; desc: string; cta: string; href: string; accent: string }[]).map(({ emoji, label, desc, cta, href, accent }) => (
                 <Link key={label} href={href} style={{ textDecoration: "none", display: "block" }}>

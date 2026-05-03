@@ -2,6 +2,7 @@
 
 import RequirePlan from "@/components/RequirePlan";
 import { useState, useCallback, useRef } from "react";
+import Image from "next/image";
 import { searchMarket, getPriceHistory, calcMaxPurchase } from "@/lib/api";
 import { Search, Globe, ExternalLink, TrendingDown, TrendingUp, Minus, Camera, X, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -68,7 +69,7 @@ function ImageUploadArea({
       <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => e.target.files?.[0] && onChange(e.target.files[0])} />
       {imagePreview ? (
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <img src={imagePreview} alt="preview" style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
+          <Image src={imagePreview} alt="preview" width={60} height={60} unoptimized style={{ objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
             {imgLoading && <div style={{ fontSize: 12, color: "#66ccff" }}>AI識別中...</div>}
             {imgError && <div style={{ fontSize: 12, color: "#ff6666" }}>{imgError}</div>}
@@ -147,7 +148,7 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
             <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 10 }}>
               {p.items.map((item, idx) => (
                 <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(10,10,11,0.7)", borderRadius: 8, padding: "8px 12px", textDecoration: "none", border: "1px solid rgba(212,175,55,0.08)" }}>
-                  {item.image && <img src={item.image} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />}
+                  {item.image && <Image src={item.image} alt="" width={44} height={44} unoptimized style={{ objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, color: "#F5F0E8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
                     {item.condition && <div style={{ fontSize: 11, color: "#8A8278" }}>{item.condition}</div>}
@@ -444,7 +445,7 @@ function SearchPageContent() {
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {results.map((r, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", background: i === 0 ? "rgba(212,175,55,0.05)" : "transparent", borderRadius: 8, border: i === 0 ? "1px solid rgba(212,175,55,0.15)" : "1px solid transparent" }}>
-                    {r.image && <img src={r.image} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 6, flexShrink: 0 }} onError={e => (e.currentTarget.style.display = "none")} />}
+                    {r.image && <Image src={r.image} alt="" width={44} height={44} unoptimized style={{ objectFit: "cover", borderRadius: 6, flexShrink: 0 }} onError={e => (e.currentTarget.style.display = "none")} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, color: "#F5F0E8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
                       <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>{r.source}{r.condition && ` · ${r.condition}`}</div>

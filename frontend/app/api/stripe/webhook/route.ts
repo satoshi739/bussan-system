@@ -101,6 +101,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (!subItem) return;
   const priceId = subItem.price.id;
   const plan = getPlanFromPriceId(priceId);
+  const status = mapStripeStatus(stripeSub.status);
   const periodEnd = getPeriodEnd(stripeSub);
 
   await prisma.subscription.upsert({
@@ -111,7 +112,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       stripeSubscriptionId: stripeSubId,
       stripePriceId: priceId,
       plan,
-      status: "ACTIVE",
+      status,
       currentPeriodEnd: periodEnd,
     },
     update: {
@@ -119,7 +120,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       stripeSubscriptionId: stripeSubId,
       stripePriceId: priceId,
       plan,
-      status: "ACTIVE",
+      status,
       currentPeriodEnd: periodEnd,
     },
   });

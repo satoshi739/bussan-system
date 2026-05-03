@@ -115,7 +115,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
         <div style={{ fontSize: 13, color: "#8A8278", fontWeight: 600, marginBottom: 16 }}>現在のプラン</div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ background: `rgba(${planColor === "#D4AF37" ? "0,255,80" : planColor === "#66aaff" ? "100,170,255" : "0,255,80"},0.08)`, border: `1px solid ${planColor}30`, borderRadius: 12, padding: 12 }}>
+            <div style={{ background: `${planColor}14`, border: `1px solid ${planColor}30`, borderRadius: 12, padding: 12 }}>
               <PlanIcon size={22} color={planColor} />
             </div>
             <div>
