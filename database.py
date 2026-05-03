@@ -792,7 +792,12 @@ class Database:
         row = self.conn.execute(
             "SELECT value FROM settings WHERE key = 'custom_fees'"
         ).fetchone()
-        return json.loads(row['value']) if row else None
+        if not row:
+            return None
+        try:
+            return json.loads(row['value'])
+        except Exception:
+            return None
 
     # ===== WATCHLIST =====
 
@@ -800,7 +805,12 @@ class Database:
         row = self.conn.execute(
             "SELECT value FROM settings WHERE key = 'watchlist'"
         ).fetchone()
-        return json.loads(row['value']) if row else []
+        if not row:
+            return []
+        try:
+            return json.loads(row['value'])
+        except Exception:
+            return []
 
     def save_watchlist(self, items: List[Dict]):
         self.conn.execute("""
@@ -1203,8 +1213,14 @@ class Database:
         result = []
         for r in rows:
             d = dict(r)
-            d["tags"] = json.loads(d.get("tags") or "[]")
-            d["seo_keywords"] = json.loads(d.get("seo_keywords") or "[]")
+            try:
+                d["tags"] = json.loads(d.get("tags") or "[]")
+            except Exception:
+                d["tags"] = []
+            try:
+                d["seo_keywords"] = json.loads(d.get("seo_keywords") or "[]")
+            except Exception:
+                d["seo_keywords"] = []
             result.append(d)
         return result
 
@@ -1249,7 +1265,10 @@ class Database:
         result = []
         for r in rows:
             d = dict(r)
-            d["hashtags"] = json.loads(d.get("hashtags") or "[]")
+            try:
+                d["hashtags"] = json.loads(d.get("hashtags") or "[]")
+            except Exception:
+                d["hashtags"] = []
             result.append(d)
         return result
 
