@@ -6,7 +6,7 @@ import { searchMarket, getPriceHistory, calcMaxPurchase } from "@/lib/api";
 import { Search, Globe, ExternalLink, TrendingDown, TrendingUp, Minus, Camera, X, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE = "/api/proxy";
 const req = async <T,>(path: string, opts?: RequestInit): Promise<T> => {
   const r = await fetch(`${BASE}${path}`, { headers: { "Content-Type": "application/json" }, ...opts });
   if (!r.ok) throw new Error(await r.text());

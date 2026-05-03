@@ -4,7 +4,7 @@ import RequirePlan from "@/components/RequirePlan";
 import { useState, useCallback, useRef } from "react";
 import { Search, Globe, TrendingUp, ExternalLink, RefreshCw, ChevronDown, ChevronUp, Camera, X } from "lucide-react";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE = "/api/proxy";
 const req = async <T,>(path: string, opts?: RequestInit): Promise<T> => {
   const r = await fetch(`${BASE}${path}`, { headers: { "Content-Type": "application/json" }, ...opts });
   if (!r.ok) throw new Error(await r.text());

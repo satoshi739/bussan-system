@@ -64,7 +64,7 @@ const SAMPLE_SCAN_ITEMS = [
   { id: "s3", name: "レゴ テクニック 42083 中古",      buy: 8500,  sell: 18900, profit: 9200, rate: 49, rating: "good",      source: "ヤフオク" },
 ];
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE = "/api/proxy";
 const api = async <T,>(path: string, opts?: RequestInit): Promise<T> => {
   const r = await fetch(`${BASE}${path}`, { headers: { "Content-Type": "application/json" }, ...opts });
   if (!r.ok) throw new Error(await r.text());
