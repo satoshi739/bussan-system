@@ -3087,7 +3087,7 @@ def create_backup():
         backups = db.list_backups()
         return {
             "ok": True,
-            "path": path,
+            "filename": _os.path.basename(path),
             "total_backups": len(backups),
         }
     except Exception as e:
