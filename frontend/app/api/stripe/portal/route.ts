@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { auth } from "@/auth";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
@@ -25,8 +26,7 @@ export async function POST() {
 
     return NextResponse.json({ url: portalSession.url });
   } catch (err) {
-    console.error("[stripe] billingPortal.sessions.create failed:", err);
-    // TODO: BillingClient.tsx の handlePortal でエラーレスポンスをユーザーに表示する
+    Sentry.captureException(err, { tags: { context: "stripe_portal" } });
     return NextResponse.json(
       { error: "請求ポータルの起動に失敗しました" },
       { status: 500 }

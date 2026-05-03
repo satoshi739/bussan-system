@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { auth } from "@/auth";
 import { stripe, PRICE_IDS } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
@@ -17,7 +18,6 @@ export async function POST(req: NextRequest) {
   }
   const priceId = PRICE_IDS[planKey];
 
-  // TODO: emailVerified のチェックも検討 (NextAuth の設定次第)
   if (!session.user.email) {
     return NextResponse.json({ error: "Email required" }, { status: 400 });
   }
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ url: checkoutSession.url });
   } catch (err) {
-    console.error("[checkout] stripe.checkout.sessions.create failed:", err);
+    Sentry.captureException(err, { tags: { context: "stripe_checkout" } });
     return NextResponse.json(
       { error: "決済セッションの作成に失敗しました。しばらく経ってから再度お試しください。" },
       { status: 500 }
