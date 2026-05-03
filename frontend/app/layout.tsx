@@ -5,8 +5,11 @@ import Providers from "@/components/Providers";
 import ClientShell from "@/components/ClientShell";
 
 export const metadata: Metadata = {
-  title: "物販チェッカー",
-  description: "物販管理システム",
+  title: {
+    default: "物販チェッカー",
+    template: "%s | 物販チェッカー",
+  },
+  description: "物販せどりの仕入れ・利益管理・スキャンをワンストップで行えるSaaSツール",
 };
 
 export default function RootLayout({
