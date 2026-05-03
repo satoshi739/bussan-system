@@ -12,10 +12,10 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const planKey = body.planKey as PlanKey | undefined;
-  const priceId = planKey ? PRICE_IDS[planKey] : (body.priceId as string | undefined);
-  if (!priceId) {
-    return NextResponse.json({ error: "priceId required" }, { status: 400 });
+  if (!planKey || !PRICE_IDS[planKey]) {
+    return NextResponse.json({ error: "Invalid planKey" }, { status: 400 });
   }
+  const priceId = PRICE_IDS[planKey];
 
   // TODO: emailVerified のチェックも検討 (NextAuth の設定次第)
   if (!session.user.email) {
@@ -31,21 +31,28 @@ export async function POST(req: NextRequest) {
 
   const hasBeenCustomer = !!sub?.stripeCustomerId;
 
-  const checkoutSession = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    payment_method_types: ["card"],
-    line_items: [{ price: priceId, quantity: 1 }],
-    metadata: { userId },
-    customer: sub?.stripeCustomerId ?? undefined,
-    customer_email: sub?.stripeCustomerId ? undefined : session.user.email,
-    success_url: `${process.env.NEXTAUTH_URL}/settings/billing?success=true`,
-    cancel_url: `${process.env.NEXTAUTH_URL}/pricing`,
-    locale: "ja",
-    subscription_data: {
+  try {
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
       metadata: { userId },
-      ...(hasBeenCustomer ? {} : { trial_period_days: 7 }),
-    },
-  });
-
-  return NextResponse.json({ url: checkoutSession.url });
+      customer: sub?.stripeCustomerId ?? undefined,
+      customer_email: sub?.stripeCustomerId ? undefined : session.user.email,
+      success_url: `${process.env.NEXTAUTH_URL}/settings/billing?success=true`,
+      cancel_url: `${process.env.NEXTAUTH_URL}/pricing`,
+      locale: "ja",
+      subscription_data: {
+        metadata: { userId },
+        ...(hasBeenCustomer ? {} : { trial_period_days: 7 }),
+      },
+    });
+    return NextResponse.json({ url: checkoutSession.url });
+  } catch (err) {
+    console.error("[checkout] stripe.checkout.sessions.create failed:", err);
+    return NextResponse.json(
+      { error: "決済セッションの作成に失敗しました。しばらく経ってから再度お試しください。" },
+      { status: 500 }
+    );
+  }
 }
