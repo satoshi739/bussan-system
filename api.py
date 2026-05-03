@@ -58,6 +58,7 @@ async def _verify_key(request: Request, key: Optional[str] = Security(_api_key_h
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
+    global _scanner_bg_task, _source_sync_bg_task
     import sys as _sys
     print(f"[Startup] Python {_sys.version}")
     print(f"[Startup] SKIP_AUTH={_SKIP_AUTH}, HAS_API_KEY={bool(_INTERNAL_API_KEY)}")
@@ -72,7 +73,13 @@ async def _lifespan(app: FastAPI):
         print("[Startup] Monitor started OK")
     except Exception as e:
         print(f"[Startup] Monitor skip: {e}")
+    _scanner_bg_task = asyncio.create_task(_auto_scan_loop())
+    _source_sync_bg_task = asyncio.create_task(_source_sync_loop())
     yield
+    if _scanner_bg_task:
+        _scanner_bg_task.cancel()
+    if _source_sync_bg_task:
+        _source_sync_bg_task.cancel()
     try:
         import monitor
         monitor.stop()
@@ -2144,7 +2151,7 @@ async def _source_sync_loop():
                 now = _time.time()
                 if now - last_run >= interval_min * 60:
                     print("[SourceSync] 在庫・価格チェック開始...")
-                    result = run_source_sync_once()
+                    result = await asyncio.to_thread(run_source_sync_once)
                     print(
                         f"[SourceSync] 完了: checked={result['checked']} "
                         f"sold_out={result['sold_out_detected']} price_rise={result['price_rise_detected']}"
@@ -2165,8 +2172,8 @@ async def _auto_scan_loop():
                 now = _time.time()
                 if now - last_run >= interval_hours * 3600:
                     print(f"[AutoScan] スキャン開始...")
-                    results = scan_all_keywords(limit=8)
-                    save_scan_results(results)
+                    results = await asyncio.to_thread(scan_all_keywords, 8)
+                    await asyncio.to_thread(save_scan_results, results)
                     db.save_settings({"auto_scan_last_run": str(now)})
                     print(f"[AutoScan] 完了: {len(results)}件")
 
@@ -2191,20 +2198,6 @@ async def _auto_scan_loop():
         await asyncio.sleep(300)  # 5分ごとにチェック
 
 
-@app.on_event("startup")
-async def startup_event():
-    global _scanner_bg_task, _source_sync_bg_task
-    _scanner_bg_task = asyncio.create_task(_auto_scan_loop())
-    _source_sync_bg_task = asyncio.create_task(_source_sync_loop())
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    global _scanner_bg_task, _source_sync_bg_task
-    if _scanner_bg_task:
-        _scanner_bg_task.cancel()
-    if _source_sync_bg_task:
-        _source_sync_bg_task.cancel()
 
 
 # 自動スキャン設定の更新
