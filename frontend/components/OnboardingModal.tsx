@@ -60,8 +60,13 @@ export function useChecklist() {
       const saved = localStorage.getItem(CHECKLIST_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // TODO: 配列要素の shape 検証 ({ id, label, done }) も将来的に追加
-        if (Array.isArray(parsed)) startTransition(() => setItems(parsed));
+        const isValid = (v: unknown): v is { id: string; label: string; done: boolean } =>
+          typeof v === "object" && v !== null &&
+          typeof (v as Record<string, unknown>).id === "string" &&
+          typeof (v as Record<string, unknown>).done === "boolean";
+        if (Array.isArray(parsed) && parsed.every(isValid)) {
+          startTransition(() => setItems(parsed));
+        }
       }
     } catch { /* ignore */ }
   }, []);
