@@ -11,6 +11,11 @@ async function req<T>(path: string, options?: RequestInit, timeoutMs = 5000): Pr
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("タイムアウト: サーバーの応答がありませんでした");
+    }
+    throw error;
   } finally {
     clearTimeout(timer);
   }

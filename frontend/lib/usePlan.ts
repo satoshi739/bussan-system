@@ -20,7 +20,10 @@ export function usePlan(): PlanState {
     fetch("/api/subscription/plan")
       .then((r) => r.json())
       .then((d) => setState({ plan: d.plan ?? "FREE", status: d.status ?? "INACTIVE", loading: false }))
-      .catch(() => setState({ plan: "FREE", status: "INACTIVE", loading: false }));
+      .catch((error) => {
+        console.warn("プラン情報の取得に失敗しました。FREEプランとして動作します:", error);
+        setState({ plan: "FREE", status: "INACTIVE", loading: false });
+      });
   }, []);
 
   return state;
