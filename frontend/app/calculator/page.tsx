@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   calcProfit, calcMaxPurchase, calcAllPlatforms,
   getPlatforms, getCategories,
+  searchEbaySold, getImportShipping,
   type ProfitResult, type PlatformInfo,
 } from "@/lib/api";
 
@@ -63,8 +64,15 @@ export default function CalculatorPage() {
 
 /* ── 利益計算タブ ── */
 function ProfitTab({ domestic, overseas, categories }: { domestic: [string, PlatformInfo][]; overseas: [string, PlatformInfo][]; categories: string[] }) {
-  const [form, setForm] = useState({ purchase_price: "", selling_price: "", purchase_shipping: "", shipping_to_platform: "", selling_platform: "メルカリ", category: "その他" });
+  const [form, setForm] = useState({ purchase_price: "", selling_price: "", purchase_shipping: "", shipping_to_platform: "", selling_platform: "メルカリ", category: "その他", ebay_keyword: "", weight_g: "" });
   const [result, setResult] = useState<ProfitResult | null>(null);
+
+  // eBay落札相場
+  const [ebayLoading, setEbayLoading] = useState(false);
+  const [ebayResult, setEbayResult] = useState<{ avg_jpy: number; min_jpy: number; max_jpy: number; sold_count: number } | null>(null);
+
+  // 輸入送料
+  const [importShipping, setImportShipping] = useState<number | null>(null);
 
   const recalc = useCallback(async (f: typeof form) => {
     if (!f.purchase_price || !f.selling_price) { setResult(null); return; }
@@ -76,6 +84,30 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
   const upd = (key: keyof typeof form, val: string) => { const n = { ...form, [key]: val }; setForm(n); recalc(n); };
   const profitColor = result ? (result.gross_profit >= 0 ? "#D4AF37" : "#ff6666") : "#F5F0E8";
 
+  const handleEbaySearch = async () => {
+    if (!form.ebay_keyword.trim()) return;
+    setEbayLoading(true);
+    setEbayResult(null);
+    try {
+      const r = await searchEbaySold(form.ebay_keyword.trim());
+      if (r.found) setEbayResult({ avg_jpy: r.avg_jpy, min_jpy: r.min_jpy, max_jpy: r.max_jpy, sold_count: r.sold_count });
+    } catch { /* ignore */ }
+    setEbayLoading(false);
+  };
+
+  const handleWeightChange = async (val: string) => {
+    upd("weight_g", val);
+    const w = Number(val);
+    if (w > 0) {
+      try {
+        const r = await getImportShipping(w);
+        setImportShipping(r.shipping_jpy);
+      } catch { /* ignore */ }
+    } else {
+      setImportShipping(null);
+    }
+  };
+
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -84,6 +116,16 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div><label style={lbl}>仕入れ価格 (円)</label><input type="number" style={inp} value={form.purchase_price} onChange={e => upd("purchase_price", e.target.value)} placeholder="0" /></div>
             <div><label style={lbl}>仕入れ送料 (円)</label><input type="number" style={inp} value={form.purchase_shipping} onChange={e => upd("purchase_shipping", e.target.value)} placeholder="0" /></div>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <label style={lbl}>商品重量 (g) — 送料自動計算</label>
+            <input type="number" style={inp} value={form.weight_g} onChange={e => handleWeightChange(e.target.value)} placeholder="例: 500" />
+            {importShipping !== null && (
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, fontSize: 12 }}>
+                <span style={{ color: "#7aaa8a" }}>推定送料: ¥{importShipping.toLocaleString()}（eBay→日本）</span>
+                <button onClick={() => { upd("purchase_shipping", String(importShipping)); }} style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 5, color: "#D4AF37", padding: "3px 10px", fontSize: 11, cursor: "pointer" }}>自動入力</button>
+              </div>
+            )}
           </div>
         </div>
         <div style={card}>
@@ -94,6 +136,22 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
               <optgroup label="国内">{domestic.map(([k, v]) => <option key={k} value={k}>{v.emoji} {k} — {v.note}</option>)}</optgroup>
               <optgroup label="海外">{overseas.map(([k, v]) => <option key={k} value={k}>{v.emoji} {k} — {v.note}</option>)}</optgroup>
             </select>
+          </div>
+          {/* eBay落札相場ルックアップ */}
+          <div style={{ marginBottom: 12, padding: "10px 12px", background: "rgba(0,30,15,0.4)", borderRadius: 8, border: "1px solid rgba(212,175,55,0.1)" }}>
+            <label style={{ ...lbl, marginBottom: 6 }}>eBay落札相場を検索</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input style={{ ...inp, flex: 1, fontSize: 13 }} value={form.ebay_keyword} onChange={e => upd("ebay_keyword", e.target.value)} onKeyDown={e => e.key === "Enter" && handleEbaySearch()} placeholder="商品名（英語推奨）" />
+              <button onClick={handleEbaySearch} disabled={ebayLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 7, color: "#D4AF37", padding: "0 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+                {ebayLoading ? "検索中..." : "eBay相場を検索"}
+              </button>
+            </div>
+            {ebayResult && (
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, fontSize: 12, flexWrap: "wrap" }}>
+                <span style={{ color: "#66ccff" }}>eBay落札 平均: ¥{ebayResult.avg_jpy.toLocaleString()}（最安: ¥{ebayResult.min_jpy.toLocaleString()} / 最高: ¥{ebayResult.max_jpy.toLocaleString()} / {ebayResult.sold_count}件）</span>
+                <button onClick={() => upd("selling_price", String(ebayResult.avg_jpy))} style={{ background: "rgba(102,204,255,0.1)", border: "1px solid rgba(102,204,255,0.3)", borderRadius: 5, color: "#66ccff", padding: "3px 10px", fontSize: 11, cursor: "pointer" }}>この価格を使う</button>
+              </div>
+            )}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div><label style={lbl}>販売価格 (円)</label><input type="number" style={inp} value={form.selling_price} onChange={e => upd("selling_price", e.target.value)} placeholder="0" /></div>

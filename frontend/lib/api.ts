@@ -299,6 +299,12 @@ export const notifyStale = () =>
 export const notifyDaily = () =>
   req<{ ok: boolean; error?: string }>("/api/notify/daily", { method: "POST" });
 
+export const searchEbaySold = (keyword: string, limit = 10) =>
+  req<{ found: boolean; avg_jpy: number; median_jpy: number; min_jpy: number; max_jpy: number; sold_count: number; items: Array<{ title: string; price_jpy: number; price_usd: number; sold_date: string; url: string }> }>(`/api/search/ebay-sold?keyword=${encodeURIComponent(keyword)}&limit=${limit}`);
+
+export const getImportShipping = (weight_g: number, source = "US") =>
+  req<{ weight_g: number; source: string; shipping_jpy: number }>(`/api/calc/import-shipping?weight_g=${weight_g}&source=${source}`);
+
 // Source sync (在庫連動・価格上昇監視)
 export interface SourceSyncSettings {
   enabled: boolean;

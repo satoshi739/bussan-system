@@ -123,6 +123,81 @@ def search_ebay(keyword: str, limit: int = 10) -> List[Dict]:
         return []
 
 
+# ===== eBay 落札済み =====
+
+def search_ebay_sold(keyword: str, limit: int = 10) -> List[Dict]:
+    """eBayの落札済み商品（実売価格）をスクレイピングして返す"""
+    try:
+        from bs4 import BeautifulSoup
+        import urllib.parse
+    except ImportError:
+        return []
+
+    try:
+        settings = _get_settings()
+        usd_jpy = float(settings.get('usd_jpy', 150))
+
+        encoded = urllib.parse.quote(keyword)
+        url = f"https://www.ebay.com/sch/i.html?LH_Sold=1&LH_Complete=1&_nkw={encoded}"
+        headers = {**HEADERS_PC, 'Accept-Language': 'en-US,en;q=0.9'}
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            return []
+
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        results = []
+
+        for item in soup.select('.s-item')[:limit * 3]:
+            title_el = item.select_one('.s-item__title')
+            price_el = item.select_one('.s-item__price')
+            link_el  = item.select_one('a.s-item__link')
+            img_el   = item.select_one('.s-item__image img')
+            date_el  = item.select_one('.s-item__ended-date, .s-item__listingDate, [class*="s-item__ended"]')
+
+            if not title_el or not price_el:
+                continue
+
+            title = title_el.get_text(strip=True)
+            # eBayのダミー行をスキップ
+            if title in ('Shop on eBay', 'New Listing'):
+                continue
+
+            price_text = price_el.get_text(strip=True)
+            # 価格範囲（"$10.00 to $20.00"）は最初の値を使う
+            price_str = re.sub(r'[^\d.]', '', price_text.split(' to ')[0])
+            if not price_str:
+                continue
+            try:
+                price_usd = float(price_str)
+            except ValueError:
+                continue
+            if price_usd <= 0:
+                continue
+
+            link = link_el['href'] if link_el and link_el.get('href') else ''
+            img  = img_el.get('src', '') if img_el else ''
+            sold_date = date_el.get_text(strip=True) if date_el else ''
+
+            results.append({
+                'title':     title,
+                'price_usd': round(price_usd, 2),
+                'price_jpy': round(price_usd * usd_jpy),
+                'sold_date': sold_date,
+                'url':       link,
+                'image':     img,
+                'source':    'eBay落札',
+            })
+
+            if len(results) >= limit:
+                break
+
+        return results
+
+    except Exception as e:
+        logger.warning(f'[eBay落札] エラー: {e}')
+        return []
+
+
 # ===== メルカリ =====
 
 def _search_mercari_api(keyword: str, limit: int, status: str) -> List[Dict]:

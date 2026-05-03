@@ -1253,6 +1253,42 @@ def intl_shipping(platform: str, weight_g: float = 500):
     }
 
 
+# ── eBay落札済み検索 ──────────────────────────────────────────
+
+@app.get("/api/search/ebay-sold")
+async def search_ebay_sold_api(keyword: str, limit: int = 10):
+    """eBayの落札済み商品を検索して実売価格の統計を返す"""
+    from scrapers import search_ebay_sold
+    items = await asyncio.to_thread(search_ebay_sold, keyword, limit)
+    prices = [i['price_jpy'] for i in items if i.get('price_jpy', 0) > 0]
+    if not prices:
+        return {'found': False, 'keyword': keyword, 'avg_jpy': 0, 'median_jpy': 0,
+                'min_jpy': 0, 'max_jpy': 0, 'sold_count': 0, 'items': []}
+    prices_sorted = sorted(prices)
+    n = len(prices_sorted)
+    median = prices_sorted[n // 2] if n % 2 == 1 else (prices_sorted[n // 2 - 1] + prices_sorted[n // 2]) // 2
+    return {
+        'found':      True,
+        'keyword':    keyword,
+        'avg_jpy':    round(sum(prices) / n),
+        'median_jpy': median,
+        'min_jpy':    prices_sorted[0],
+        'max_jpy':    prices_sorted[-1],
+        'sold_count': n,
+        'items':      items,
+    }
+
+
+# ── 輸入送料計算 ──────────────────────────────────────────────
+
+@app.get("/api/calc/import-shipping")
+def calc_import_shipping(weight_g: float = 500, source: str = "US"):
+    """海外から日本への輸入送料目安を返す"""
+    from global_calculator import get_import_shipping
+    shipping_jpy = get_import_shipping(weight_g, source)
+    return {'weight_g': weight_g, 'source': source, 'shipping_jpy': shipping_jpy}
+
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 利益スキャナー（仕入れ候補商品の自動発掘）
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1450,6 +1486,28 @@ async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit:
         results = await asyncio.to_thread(scan_all_keywords, limit, db)
 
     await asyncio.to_thread(db.save_scan_cache, results, None, user_id)
+
+    # 高利益商品があればLINEに通知
+    try:
+        settings = db.get_settings()
+        token = settings.get("line_token", "")
+        if token:
+            threshold = float(settings.get("auto_scan_notify_score", "70"))
+            top_items = [r for r in results if r.get("score", 0) >= threshold or r.get("profit_rate", 0) >= 30]
+            if top_items:
+                msg = f"\n🔍 【スキャン完了】高利益商品 {len(top_items)}件 発見！\n\n"
+                for item in top_items[:5]:
+                    name = item.get("name", item.get("product_name", ""))[:25]
+                    msg += (
+                        f"・{name}\n"
+                        f"  利益率: {item.get('profit_rate', 0):.1f}%"
+                        f" / 利益: ¥{int(item.get('net_profit_jpy', 0)):,}\n"
+                        f"  {item.get('buy_url', '')[:60]}\n\n"
+                    )
+                _send_line(token, msg)
+    except Exception:
+        pass
+
     return {
         "ok": True,
         "count": len(results),

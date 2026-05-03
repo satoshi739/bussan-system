@@ -447,6 +447,26 @@ def calculate_breakeven_price_local(
     }
 
 
+# eBay US → 日本 輸入送料目安（重量別）
+_EBAY_IMPORT_TIERS = [
+    (200,  800),
+    (500,  1200),
+    (1000, 1800),
+    (2000, 2800),
+    (5000, 5000),
+    (10000, 9000),
+]
+
+
+def get_import_shipping(weight_g: float, source: str = 'US') -> int:
+    """海外（eBay等）から日本への輸入送料目安（円）を返す"""
+    for max_g, fee in _EBAY_IMPORT_TIERS:
+        if weight_g <= max_g:
+            return fee
+    extra_kg = (weight_g - 10000) / 1000
+    return 9000 + int(extra_kg) * 800
+
+
 def suggest_selling_price(
     purchase_price_jpy: float,
     platform_key: str,
