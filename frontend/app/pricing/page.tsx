@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Check, Zap, Building2, Gift, ChevronDown, ChevronUp } from "lucide-react";
 import { PLANS } from "@/lib/stripe";
 import { toast } from "@/components/Toast";
@@ -72,7 +73,14 @@ function CellVal({ val }: { val: boolean | string }) {
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { status } = useSession();
+  const router = useRouter();
+
   const handleSubscribe = async (planKey: "STANDARD" | "PRO") => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
     setLoading(planKey);
     try {
       const res = await fetch("/api/stripe/checkout", {
@@ -90,7 +98,7 @@ export default function PricingPage() {
       if (url) window.location.href = url;
       else setLoading(null);
     } catch {
-      toast("ネットワークエラーが発生しました。再度お試しください。", "error");
+      toast("決済ページへの接続に失敗しました。再度お試しください。", "error");
       setLoading(null);
     }
   };
