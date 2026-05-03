@@ -429,8 +429,10 @@ class Database:
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest = backup_dir / f"bussan_{ts}.dump"
         url = os.environ.get("DATABASE_URL", "")
+        if not url.startswith(("postgres://", "postgresql://")):
+            raise RuntimeError("DATABASE_URL が未設定または不正なフォーマットです")
         result = subprocess.run(
-            ["pg_dump", "--format=custom", f"--dbname={url}", f"--file={dest}"],
+            ["pg_dump", "--format=custom", f"--file={dest}", "--", url],
             capture_output=True,
         )
         if result.returncode != 0:
