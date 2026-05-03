@@ -42,3 +42,8 @@ export type VerificationToken = Prisma.VerificationTokenModel
  * 
  */
 export type Subscription = Prisma.SubscriptionModel
+/**
+ * Model StripeEvent
+ * 
+ */
+export type StripeEvent = Prisma.StripeEventModel

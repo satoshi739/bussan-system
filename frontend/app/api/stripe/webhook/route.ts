@@ -31,6 +31,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // イベントの重複チェック
+    const existing = await prisma.stripeEvent.findUnique({
+      where: { eventId: event.id },
+    });
+    if (existing) {
+      return NextResponse.json({ received: true });
+    }
+    await prisma.stripeEvent.create({ data: { eventId: event.id } });
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -60,7 +69,8 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error("Webhook handler error:", err);
-    return NextResponse.json({ error: "Handler failed" }, { status: 500 });
+    // Stripe のリトライを防ぐため、ビジネスロジックエラーは 200 を返す
+    return NextResponse.json({ received: true, warning: "Handler error logged" });
   }
 
   return NextResponse.json({ received: true });
@@ -188,6 +198,9 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 function getPlanFromPriceId(priceId: string) {
+  if (!process.env.STRIPE_STANDARD_PRICE_ID || !process.env.STRIPE_PRO_PRICE_ID) {
+    throw new Error("Stripe Price IDs not configured");
+  }
   if (priceId === process.env.STRIPE_STANDARD_PRICE_ID) return "STANDARD" as const;
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "PRO" as const;
   return "FREE" as const;
