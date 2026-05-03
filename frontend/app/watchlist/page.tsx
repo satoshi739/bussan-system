@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getWatchlist, addWatchlist, removeWatchlist, calcMaxPurchase } from "@/lib/api";
 import { Plus, Trash2, Target } from "lucide-react";
 import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 
 const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
 const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 14, width: "100%", outline: "none" };
@@ -22,7 +23,7 @@ function WatchlistPageContent() {
   const [sellPriceInputs, setSellPriceInputs] = useState<Record<string, string>>({});
 
   const load = () => {
-    getWatchlist().then(data => setItems(data)).catch(() => {});
+    getWatchlist().then(data => setItems(data)).catch(e => toast(errMsg(e), "error"));
   };
   useEffect(() => { load(); }, []);
 
