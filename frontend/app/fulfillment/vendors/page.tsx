@@ -6,7 +6,7 @@ import {
   getFulfillmentVendors, deleteFulfillmentVendor, updateFulfillmentVendor,
   type FulfillmentVendor,
 } from "@/lib/api";
-import { Plus, Settings, Trash2, CheckCircle, Zap, Mail, MessageCircle, Hand, ArrowLeft, ExternalLink } from "lucide-react";
+import { Plus, Settings, Trash2, CheckCircle, Zap, Mail, MessageCircle, Hand, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
@@ -123,13 +123,11 @@ const CONNECTION_BADGE: Record<string, { label: string; color: string; icon: Rea
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<FulfillmentVendor[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
     getFulfillmentVendors()
       .then(setVendors)
-      .catch(e => toast(errMsg(e), "error"))
-      .finally(() => setLoading(false));
+      .catch(e => toast(errMsg(e), "error"));
   }, []);
 
   useEffect(() => { load(); }, [load]);

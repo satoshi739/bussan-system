@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Activity, Play, Clock, CheckCircle, AlertCircle, RefreshCw, Settings, TrendingUp, Package, Brain } from "lucide-react";
+import { Activity, Play, RefreshCw, Settings, TrendingUp, Package, Brain } from "lucide-react";
 import { getMonitorStatus, runMonitorNow, saveMonitorSettings, getSeasonalIntelligence, getOwnHistory, type MonitorStatus, type SeasonalIntelligence } from "@/lib/api";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";

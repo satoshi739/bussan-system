@@ -7,7 +7,7 @@ import {
   getPurchases, getFulfillmentVendors, createShippingRequest,
   type Fulfillment, type FulfillmentCreate, type Purchase, type FulfillmentVendor,
 } from "@/lib/api";
-import { Plus, Trash2, Truck, Package, CheckCircle, Search, X, ExternalLink, Edit2, Send, Settings } from "lucide-react";
+import { Plus, Trash2, Truck, Search, X, ExternalLink, Edit2, Send, Settings } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 

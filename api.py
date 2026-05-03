@@ -602,7 +602,7 @@ def remove_watchlist(keyword: str):
 
 # ── 相場検索 ──────────────────────────────────────────────
 
-from scrapers import search_all_buy_sites, search_mercari
+from scrapers import search_all_buy_sites, search_mercari, search_mercari_sold
 
 @app.get("/api/search/market")
 async def search_market(keyword: str, limit: int = 8):
@@ -732,6 +732,70 @@ def notify_stale(days: int = 14):
     
     ok, err = _send_line(token, msg)
     result = {'ok': ok, 'count': len(rows)}
+    if not ok:
+        result['error'] = err
+    return result
+
+
+class HighRoiScanRequest(BaseModel):
+    keyword: str
+    min_roi: float = 50.0
+    min_profit_jpy: int = 2000
+    sell_platform: str = "Amazon"
+    limit: int = 10
+
+
+@app.post("/api/notify/high-roi-scan")
+async def notify_high_roi_scan(body: HighRoiScanRequest):
+    """
+    国内転売スキャンを実行し、条件を満たす高ROI商品をLINEに通知する。
+    min_roi: 最低ROI%（デフォルト50%）
+    min_profit_jpy: 最低純利益額（デフォルト¥2,000）
+    """
+    settings = db.get_settings()
+    token = settings.get('line_token', '')
+    if not token:
+        raise HTTPException(400, 'LINE tokenが設定されていません。設定ページでLINE Notifyトークンを登録してください。')
+
+    results = await asyncio.to_thread(
+        scan_keyword_domestic,
+        body.keyword,
+        body.sell_platform,
+        None,
+        0.0,
+        body.limit,
+    )
+
+    # ROI・利益額フィルター
+    hits = [
+        r for r in results
+        if r.get('roi', 0) >= body.min_roi
+        and r.get('net_profit_jpy', 0) >= body.min_profit_jpy
+    ]
+
+    if not hits:
+        return {'ok': True, 'found': 0, 'notified': False, 'msg': '条件を満たす商品が見つかりませんでした'}
+
+    # LINEメッセージ組み立て
+    mkt = hits[0].get('amazon_market', {})
+    amazon_median = mkt.get('median', 0)
+    lines = [
+        f'\n🔥 高利益商品 発見！【{body.keyword}】',
+        f'Amazon相場: ¥{amazon_median:,}（中央値）',
+        f'対象: {len(hits)}件\n',
+    ]
+    for i, r in enumerate(hits[:5], 1):
+        lines.append(
+            f'#{i} [{r["rating"].upper()}] ROI {r["roi"]}% / 利益 ¥{r["net_profit_jpy"]:,}\n'
+            f'  仕入れ ¥{r["buy_price"]:,}（{r["buy_source"]}）\n'
+            f'  {r["name"][:30]}\n'
+            f'  {r["buy_url"]}\n'
+        )
+
+    msg = '\n'.join(lines)
+    ok, err = _send_line(token, msg)
+
+    result = {'ok': ok, 'found': len(hits), 'notified': ok}
     if not ok:
         result['error'] = err
     return result
@@ -1189,7 +1253,7 @@ def intl_shipping(platform: str, weight_g: float = 500):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 from profit_scanner import (
-    scan_keyword, scan_all_keywords,
+    scan_keyword, scan_all_keywords, scan_keyword_domestic,
 )
 
 
@@ -1382,6 +1446,29 @@ async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit:
     return {
         "ok": True,
         "count": len(results),
+        "results": results,
+    }
+
+
+@app.post("/api/scanner/run-domestic")
+async def run_domestic_scan(
+    keyword: str,
+    sell_platform: str = "Amazon",
+    min_profit_rate: float = 15.0,
+    limit: int = 10,
+):
+    """
+    国内転売スキャン。
+    ヤフオク仕入れ価格 × Amazon.co.jp実売価格で正確なROIを計算する。
+    推定式ではなく実データで利益判定するため精度が高い。
+    """
+    results = await asyncio.to_thread(
+        scan_keyword_domestic, keyword, sell_platform, None, min_profit_rate, limit
+    )
+    return {
+        "ok": True,
+        "count": len(results),
+        "mode": "domestic",
         "results": results,
     }
 
@@ -3212,6 +3299,67 @@ async def run_ceo_agent(body: CEORunRequest):
     except Exception as e:
         db.update_agent_session(session_id, {"status": "error"})
         raise HTTPException(500, f"CEOエージェントエラー: {str(e)}")
+
+
+@app.get("/api/agents/ceo/stream")
+async def stream_ceo_agent(goal: str, budget_jpy: Optional[float] = None, max_turns: int = 12):
+    """CEOエージェントの進捗をSSEでリアルタイム配信する"""
+    import json as _json, queue as _queue, threading as _threading, datetime as _dt
+    from starlette.responses import StreamingResponse as _StreamingResponse
+
+    api_key = _get_agent_api_key()
+    session_id = db.create_agent_session(goal, budget_jpy)
+    db.update_agent_session(session_id, {"status": "running"})
+
+    q: _queue.Queue = _queue.Queue()
+
+    def _run():
+        try:
+            from agents import CEOAgent
+            agent = CEOAgent(api_key=api_key, db=db)
+            q.put({"type": "progress", "message": f"ゴール受信: {goal[:60]}"})
+            result = agent.run(goal=goal, budget_jpy=budget_jpy, max_turns=max_turns)
+            db.update_agent_session(session_id, {
+                "status": "completed",
+                "scanned_count": result.get("scanned_count", 0),
+                "queued_count": result.get("queued_count", 0),
+                "report": _json.dumps(result.get("report", {}), ensure_ascii=False),
+                "log": _json.dumps(result.get("log", []), ensure_ascii=False),
+                "completed_at": _dt.datetime.now().isoformat(),
+            })
+            queued = result.get("queued_count", 0)
+            if queued > 0:
+                settings = db.get_settings()
+                token = settings.get("line_token", "").strip()
+                if token:
+                    _send_line(token, f"\n🤖 AI CEO が {queued}件の仕入れ候補を発見！\nゴール: {goal[:50]}")
+            q.put({"type": "done", "session_id": session_id, **result})
+        except Exception as e:
+            db.update_agent_session(session_id, {"status": "error"})
+            q.put({"type": "error", "message": str(e)})
+        finally:
+            q.put(None)
+
+    _threading.Thread(target=_run, daemon=True).start()
+
+    async def _gen():
+        yield f"data: {_json.dumps({'type': 'start', 'session_id': session_id}, ensure_ascii=False)}\n\n"
+        while True:
+            try:
+                item = await asyncio.to_thread(q.get, timeout=300)
+            except Exception:
+                break
+            if item is None:
+                break
+            yield f"data: {_json.dumps(item, ensure_ascii=False)}\n\n"
+            if item.get("type") in ("done", "error"):
+                break
+
+    return _StreamingResponse(
+        _gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/api/agents/sessions")

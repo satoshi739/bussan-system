@@ -225,6 +225,7 @@ function SearchPageContent() {
       }
     };
     reader.readAsDataURL(file);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, buyPrice]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {

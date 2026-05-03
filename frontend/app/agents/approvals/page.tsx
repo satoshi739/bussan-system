@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { CheckCircle, XCircle, ExternalLink, TrendingUp, Zap, RefreshCw, Share2, FileText, Filter } from "lucide-react";
+import { CheckCircle, XCircle, ExternalLink, RefreshCw } from "lucide-react";
 import {
   getApprovalQueue, approveQueueItem, rejectQueueItem,
   generateListing, generateSNSContent,

@@ -111,10 +111,10 @@ class ResearchAgent:
     # ── メルカリ相場 ─────────────────────────────────────────────────
 
     def search_mercari_sold(self, keyword: str, limit: int = 10) -> Dict:
-        """メルカリの売り切れ商品から相場を取得する"""
+        """メルカリの売り切れ商品（実売価格）から相場を取得する"""
         try:
-            from scrapers import search_mercari
-            items = search_mercari(keyword, limit=limit)
+            from scrapers import search_mercari_sold
+            items = search_mercari_sold(keyword, limit=limit)
             if not items:
                 return {"keyword": keyword, "avg_price_jpy": 0, "items": []}
 

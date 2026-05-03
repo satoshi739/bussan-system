@@ -229,6 +229,7 @@ function GlobalPageContent() {
       }
     };
     reader.readAsDataURL(file);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buyPrice]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -258,7 +259,7 @@ function GlobalPageContent() {
         }),
       });
       setResult(data);
-    } catch (e) {
+    } catch {
       setError("検索に失敗しました。APIサーバーが起動しているか確認してください。");
     } finally {
       setLoading(false);

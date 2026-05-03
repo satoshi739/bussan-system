@@ -40,6 +40,43 @@ def _get_db():
 
 # ── 定期タスク ───────────────────────────────────────────────────────
 
+def _run_domestic_notify(db, line_token: str):
+    """登録済みキーワードで国内転売スキャンを実行し、高ROI商品をLINEに通知する。"""
+    try:
+        from profit_scanner import scan_keyword_domestic
+        keywords = db.load_scan_keywords() if hasattr(db, 'load_scan_keywords') else []
+        if not keywords:
+            return
+
+        all_hits = []
+        for kw_conf in keywords[:5]:  # 最大5キーワードに絞る
+            keyword = kw_conf.get('keyword', '')
+            if not keyword:
+                continue
+            results = scan_keyword_domestic(keyword, sell_platform='Amazon', min_profit_rate=20.0, limit=8)
+            hits = [r for r in results if r.get('roi', 0) >= 50 and r.get('net_profit_jpy', 0) >= 2000]
+            for h in hits:
+                h['scan_keyword'] = keyword
+            all_hits.extend(hits)
+
+        if not all_hits:
+            return
+
+        all_hits.sort(key=lambda x: x.get('roi', 0), reverse=True)
+        lines = [f'\n🔥 高利益商品 {len(all_hits)}件 発見！']
+        for r in all_hits[:5]:
+            lines.append(
+                f'\n▶ {r["scan_keyword"]} / ROI {r["roi"]}%\n'
+                f'  仕入れ ¥{r["buy_price"]:,} → 利益 ¥{r["net_profit_jpy"]:,}\n'
+                f'  {r["name"][:28]}\n'
+                f'  {r["buy_url"]}'
+            )
+        _send_line(line_token, '\n'.join(lines))
+        print(f"[Monitor] 国内転売通知: {len(all_hits)}件")
+    except Exception as e:
+        print(f"[Monitor] 国内転売通知エラー: {e}")
+
+
 def daily_scan():
     """毎朝自動スキャン: 登録キーワードをスキャンしてLINE通知"""
     print(f"[Monitor] daily_scan 開始: {datetime.now().isoformat()}")
@@ -87,6 +124,10 @@ def daily_scan():
                     f"スキャン: {scanned}件 — 本日は有望な候補なし"
                 )
             _send_line(line_token, msg)
+
+        # 国内転売スキャン（登録キーワードを対象に高ROI商品を通知）
+        if line_token:
+            _run_domestic_notify(db, line_token)
 
         print(f"[Monitor] daily_scan 完了: queued={queued}")
 

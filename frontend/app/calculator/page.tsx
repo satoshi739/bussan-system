@@ -265,7 +265,7 @@ function CompareTab() {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {/* 国内 */}
           <div style={{ fontSize: 12, color: "#8A8278", fontWeight: 700, padding: "4px 0" }}>🏯 国内プラットフォーム</div>
-          {sorted.filter(([, v]) => v.area === "国内").map(([name, data], i) => {
+          {sorted.filter(([, v]) => v.area === "国内").map(([name, data]) => {
             const isTop = data.gross_profit === maxProfit && data.gross_profit > 0;
             const barWidth = maxProfit > 0 ? Math.max(0, (data.gross_profit / maxProfit) * 100) : 0;
             return (

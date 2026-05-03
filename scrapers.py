@@ -125,73 +125,88 @@ def search_ebay(keyword: str, limit: int = 10) -> List[Dict]:
 
 # ===== メルカリ =====
 
+def _search_mercari_api(keyword: str, limit: int, status: str) -> List[Dict]:
+    url = 'https://api.mercari.jp/v2/entities:search'
+    headers = {
+        **HEADERS_SP,
+        'Content-Type': 'application/json',
+        'X-Platform': 'web',
+        'Accept': 'application/json, text/plain, */*',
+        'Origin': 'https://jp.mercari.com',
+        'Referer': 'https://jp.mercari.com/',
+    }
+    payload = {
+        'userId': '',
+        'pageSize': limit,
+        'pageToken': '',
+        'searchSessionId': '',
+        'indexRouting': 'INDEX_ROUTING_UNSPECIFIED',
+        'thumbnailTypes': [],
+        'searchCondition': {
+            'keyword': keyword,
+            'excludeKeyword': '',
+            'sort': 'SORT_CREATED_TIME',
+            'order': 'ORDER_DESC',
+            'status': [status],
+            'categoryId': [],
+            'brandId': [],
+            'sellerId': [],
+            'priceMin': 0,
+            'priceMax': 0,
+            'itemConditionId': [],
+            'shippingPayerId': [],
+            'shippingFromArea': [],
+            'shippingMethod': [],
+            'colorId': [],
+            'hasCoupon': False,
+            'attributes': [],
+            'itemTypes': [],
+            'skuIds': [],
+        },
+        'defaultDatasets': ['DATASET_TYPE_MERCARI', 'DATASET_TYPE_BEYOND'],
+        'serviceFrom': 'suruga',
+        'withItemBrand': True,
+        'withItemSize': False,
+        'withItemPromotions': False,
+        'withItemSizes': False,
+        'useDynamicAttribute': False,
+        'withSuggestedItems': False,
+        'lang': 'ja',
+    }
+    resp = requests.post(url, json=payload, headers=headers, timeout=10)
+    if resp.status_code != 200:
+        logger.warning(f'[メルカリ] status={resp.status_code}')
+        return []
+    items = resp.json().get('items', [])
+    results = []
+    for item in items:
+        results.append({
+            'id': item.get('id', ''),
+            'name': item.get('name', ''),
+            'price': item.get('price', 0),
+            'condition': item.get('itemCondition', {}).get('name', ''),
+            'url': f"https://jp.mercari.com/item/{item.get('id', '')}",
+            'image': (item.get('thumbnails') or [''])[0],
+            'source': 'メルカリ',
+        })
+    return results
+
+
 def search_mercari(keyword: str, limit: int = 10) -> List[Dict]:
+    """メルカリの販売中商品を検索する"""
     try:
-        url = 'https://api.mercari.jp/v2/entities:search'
-        headers = {
-            **HEADERS_SP,
-            'Content-Type': 'application/json',
-            'X-Platform': 'web',
-            'Accept': '*/*',
-        }
-        payload = {
-            'userId': '',
-            'pageSize': limit,
-            'pageToken': '',
-            'searchSessionId': '',
-            'indexRouting': 'INDEX_ROUTING_UNSPECIFIED',
-            'thumbnailTypes': [],
-            'searchCondition': {
-                'keyword': keyword,
-                'excludeKeyword': '',
-                'sort': 'SORT_SCORE',
-                'order': 'ORDER_DESC',
-                'status': ['STATUS_ON_SALE'],
-                'categoryId': [],
-                'brandId': [],
-                'sellerId': [],
-                'priceMin': 0,
-                'priceMax': 0,
-                'itemConditionId': [],
-                'shippingPayerId': [],
-                'shippingFromArea': [],
-                'shippingMethod': [],
-                'colorId': [],
-                'hasCoupon': False,
-                'attributes': [],
-                'itemTypes': [],
-                'skuIds': [],
-            },
-            'defaultDatasets': ['DATASET_TYPE_MERCARI', 'DATASET_TYPE_BEYOND'],
-            'serviceFrom': 'suruga',
-            'withItemBrand': True,
-            'withItemSize': False,
-            'withItemPromotions': False,
-            'withItemSizes': False,
-            'useDynamicAttribute': False,
-            'withSuggestedItems': False,
-            'lang': 'ja',
-        }
-        resp = requests.post(url, json=payload, headers=headers, timeout=10)
-
-        if resp.status_code != 200:
-            return []
-
-        items = resp.json().get('items', [])
-        results = []
-        for item in items:
-            results.append({
-                'id': item.get('id', ''),
-                'name': item.get('name', ''),
-                'price': item.get('price', 0),
-                'condition': item.get('itemCondition', {}).get('name', ''),
-                'url': f"https://jp.mercari.com/item/{item.get('id', '')}",
-                'image': (item.get('thumbnails') or [''])[0],
-            })
-        return results
-
+        return _search_mercari_api(keyword, limit, 'STATUS_ON_SALE')
     except Exception as e:
-        print(f'[メルカリ] エラー: {e}')
+        logger.warning(f'[メルカリ] エラー: {e}')
+        return []
+
+
+def search_mercari_sold(keyword: str, limit: int = 10) -> List[Dict]:
+    """メルカリの売り切れ商品（実売価格）を検索する"""
+    try:
+        return _search_mercari_api(keyword, limit, 'STATUS_SOLD_OUT')
+    except Exception as e:
+        logger.warning(f'[メルカリ sold] エラー: {e}')
         return []
 
 
@@ -426,8 +441,28 @@ def search_yahoo_shopping(keyword: str, limit: int = 10) -> List[Dict]:
 
 # ===== Amazon.co.jp（セラー出品価格）=====
 
+def _parse_amazon_price_to_jpy(price_str: str) -> int:
+    """Amazon価格文字列をJPYに変換する。THB等の外貨も自動変換。"""
+    if not price_str:
+        return 0
+    text = price_str.strip()
+    # 通貨コードを判別
+    if 'THB' in text or '฿' in text:
+        try:
+            from currency import get_rates
+            rates = get_rates()
+            thb_per_jpy = rates.get('THB', 0.238)
+            amount = float(re.sub(r'[^\d.]', '', text))
+            return round(amount / thb_per_jpy)
+        except Exception:
+            return 0
+    # JPY (¥ or 数字のみ)
+    digits = re.sub(r'[^\d]', '', text)
+    return int(digits) if digits else 0
+
+
 def search_amazon_jp(keyword: str, limit: int = 5) -> List[Dict]:
-    """Amazon.co.jp を検索（スクレイピング・不安定）"""
+    """Amazon.co.jp を検索（スクレイピング）。THB等の外貨表示にも対応。"""
     try:
         from bs4 import BeautifulSoup
         url = f"https://www.amazon.co.jp/s?k={requests.utils.quote(keyword)}&language=ja"
@@ -441,13 +476,12 @@ def search_amazon_jp(keyword: str, limit: int = 5) -> List[Dict]:
             asin = product.get('data-asin', '').strip()
             if not asin:
                 continue
-            title_el = product.select_one('h2 a span')
+            title_el = product.select_one('h2') or product.select_one('[data-cy*="title"]')
             price_el = product.select_one('.a-price .a-offscreen')
-            if not title_el:
+            if not title_el or not price_el:
                 continue
             title = title_el.text.strip()
-            price_str = price_el.text.strip() if price_el else ''
-            price = int(re.sub(r'[^\d]', '', price_str)) if price_str else 0
+            price = _parse_amazon_price_to_jpy(price_el.text)
             if price > 0:
                 results.append({
                     'name': title, 'price': price,
@@ -458,17 +492,82 @@ def search_amazon_jp(keyword: str, limit: int = 5) -> List[Dict]:
                 break
         return results
     except Exception as e:
-        print(f'[Amazon.co.jp] エラー: {e}')
+        logger.warning(f'[Amazon.co.jp] エラー: {e}')
         return []
+
+
+# ===== Amazon 実売価格取得 =====
+
+def get_amazon_market_price(keyword: str) -> Dict:
+    """
+    Amazon.co.jpの実売価格を取得し、相場統計を返す。
+    利益スキャナーが「推定式」ではなく本物の市場価格で判断するために使う。
+    """
+    try:
+        items = search_amazon_jp(keyword, limit=10)
+        prices = [i['price'] for i in items if i.get('price', 0) > 0]
+        if not prices:
+            return {'found': False, 'keyword': keyword}
+
+        prices.sort()
+        n = len(prices)
+        median = prices[n // 2] if n % 2 == 1 else (prices[n // 2 - 1] + prices[n // 2]) // 2
+
+        return {
+            'found': True,
+            'keyword': keyword,
+            'median_price': median,
+            'avg_price': round(sum(prices) / n),
+            'min_price': prices[0],
+            'max_price': prices[-1],
+            'sample_count': n,
+            'items': items[:3],
+        }
+    except Exception as e:
+        logger.warning(f'[Amazon相場] エラー: {e}')
+        return {'found': False, 'keyword': keyword}
 
 
 # ===== 全サイト一括検索 =====
 
 def search_all_buy_sites(keyword: str, limit: int = 5) -> List[Dict]:
-    """Yahoo!オークション・ヤフーショッピング・eBayをまとめて検索"""
+    """メルカリ・ラクマ・ヤフオク・ヤフーショッピング・eBayをまとめて検索"""
     results = []
 
-    # Yahoo!オークション（動作確認済み）
+    # メルカリ（販売中）
+    for item in search_mercari(keyword, limit):
+        results.append({
+            'source': '🛍️ メルカリ',
+            'name':   item['name'],
+            'price':  item['price'],
+            'url':    item['url'],
+            'image':  item.get('image', ''),
+            'condition': item.get('condition', ''),
+        })
+
+    # ラクマ
+    for item in search_rakuma(keyword, limit):
+        results.append({
+            'source': '🌸 ラクマ',
+            'name':   item['name'],
+            'price':  item['price'],
+            'url':    item['url'],
+            'image':  item.get('image', ''),
+            'condition': item.get('condition', ''),
+        })
+
+    # PayPayフリマ
+    for item in search_paypay_flea(keyword, limit):
+        results.append({
+            'source': '💛 PayPayフリマ',
+            'name':   item['name'],
+            'price':  item['price'],
+            'url':    item['url'],
+            'image':  item.get('image', ''),
+            'condition': item.get('condition', ''),
+        })
+
+    # Yahoo!オークション
     for item in search_yahoo_auction(keyword, limit):
         results.append({
             'source': '🔨 Yahoo!オークション',
@@ -479,7 +578,7 @@ def search_all_buy_sites(keyword: str, limit: int = 5) -> List[Dict]:
             'condition': item.get('condition', ''),
         })
 
-    # ヤフーショッピング（動作確認済み）
+    # ヤフーショッピング
     for item in search_yahoo_shopping(keyword, limit):
         results.append({
             'source': '🟡 ヤフーショッピング',
@@ -490,7 +589,7 @@ def search_all_buy_sites(keyword: str, limit: int = 5) -> List[Dict]:
             'condition': item.get('condition', '新品'),
         })
 
-    # Amazon.co.jp（不安定・captcha回避できる場合のみ）
+    # Amazon.co.jp（captcha回避できる場合のみ）
     for item in search_amazon_jp(keyword, limit):
         results.append({
             'source': '📦 Amazon.co.jp',
@@ -512,7 +611,6 @@ def search_all_buy_sites(keyword: str, limit: int = 5) -> List[Dict]:
             'condition': item.get('condition', ''),
         })
 
-    # 安い順に並べる
     results.sort(key=lambda x: x['price'])
     return results
 

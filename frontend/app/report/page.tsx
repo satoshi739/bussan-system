@@ -283,10 +283,15 @@ function TrendsTab() {
   );
 }
 
+function _getDefaultMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
 /* ── 月次レポートタブ ── */
 function MonthlyTab() {
   const now = new Date();
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const currentMonth = _getDefaultMonth();
   const [month, setMonth] = useState(currentMonth);
   const [report, setReport] = useState<MonthlyReport | null>(null);
   const [loading, setLoading] = useState(false);
@@ -302,7 +307,7 @@ function MonthlyTab() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(currentMonth); }, []);
+  useEffect(() => { load(currentMonth); }, [currentMonth]);
 
   const sendLine = async () => {
     setSending(true);

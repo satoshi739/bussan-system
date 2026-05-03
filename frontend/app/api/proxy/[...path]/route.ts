@@ -40,6 +40,20 @@ async function forward(req: NextRequest, ctx: Ctx, method: string) {
     },
     body,
   });
+
+  // SSEストリームはそのまま転送する
+  const ct = res.headers.get("content-type") ?? "";
+  if (ct.includes("text/event-stream")) {
+    return new NextResponse(res.body, {
+      status: res.status,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+      },
+    });
+  }
+
   const data = await res.text();
   return new NextResponse(data, {
     status: res.status,

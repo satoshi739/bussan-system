@@ -74,7 +74,7 @@ const api = async <T,>(path: string, opts?: RequestInit): Promise<T> => {
 const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 7, color: "#F5F0E8", padding: "8px 11px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box" };
 
 type ScanKeyword = { keyword: string; target_sell_platform: string; max_buy_price: number | null; min_profit_rate: number; memo: string; last_scanned: string | null; best_profit_rate: number | null };
-type ScanResult  = { name: string; buy_price: number; buy_url: string; buy_image: string; buy_source: string; condition: string; sell_platform: string; sell_platform_name: string; sell_platform_flag: string; sell_currency: string; est_sell_price_local: number; est_sell_price_jpy: number; net_profit_jpy: number; profit_rate: number; roi: number; intl_shipping_jpy: number; platform_fee_jpy: number; rating: string; score: number; scanned_at: string; scan_keyword?: string };
+type ScanResult  = { name: string; buy_price: number; buy_url: string; buy_image: string; buy_source: string; condition: string; sell_platform: string; sell_platform_name: string; sell_platform_flag: string; sell_currency: string; est_sell_price_local: number; est_sell_price_jpy: number; net_profit_jpy: number; profit_rate: number; roi: number; intl_shipping_jpy: number; platform_fee_jpy: number; rating: string; score: number; scanned_at: string; scan_keyword?: string; price_source?: string; amazon_market?: { median: number; avg: number; sample: number } };
 type DemandData  = { demand_score: number; market_prices: Record<string, { avg: number; avg_local?: number; min: number; max: number; count: number; flag: string; currency: string }>; velocity: { level: string; label: string; weekly: string; color: string }; total_listings: number; avg_market_jpy: number };
 type DeepLink    = { label: string; flag: string; url: string; note: string; category: string; recommended: boolean; price_display: string };
 
@@ -230,6 +230,10 @@ function ScannerPageContent() {
   const [newMaxPrice, setNewMaxPrice] = useState("");
   const [newMinRate, setNewMinRate]  = useState("20");
 
+  // モード & ROIフィルター
+  const [scanMode, setScanMode]     = useState<"global" | "domestic">("global");
+  const [minRoi, setMinRoi]         = useState(0);
+
   // フィルター & ソート
   const [sortBy, setSortBy]         = useState<"score"|"profit"|"roi"|"price">("score");
   const [filterRating, setFilterRating] = useState<string>("all");
@@ -273,15 +277,18 @@ function ScannerPageContent() {
     const kw = quickKw.trim();
     if (!kw) return;
     setQuickKw("");
-    await api("/api/scanner/keywords", { method: "POST", body: JSON.stringify({ keyword: kw, target_sell_platform: quickPlatform, max_buy_price: null, min_profit_rate: 20, memo: "" }) }).catch(() => {});
-    await loadData();
+    if (scanMode === "global") {
+      await api("/api/scanner/keywords", { method: "POST", body: JSON.stringify({ keyword: kw, target_sell_platform: quickPlatform, max_buy_price: null, min_profit_rate: 20, memo: "" }) }).catch(() => {});
+      await loadData();
+    }
     runScan(kw, quickPlatform);
   };
 
   // 初回ロード（useEffect内でのみ呼ぶ）
   useEffect(() => { loadData(); }, [loadData]);
 
-  const runScan = async (keyword?: string, platform?: string) => {
+  const runScan = async (keyword?: string, platform?: string, mode?: "global" | "domestic") => {
+    const effectiveMode = mode ?? scanMode;
     if (keyword) {
       setScanningKw(p => new Set([...p, keyword]));
     } else {
@@ -289,11 +296,17 @@ function ScannerPageContent() {
     }
     setScanMsg(keyword ? `「${keyword}」をスキャン中...` : "全キーワードをスキャン中...");
     try {
-      const p = new URLSearchParams();
-      if (keyword) { p.set("keyword", keyword); p.set("platform", platform || "eBay"); }
-      const r = await api<{ count: number; results: ScanResult[] }>(`/api/scanner/run?${p}`, { method: "POST" });
+      let r: { count: number; results: ScanResult[] };
+      if (effectiveMode === "domestic") {
+        const p = new URLSearchParams({ sell_platform: "Amazon", min_profit_rate: "15", limit: "10" });
+        if (keyword) p.set("keyword", keyword);
+        r = await api<{ count: number; results: ScanResult[] }>(`/api/scanner/run-domestic?${p}`, { method: "POST" });
+      } else {
+        const p = new URLSearchParams();
+        if (keyword) { p.set("keyword", keyword); p.set("platform", platform || "eBay"); }
+        r = await api<{ count: number; results: ScanResult[] }>(`/api/scanner/run?${p}`, { method: "POST" });
+      }
       if (keyword) {
-        // 個別スキャン: 同キーワードの古い結果だけ差し替え、他は維持
         setResults(prev => [...prev.filter(item => item.scan_keyword !== keyword), ...r.results]);
       } else {
         setResults(r.results);
@@ -326,11 +339,11 @@ function ScannerPageContent() {
   };
 
   const addFromGenre = async (g: typeof GENRES[number]) => {
-    if (!keywords.find(k => k.keyword === g.keyword)) {
+    if (scanMode === "global" && !keywords.find(k => k.keyword === g.keyword)) {
       await api("/api/scanner/keywords", { method: "POST", body: JSON.stringify({ keyword: g.keyword, target_sell_platform: g.platform, max_buy_price: g.maxPrice, min_profit_rate: 20, memo: g.reason }) });
       await loadData();
     }
-    runScan(g.keyword, g.platform);
+    runScan(g.keyword, g.platform, scanMode);
   };
 
   const runDemandCheck = async (item: ScanResult) => {
@@ -457,6 +470,7 @@ function ScannerPageContent() {
     let r = [...results];
     if (filterRating !== "all") r = r.filter(i => i.rating === filterRating);
     if (filterSource !== "all") r = r.filter(i => i.buy_source === filterSource);
+    if (minRoi > 0) r = r.filter(i => i.roi >= minRoi);
     r.sort((a, b) => {
       if (sortBy === "score")  return b.score - a.score;
       if (sortBy === "profit") return b.net_profit_jpy - a.net_profit_jpy;
@@ -465,7 +479,7 @@ function ScannerPageContent() {
       return 0;
     });
     return r;
-  }, [results, filterRating, filterSource, sortBy]);
+  }, [results, filterRating, filterSource, minRoi, sortBy]);
 
   const sources = useMemo(() => [...new Set(results.map(r => r.buy_source))], [results]);
   const bestProfit     = results.length ? Math.max(...results.map(r => r.profit_rate)) : 0;
@@ -494,6 +508,22 @@ function ScannerPageContent() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* ── モード切り替え ── */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        <button
+          onClick={() => setScanMode("global")}
+          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: scanMode === "global" ? "linear-gradient(135deg,#1e1608,#2a1e08)" : "rgba(10,10,11,0.6)", border: `1px solid ${scanMode === "global" ? "rgba(212,175,55,0.5)" : "rgba(212,175,55,0.15)"}`, borderRadius: 10, color: scanMode === "global" ? "#D4AF37" : "#5a5248", padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+        >
+          🌏 海外転売モード
+        </button>
+        <button
+          onClick={() => setScanMode("domestic")}
+          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: scanMode === "domestic" ? "linear-gradient(135deg,#081a0e,#0a2412)" : "rgba(10,10,11,0.6)", border: `1px solid ${scanMode === "domestic" ? "rgba(74,222,128,0.5)" : "rgba(74,222,128,0.12)"}`, borderRadius: 10, color: scanMode === "domestic" ? "#4ade80" : "#3a6a4a", padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+        >
+          🏠 国内転売モード（Amazon実売価格）
+        </button>
       </div>
 
       {/* ── クイック商品検索 ── */}
@@ -751,6 +781,21 @@ function ScannerPageContent() {
               </div>
             </>
           )}
+          <div style={{ width: 1, height: 20, background: "rgba(212,175,55,0.1)" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <TrendingUp size={13} color="#8A8278" />
+            <span style={{ fontSize: 11, color: "#8A8278" }}>ROI最低</span>
+            <select
+              value={minRoi}
+              onChange={e => setMinRoi(Number(e.target.value))}
+              style={{ background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 20, color: minRoi > 0 ? "#D4AF37" : "#6a9a7a", padding: "4px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer", outline: "none" }}
+            >
+              <option value={0}>指定なし</option>
+              <option value={30}>30% 以上</option>
+              <option value={50}>50% 以上</option>
+              <option value={100}>100% 以上</option>
+            </select>
+          </div>
         </div>
       )}
 
@@ -819,6 +864,9 @@ function ScannerPageContent() {
                       <span>{item.buy_source}</span>
                       {item.condition && <><span style={{ opacity: 0.5 }}>·</span><span>{item.condition}</span></>}
                       {item.scan_keyword && <><span style={{ opacity: 0.5 }}>·</span><span style={{ color: "#3a7a5a" }}>{item.scan_keyword}</span></>}
+                      {item.price_source === "実売価格(Amazon.co.jp)" && (
+                        <span style={{ fontSize: 9, background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", borderRadius: 8, padding: "1px 6px", color: "#4ade80", fontWeight: 700, flexShrink: 0 }}>実売価格</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -887,7 +935,7 @@ function ScannerPageContent() {
                     onClick={() => {
                       const d = demandData[key];
                       if (d) {
-                        setExpandedDemand(p => { const n = new Set(p); n.has(key) ? n.delete(key) : n.add(key); return n; });
+                        setExpandedDemand(p => { const n = new Set(p); if (n.has(key)) { n.delete(key); } else { n.add(key); } return n; });
                       } else {
                         runDemandCheck(item);
                       }
@@ -901,7 +949,7 @@ function ScannerPageContent() {
                     onClick={() => {
                       const a = aiAnalysis[key];
                       if (a) {
-                        setExpandedAi(p => { const n = new Set(p); n.has(key) ? n.delete(key) : n.add(key); return n; });
+                        setExpandedAi(p => { const n = new Set(p); if (n.has(key)) { n.delete(key); } else { n.add(key); } return n; });
                       } else {
                         runAiAnalysis(item);
                       }
@@ -1061,7 +1109,7 @@ function ScannerPageContent() {
                         {links.map(([lkey, link]) => {
                           const isChecked = checked.has(lkey);
                           return (
-                            <div key={lkey} onClick={() => setChecked(p => { const n = new Set(p); n.has(lkey) ? n.delete(lkey) : n.add(lkey); return n; })}
+                            <div key={lkey} onClick={() => setChecked(p => { const n = new Set(p); if (n.has(lkey)) { n.delete(lkey); } else { n.add(lkey); } return n; })}
                               style={{ display: "flex", alignItems: "center", gap: 10, background: isChecked ? "rgba(212,175,55,0.07)" : "rgba(0,8,2,0.6)", border: `1px solid ${isChecked ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.08)"}`, borderRadius: 9, padding: "9px 13px", cursor: "pointer", transition: "all 0.12s" }}>
                               <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${isChecked ? "#D4AF37" : "rgba(212,175,55,0.2)"}`, background: isChecked ? "rgba(212,175,55,0.2)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                 {isChecked && <span style={{ fontSize: 10, color: "#D4AF37", fontWeight: 900, lineHeight: 1 }}>✓</span>}

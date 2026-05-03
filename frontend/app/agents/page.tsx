@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Brain, Play, CheckCircle, TrendingUp, Zap, Clock, AlertCircle, ChevronRight, Target, BarChart2 } from "lucide-react";
+import { Brain, Play, CheckCircle, TrendingUp, Zap, Clock, AlertCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { runCEOAgent, getAgentSessions, getApprovalQueue, type AgentSession } from "@/lib/api";
+import { getAgentSessions, getApprovalQueue, type AgentSession } from "@/lib/api";
 import { toast } from "@/components/Toast";
-import { errMsg } from "@/lib/errors";
 
 const C = {
   bg0: "#0a0a0b", bg1: "#141414", bg2: "#1c1c1e", bg3: "#242424",
@@ -36,6 +35,7 @@ export default function AgentsPage() {
   const [sessions, setSessions] = useState<AgentSession[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [result, setResult] = useState<{ queued_count: number; scanned_count: number; final_message: string } | null>(null);
+  const [progressLog, setProgressLog] = useState<string[]>([]);
 
   useEffect(() => {
     getAgentSessions().then(setSessions).catch(() => {});
@@ -51,21 +51,40 @@ export default function AgentsPage() {
     }
     setRunning(true);
     setResult(null);
-    try {
-      const res = await runCEOAgent({
-        goal: goal.trim(),
-        budget_jpy: budgetNum,
-        max_turns: 12,
-      });
-      setResult(res);
-      toast(`完了: ${res.queued_count}件を承認キューに追加しました`, "success");
-      getAgentSessions().then(setSessions).catch(() => {});
-      getApprovalQueue("pending").then(d => setPendingCount(d.pending_count)).catch(() => {});
-    } catch (e) {
-      toast(errMsg(e), "error");
-    } finally {
+    setProgressLog([]);
+
+    const params = new URLSearchParams({ goal: goal.trim(), max_turns: "12" });
+    if (budgetNum) params.set("budget_jpy", String(budgetNum));
+    const es = new EventSource(`/api/proxy/agents/ceo/stream?${params}`);
+
+    es.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === "start") {
+          setProgressLog(["エージェント起動中..."]);
+        } else if (data.type === "progress") {
+          setProgressLog(p => [...p, data.message]);
+        } else if (data.type === "done") {
+          setResult(data);
+          toast(`完了: ${data.queued_count ?? 0}件を承認キューに追加しました`, "success");
+          getAgentSessions().then(setSessions).catch(() => {});
+          getApprovalQueue("pending").then(d => setPendingCount(d.pending_count)).catch(() => {});
+          setRunning(false);
+          es.close();
+        } else if (data.type === "error") {
+          toast(data.message, "error");
+          setProgressLog(p => [...p, `エラー: ${data.message}`]);
+          setRunning(false);
+          es.close();
+        }
+      } catch {}
+    };
+
+    es.onerror = () => {
+      toast("接続エラーが発生しました", "error");
       setRunning(false);
-    }
+      es.close();
+    };
   };
 
   const statusColor = (s: string) => s === "completed" ? C.up : s === "error" ? C.dn : C.warn;
@@ -199,6 +218,30 @@ export default function AgentsPage() {
           </button>
         </div>
       </div>
+
+      {/* 進捗ログ */}
+      {(running || progressLog.length > 0) && (
+        <div style={{ ...card, marginBottom: 24, borderColor: C.goldDm }}>
+          <div style={{ color: C.gold, fontSize: 13, fontWeight: 700, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+            <Zap size={14} /> リアルタイム進捗
+          </div>
+          <div style={{
+            background: C.bg0, borderRadius: 8, padding: "12px 14px",
+            height: 160, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4,
+          }}>
+            {progressLog.map((msg, i) => (
+              <div key={i} style={{ fontSize: 12, fontFamily: "monospace", color: "#4ade80", lineHeight: 1.5 }}>
+                <span style={{ color: C.t4, marginRight: 8 }}>{`>`}</span>{msg}
+              </div>
+            ))}
+            {running && (
+              <div style={{ fontSize: 12, fontFamily: "monospace", color: C.gold, lineHeight: 1.5 }}>
+                <span style={{ marginRight: 8 }}>▋</span>処理中...
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 実行結果 */}
       {result && (

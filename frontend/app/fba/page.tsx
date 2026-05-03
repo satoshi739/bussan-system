@@ -8,8 +8,8 @@ import {
   type FbaShipment, type FbaShipmentItem, type Purchase,
 } from "@/lib/api";
 import {
-  Plus, Package, Trash2, ChevronDown, ChevronUp, X, CheckCircle,
-  Send, Truck, BoxesIcon, AlertTriangle, Printer, Edit2, Save, RefreshCw,
+  Plus, Package, Trash2, ChevronDown, ChevronUp, CheckCircle,
+  Send, BoxesIcon, Printer, Edit2, Save, RefreshCw,
 } from "lucide-react";
 import { toast } from "@/components/Toast";
 
@@ -119,7 +119,7 @@ export default function FbaPage() {
   const toggleExpand = (id: number) => {
     setExpanded(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   };

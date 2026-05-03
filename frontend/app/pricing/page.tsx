@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
-import { Check, X, Zap, Building2, Gift, ChevronDown, ChevronUp } from "lucide-react";
+
+import { Check, Zap, Building2, Gift, ChevronDown, ChevronUp } from "lucide-react";
 import { PLANS } from "@/lib/stripe";
 import { toast } from "@/components/Toast";
 
@@ -72,8 +72,6 @@ function CellVal({ val }: { val: boolean | string }) {
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const { data: session } = useSession();
-
   const handleSubscribe = async (planKey: "STANDARD" | "PRO") => {
     setLoading(planKey);
     try {
