@@ -8,10 +8,16 @@ export async function GET() {
     return NextResponse.json({ plan: "FREE", status: "INACTIVE" }, { status: 401 });
   }
 
-  const sub = await prisma.subscription.findUnique({
-    where: { userId: session.user.id },
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    include: { subscription: true },
   });
 
+  if (user?.role === "ADMIN") {
+    return NextResponse.json({ plan: "PRO", status: "ACTIVE" });
+  }
+
+  const sub = user?.subscription;
   return NextResponse.json({
     plan: sub?.plan ?? "FREE",
     status: sub?.status ?? "INACTIVE",

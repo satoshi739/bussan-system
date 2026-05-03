@@ -16,6 +16,20 @@ export async function getUserSubscription() {
 
   if (!user) return null;
 
+  // ADMIN は常に PRO フルアクセス（Stripe 契約不要）
+  if (user.role === "ADMIN") {
+    return {
+      userId: user.id,
+      plan: "PRO" as PlanKey,
+      status: "ACTIVE",
+      isActive: true,
+      limits: getPlanLimits("PRO"),
+      currentPeriodEnd: null,
+      stripeCustomerId: user.subscription?.stripeCustomerId ?? null,
+      stripeSubscriptionId: user.subscription?.stripeSubscriptionId ?? null,
+    };
+  }
+
   const plan = (user.subscription?.plan ?? "FREE") as PlanKey;
   const status = user.subscription?.status ?? "INACTIVE";
   const isActive =

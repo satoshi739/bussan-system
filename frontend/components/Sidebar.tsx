@@ -82,6 +82,7 @@ export default function Sidebar() {
   const { plan } = usePlan();
   const [mobileMenu, setMobileMenu] = useState(false);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMobileMenu(false); }, [pathname]);
 
   const sidebarContent = (
