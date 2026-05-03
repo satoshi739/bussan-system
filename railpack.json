@@ -1,0 +1,4 @@
+{
+  "installCmd": "pip install --no-cache-dir fastapi uvicorn pydantic requests beautifulsoup4 anthropic schedule psycopg2-binary 'sentry-sdk[fastapi]'",
+  "startCmd": "uvicorn api:app --host 0.0.0.0 --port $PORT"
+}
