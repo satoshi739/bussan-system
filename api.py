@@ -1381,6 +1381,7 @@ def quick_purchase_and_list(body: QuickPurchaseAndListRequest):
           (product_name, platform, purchase_price, purchase_shipping,
            purchase_url, purchase_date, status, notes, image_data)
         VALUES (?, ?, ?, ?, ?, ?, 'purchased', ?, ?)
+        RETURNING id
     """, (
         body.product_name,
         body.buy_platform,
@@ -1391,8 +1392,8 @@ def quick_purchase_and_list(body: QuickPurchaseAndListRequest):
         body.condition,
         body.image_url,
     ))
-    db.conn.commit()
     purchase_id = cursor.lastrowid
+    db.conn.commit()
 
     # 2. 販売価格を計算（指定なしなら推奨価格）
     pf = GLOBAL_PLATFORMS.get(body.sell_platform, {})

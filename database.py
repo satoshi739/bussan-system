@@ -28,7 +28,7 @@ class _Cursor:
     @property
     def lastrowid(self):
         row = self.fetchone()
-        return row[0] if row else None
+        return row["id"] if row else None
 
     def __iter__(self):
         return iter(self.fetchall())
