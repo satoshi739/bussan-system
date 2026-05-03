@@ -60,9 +60,10 @@ export function useChecklist() {
       const saved = localStorage.getItem(CHECKLIST_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        const isValid = (v: unknown): v is { id: string; label: string; done: boolean } =>
+        const isValid = (v: unknown): v is { id: string; label: string; href: string; done: boolean } =>
           typeof v === "object" && v !== null &&
           typeof (v as Record<string, unknown>).id === "string" &&
+          typeof (v as Record<string, unknown>).href === "string" &&
           typeof (v as Record<string, unknown>).done === "boolean";
         if (Array.isArray(parsed) && parsed.every(isValid)) {
           startTransition(() => setItems(parsed));
