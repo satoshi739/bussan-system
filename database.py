@@ -524,6 +524,12 @@ class Database:
 
     def delete_purchase(self, purchase_id: int):
         try:
+            # sales → listings の FK 制約: sales を先に削除する
+            self.conn.execute("""
+                DELETE FROM sales WHERE listing_id IN (
+                    SELECT id FROM listings WHERE purchase_id = %s
+                )
+            """, (purchase_id,))
             self.conn.execute("DELETE FROM listings WHERE purchase_id = %s", (purchase_id,))
             self.conn.execute("DELETE FROM purchases WHERE id = %s", (purchase_id,))
             self.conn.commit()
@@ -1202,8 +1208,27 @@ class Database:
                 d["report"] = json.loads(d.get("report") or "{}")
             except Exception:
                 d["report"] = {}
+            try:
+                d["log"] = json.loads(d.get("log") or "[]")
+            except Exception:
+                d["log"] = []
             result.append(d)
         return result
 
     def append_agent_log(self, entry: dict):
-        pass
+        """直近セッション(running状態)のログ配列に entry を追記する"""
+        row = self.conn.execute(
+            "SELECT id, log FROM agent_sessions WHERE status = 'running' ORDER BY created_at DESC LIMIT 1"
+        ).fetchone()
+        if not row:
+            return
+        try:
+            current_log = json.loads(row["log"] or "[]")
+        except Exception:
+            current_log = []
+        current_log.append(entry)
+        self.conn.execute(
+            "UPDATE agent_sessions SET log = %s WHERE id = %s",
+            (json.dumps(current_log, ensure_ascii=False), row["id"])
+        )
+        self.conn.commit()
