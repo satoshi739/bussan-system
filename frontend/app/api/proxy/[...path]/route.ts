@@ -32,15 +32,32 @@ async function forward(req: NextRequest, ctx: Ctx, method: string) {
   const hasBody = method !== "GET" && method !== "DELETE";
   const body = hasBody ? Buffer.from(await req.arrayBuffer()) : undefined;
   const contentType = req.headers.get("content-type") ?? "application/json";
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": contentType,
-      "X-API-Key": process.env.INTERNAL_API_KEY ?? "",
-      "X-User-Id": session.user.id,
-    },
-    body,
-  });
+  const isSSE = url.includes("/stream") || url.includes("sse");
+  const timeoutMs = isSSE ? 120_000 : 20_000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": contentType,
+        "X-API-Key": process.env.INTERNAL_API_KEY ?? "",
+        "X-User-Id": session.user.id,
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (err: unknown) {
+    clearTimeout(timer);
+    const isAbort = err instanceof Error && err.name === "AbortError";
+    return NextResponse.json(
+      { error: isAbort ? "バックエンドへの接続がタイムアウトしました" : "バックエンドに接続できませんでした" },
+      { status: 504 }
+    );
+  }
+  clearTimeout(timer);
 
   // SSEストリームはそのまま転送する
   const ct = res.headers.get("content-type") ?? "";
@@ -56,8 +73,9 @@ async function forward(req: NextRequest, ctx: Ctx, method: string) {
   }
 
   const data = await res.text();
+  const responseContentType = res.headers.get("content-type") ?? "application/json";
   return new NextResponse(data, {
     status: res.status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": responseContentType.includes("json") ? "application/json" : responseContentType },
   });
 }

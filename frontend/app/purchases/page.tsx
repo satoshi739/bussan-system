@@ -103,8 +103,9 @@ export default function PurchasesPage() {
 
   // 一括操作
   const [selectedIds,    setSelectedIds]   = useState<Set<number>>(new Set());
-  const [bulkStatus,     setBulkStatus]    = useState("listed");
-  const [bulkLoading,    setBulkLoading]   = useState(false);
+  const [bulkStatus,        setBulkStatus]        = useState("listed");
+  const [bulkLoading,       setBulkLoading]       = useState(false);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   // 出品モーダル
   type ListingLink = { label: string; flag: string; url: string; note: string; category: string; recommended: boolean; price_display: string };
@@ -205,7 +206,10 @@ export default function PurchasesPage() {
 
   // ── ステータス変更・削除 ───────────────────────────────────
   const handleStatusChange = async (id: number, status: string) => {
-    await updatePurchaseStatus(id, status); load();
+    try {
+      await updatePurchaseStatus(id, status);
+      load();
+    } catch (e) { toast(errMsg(e), "error"); }
   };
 
   // confirm()を使わずカスタムモーダルで確認
@@ -215,10 +219,14 @@ export default function PurchasesPage() {
 
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
-    await deletePurchase(deleteConfirm.id);
-    toast("削除しました", "info");
-    setDeleteConfirm(null);
-    load();
+    try {
+      await deletePurchase(deleteConfirm.id);
+      toast("削除しました", "info");
+      setDeleteConfirm(null);
+      load();
+    } catch (e) {
+      toast(errMsg(e), "error");
+    }
   };
 
   // ── 発送タスク作成ショートカット ──────────────────────────
@@ -266,8 +274,13 @@ export default function PurchasesPage() {
     finally { setBulkLoading(false); }
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (!selectedIds.size) return;
+    setBulkDeleteConfirm(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    setBulkDeleteConfirm(false);
     setBulkLoading(true);
     try {
       await bulkDeletePurchases(Array.from(selectedIds));
@@ -399,13 +412,22 @@ export default function PurchasesPage() {
           <div style={{ fontSize: 12, color: "#8A8278", marginTop: 3 }}>仕入れた商品の一覧・ステータス管理</div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <a
-            href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/purchases/export/csv`}
-            download
-            style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,40,15,0.8)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10, color: "#8A8278", padding: "10px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer", textDecoration: "none" }}
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/proxy/purchases/export/csv");
+                if (!res.ok) throw new Error("ダウンロードに失敗しました");
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "purchases.csv"; a.click();
+                URL.revokeObjectURL(url);
+              } catch (e) { toast(errMsg(e), "error"); }
+            }}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,40,15,0.8)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10, color: "#8A8278", padding: "10px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
           >
             <Download size={14} /> CSV出力
-          </a>
+          </button>
           <button
             onClick={() => setShowCsv(true)}
             style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,30,50,0.8)", border: "1px solid rgba(100,170,255,0.3)", borderRadius: 10, color: "#66aaff", padding: "10px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
@@ -626,6 +648,36 @@ export default function PurchasesPage() {
                 style={{ width: "100%", background: "linear-gradient(135deg,#003060,#004080)", border: "1px solid rgba(102,204,255,0.4)", borderRadius: 10, color: "#66ccff", padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}
               >
                 ✅ 出品済みにする（ステータスを「出品中」に変更）
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 一括削除確認モーダル ── */}
+      {bulkDeleteConfirm && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={e => e.target === e.currentTarget && setBulkDeleteConfirm(false)}
+        >
+          <div style={{ background: "#0a0a0b", border: "1px solid rgba(255,80,80,0.3)", borderRadius: 16, padding: 28, width: 420 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#F5F0E8", marginBottom: 8 }}>一括削除の確認</div>
+            <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 20, lineHeight: 1.6 }}>
+              選択した <span style={{ color: "#ff6666", fontWeight: 700 }}>{selectedIds.size}件</span> を削除しますか？<br />
+              この操作は取り消せません。
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={confirmBulkDelete}
+                style={{ flex: 1, background: "rgba(255,50,50,0.12)", border: "1px solid rgba(255,50,50,0.4)", borderRadius: 8, color: "#ff6666", padding: "10px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
+              >
+                {selectedIds.size}件を削除する
+              </button>
+              <button
+                onClick={() => setBulkDeleteConfirm(false)}
+                style={{ flex: 1, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "10px", cursor: "pointer" }}
+              >
+                キャンセル
               </button>
             </div>
           </div>

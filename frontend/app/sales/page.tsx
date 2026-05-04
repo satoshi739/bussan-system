@@ -197,10 +197,11 @@ export default function SalesPage() {
               <ArrowUpDown size={12} /> {currentSortLabel}
             </button>
             {showSort && (
-              <div
-                style={{ position: "absolute", right: 0, top: "calc(100% + 4px)", background: "#141414", border: `1px solid rgba(212,175,55,0.2)`, borderRadius: 10, overflow: "hidden", zIndex: 50, minWidth: 160, boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}
-                onMouseLeave={() => setShowSort(false)}
-              >
+              <>
+                <div style={{ position: "fixed", inset: 0, zIndex: 49 }} onClick={() => setShowSort(false)} />
+                <div
+                  style={{ position: "absolute", right: 0, top: "calc(100% + 4px)", background: "#141414", border: `1px solid rgba(212,175,55,0.2)`, borderRadius: 10, overflow: "hidden", zIndex: 50, minWidth: 160, boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}
+                >
                 {SORT_OPTIONS.map(o => (
                   <button
                     key={o.key}
@@ -216,6 +217,7 @@ export default function SalesPage() {
                   </button>
                 ))}
               </div>
+              </>
             )}
           </div>
 

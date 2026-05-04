@@ -4,6 +4,8 @@ import RequirePlan from "@/components/RequirePlan";
 import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { searchMarket, getPriceHistory, calcMaxPurchase } from "@/lib/api";
+import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 import { Search, Globe, ExternalLink, TrendingDown, TrendingUp, Minus, Camera, X, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -255,8 +257,10 @@ function SearchPageContent() {
 
   const calcMax = async () => {
     if (!stats) return;
-    const r = await calcMaxPurchase({ selling_price: stats.avg, target_profit_rate: Number(targetRate), selling_platform: sellPlatform });
-    setMaxPrice(r.max_purchase_price);
+    try {
+      const r = await calcMaxPurchase({ selling_price: stats.avg, target_profit_rate: Number(targetRate), selling_platform: sellPlatform });
+      setMaxPrice(r.max_purchase_price);
+    } catch (e) { toast(errMsg(e), "error"); }
   };
 
   const priceChange = history.length >= 2 ? history[0].avg_price - history[history.length - 1].avg_price : null;

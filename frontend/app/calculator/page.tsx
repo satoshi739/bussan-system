@@ -7,6 +7,8 @@ import {
   searchEbaySold, getImportShipping,
   type ProfitResult, type PlatformInfo,
 } from "@/lib/api";
+import { toast } from "@/components/Toast";
+import { errMsg } from "@/lib/errors";
 
 const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
 const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "10px 12px", fontSize: 15, width: "100%", outline: "none", fontFamily: "monospace" };
@@ -78,7 +80,7 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
     if (!f.purchase_price || !f.selling_price) { setResult(null); return; }
     try {
       setResult(await calcProfit({ purchase_price: Number(f.purchase_price), selling_price: Number(f.selling_price), purchase_shipping: Number(f.purchase_shipping) || 0, shipping_to_platform: Number(f.shipping_to_platform) || 0, selling_platform: f.selling_platform, category: f.category }));
-    } catch { /* ignore */ }
+    } catch (e) { toast(errMsg(e), "error"); }
   }, []);
 
   const upd = (key: keyof typeof form, val: string) => { const n = { ...form, [key]: val }; setForm(n); recalc(n); };
@@ -91,7 +93,7 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
     try {
       const r = await searchEbaySold(form.ebay_keyword.trim());
       if (r.found) setEbayResult({ avg_jpy: r.avg_jpy, min_jpy: r.min_jpy, max_jpy: r.max_jpy, sold_count: r.sold_count });
-    } catch { /* ignore */ }
+    } catch (e) { toast(errMsg(e), "error"); }
     setEbayLoading(false);
   };
 
@@ -102,7 +104,7 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
       try {
         const r = await getImportShipping(w);
         setImportShipping(r.shipping_jpy);
-      } catch { /* ignore */ }
+      } catch (e) { toast(errMsg(e), "error"); }
     } else {
       setImportShipping(null);
     }
@@ -219,7 +221,7 @@ function ReverseTab({ domestic, overseas, categories }: { domestic: [string, Pla
     try {
       const r = await calcMaxPurchase({ selling_price: Number(f.selling_price), target_profit_rate: Number(f.target_profit_rate) || 20, selling_platform: f.selling_platform, category: f.category, shipping_to_platform: Number(f.shipping_to_platform) || 0 });
       setResult(r.max_purchase_price);
-    } catch { /* ignore */ }
+    } catch (e) { toast(errMsg(e), "error"); }
   }, []);
 
   const upd = (key: keyof typeof form, val: string) => { const n = { ...form, [key]: val }; setForm(n); recalc(n); };
@@ -296,8 +298,10 @@ function CompareTab() {
     setLoading(true);
     try {
       setResults(await calcAllPlatforms({ purchase_price: Number(f.purchase_price), purchase_shipping: Number(f.purchase_shipping) || 0, selling_price: Number(f.selling_price) }));
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
+    } catch (e) {
+      setResults(null);
+      toast(errMsg(e), "error");
+    } finally { setLoading(false); }
   }, []);
 
   const upd = (key: keyof typeof form, val: string) => { const n = { ...form, [key]: val }; setForm(n); recalc(n); };

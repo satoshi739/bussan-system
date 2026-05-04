@@ -317,6 +317,12 @@ function ScannerPageContent() {
       const msg = errMsg(e);
       setScanMsg("スキャン失敗: " + msg);
       toast(msg, "error");
+      // エラー時は古い結果を残さずクリアする
+      if (keyword) {
+        setResults(prev => prev.filter(item => item.scan_keyword !== keyword));
+      } else {
+        setResults([]);
+      }
     }
     finally {
       if (keyword) {

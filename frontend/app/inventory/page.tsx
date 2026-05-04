@@ -134,17 +134,25 @@ export default function InventoryPage() {
   };
 
   const saveEdit = async (id: number) => {
-    await updateInventoryItem(id, editForm);
-    setEditId(null);
-    load();
-    toast("更新しました ✅");
+    try {
+      await updateInventoryItem(id, editForm);
+      setEditId(null);
+      load();
+      toast("更新しました ✅");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "更新に失敗しました", "error");
+    }
   };
 
   const handleDelete = async (id: number, name: string) => {
     if (!confirm(`「${name}」を削除しますか？`)) return;
-    await deleteInventoryItem(id);
-    toast("削除しました", "info");
-    load();
+    try {
+      await deleteInventoryItem(id);
+      toast("削除しました", "info");
+      load();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "削除に失敗しました", "error");
+    }
   };
 
   return (
