@@ -686,6 +686,17 @@ def search_all_buy_sites(keyword: str, limit: int = 5) -> List[Dict]:
             'condition': item.get('condition', ''),
         })
 
+    # eBay落札済み（実売価格 — 出品中より信頼性が高い）
+    for item in search_ebay_sold(keyword, min(limit, 5)):
+        results.append({
+            'source':    '🌏 eBay落札',
+            'name':      item['title'],
+            'price':     item['price_jpy'],
+            'url':       item['url'],
+            'image':     item.get('image', ''),
+            'condition': '落札済み',
+        })
+
     results.sort(key=lambda x: x['price'])
     return results
 

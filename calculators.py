@@ -19,6 +19,28 @@ AMAZON_REFERRAL_FEES = {
 
 CATEGORIES = AMAZON_REFERRAL_FEES
 
+# ===== カテゴリ別標準重量（g） =====
+# 500g固定より精度の高い送料計算のために使用
+CATEGORY_WEIGHT_G: dict = {
+    '家電・カメラ':               800,
+    'パソコン・周辺機器':         1200,
+    'スマートフォン・タブレット':  300,
+    'おもちゃ・ゲーム':            600,
+    'スポーツ・アウトドア':       1000,
+    'ホーム&キッチン':            1500,
+    'アパレル・ファッション':      400,
+    '本・音楽・DVD':               300,
+    'ビューティー・コスメ':        300,
+    'ペット用品':                  500,
+    'コレクター商品':              400,
+    'その他':                      500,
+}
+
+
+def estimate_weight_by_category(category: str) -> float:
+    """カテゴリから標準重量(g)を推定する。500g固定より送料誤差を大幅削減。"""
+    return float(CATEGORY_WEIGHT_G.get(category, 500))
+
 # ===== Amazon FBA 料金表（2024年・Amazon.co.jp） =====
 # 区分: (最大重量g, 手数料円)
 # 重量が超えるたびに次の段階へ
@@ -87,7 +109,7 @@ SELLING_PLATFORMS = {
     '駿河屋':            {'fee_rate': 0.0,    'fixed_fee': 0,   'note': '買取依頼（買取価格が収入）',  'emoji': '🎲', 'area': '国内'},
 
     # ===== 海外 =====
-    'eBay（輸出）':       {'fee_rate': 0.1325, 'fixed_fee': 0,   'note': '手数料13.25%・世界190カ国', 'emoji': '🌏', 'area': '海外'},
+    'eBay（輸出）':       {'fee_rate': 0.1325, 'fixed_fee': 45,  'note': '手数料13.25%＋$0.30固定費・世界190カ国', 'emoji': '🌏', 'area': '海外'},
     'Etsy（輸出）':       {'fee_rate': 0.065,  'fixed_fee': 28,  'note': '6.5%＋出品料約28円',         'emoji': '🎨', 'area': '海外'},
     'Amazon.com（米国）': {'fee_rate': 0.15,   'fixed_fee': 0,   'note': '手数料約15%・米国向け',      'emoji': '🇺🇸', 'area': '海外'},
     'Lazada':            {'fee_rate': 0.02,   'fixed_fee': 0,   'note': '手数料約2〜4%・東南アジア6カ国', 'emoji': '🛒', 'area': '海外'},

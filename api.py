@@ -542,7 +542,7 @@ def get_analytics_by_buy_platform(user_id: str = Depends(get_user_id)):
 
 # ── 設定 ─────────────────────────────────────────────────
 
-_SENSITIVE_KEYS = {"anthropic_api_key", "line_token"}
+_SENSITIVE_KEYS = {"anthropic_api_key", "line_token", "keepa_api_key"}
 
 @app.get("/api/settings")
 def get_settings(user_id: str = Depends(get_user_id)):
@@ -561,6 +561,7 @@ class SettingsUpdate(BaseModel):
     ebay_app_id: Optional[str] = None
     ebay_cert_id: Optional[str] = None
     anthropic_api_key: Optional[str] = None
+    keepa_api_key: Optional[str] = None
     auto_scan_enabled: Optional[bool] = None
     auto_scan_interval_min: Optional[int] = Field(None, ge=5, le=1440)
     source_sync_enabled: Optional[bool] = None

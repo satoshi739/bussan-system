@@ -16,7 +16,7 @@ from global_calculator import (
     GLOBAL_PLATFORMS, calculate_global_profit,
     suggest_selling_price, get_intl_shipping,
 )
-from calculators import calculate_profit as calc_domestic_profit
+from calculators import calculate_profit as calc_domestic_profit, estimate_weight_by_category
 from currency import get_rates
 
 # ── スキャン対象キーワード管理 ──────────────────────────────────────
@@ -69,6 +69,32 @@ def remove_scan_keyword(keyword: str):
     save_scan_keywords(keywords)
 
 
+# ── カテゴリ推定 ─────────────────────────────────────────────────────
+
+_CATEGORY_KEYWORDS: dict = {
+    '家電・カメラ':               ['カメラ', '一眼', 'レンズ', 'テレビ', 'TV', '冷蔵庫', '洗濯機', 'エアコン', '掃除機', 'プロジェクター'],
+    'パソコン・周辺機器':         ['ノートパソコン', 'ノートPC', 'MacBook', 'Surface', 'キーボード', 'マウス', 'モニター', 'SSD', 'GPU'],
+    'スマートフォン・タブレット':  ['iPhone', 'iPad', 'Android', 'Galaxy', 'Pixel', 'スマホ', 'タブレット', 'スマートフォン'],
+    'おもちゃ・ゲーム':            ['ゲーム', 'Nintendo', 'Switch', 'PlayStation', 'PS4', 'PS5', 'Xbox', 'レゴ', 'LEGO', 'フィギュア', 'ぬいぐるみ', 'プラモ'],
+    'スポーツ・アウトドア':        ['テント', 'ザック', 'ゴルフ', '釣り', 'スキー', 'サーフ', 'トレーニング', 'ランニング', 'ウェイト'],
+    'ホーム&キッチン':             ['調理', '鍋', 'ポット', '食器', '収納', 'ソファ', 'テーブル', 'チェア', '照明', 'ランプ'],
+    'アパレル・ファッション':      ['シャツ', 'ジャケット', 'コート', 'スニーカー', 'バッグ', '財布', 'ブランド', 'ナイキ', 'アディダス', 'シュプリーム'],
+    '本・音楽・DVD':               ['本', '漫画', 'CD', 'DVD', 'Blu-ray', 'ブルーレイ', '雑誌', 'コミック'],
+    'ビューティー・コスメ':        ['コスメ', '化粧品', 'スキンケア', '香水', 'シャンプー', 'リップ', 'ファンデ'],
+    'コレクター商品':              ['トレカ', 'ポケモン', 'ポケカ', '遊戯王', '切手', 'コイン', 'アンティーク', 'ヴィンテージ', 'ワンピース', '鬼滅'],
+}
+
+
+def _infer_category(name: str) -> str:
+    """商品名からカテゴリを推定する。"""
+    if not name:
+        return 'その他'
+    for category, keywords in _CATEGORY_KEYWORDS.items():
+        if any(kw.lower() in name.lower() for kw in keywords):
+            return category
+    return 'その他'
+
+
 # ── 利益スコア計算 ───────────────────────────────────────────────────
 
 def _estimate_sell_price(buy_price: float, platform_key: str) -> float:
@@ -116,12 +142,15 @@ def score_item(
             return None
         sell_price_jpy = None  # calculate_global_profit が算出する
 
+    category = _infer_category(item.get("name", ""))
+    weight_g = estimate_weight_by_category(category)
+
     calc = calculate_global_profit(
         purchase_price_jpy=buy_price,
         selling_price_local=sell_price_local,
         platform_key=target_platform,
         purchase_shipping_jpy=0,
-        weight_g=500,
+        weight_g=weight_g,
     )
 
     if "error" in calc or not calc.get("is_profitable"):
@@ -185,12 +214,16 @@ def score_item_domestic(
     if sell_price_jpy <= buy_price:
         return None
 
+    category = _infer_category(item.get("name", ""))
+    weight_g = estimate_weight_by_category(category)
+
     calc = calc_domestic_profit(
         purchase_price=buy_price,
         selling_price=sell_price_jpy,
         selling_platform=sell_platform,
-        category="おもちゃ・ゲーム",
+        category=category,
         purchase_shipping=0,
+        fba_weight_g=weight_g,
     )
 
     net_profit = calc.get("gross_profit", 0)

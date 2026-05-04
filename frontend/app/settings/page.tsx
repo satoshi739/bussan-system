@@ -19,6 +19,7 @@ export default function SettingsPage() {
 
   // API連携設定（価格検索）
   const [anthropicKey, setAnthropicKey] = useState("");
+  const [keepaApiKey, setKeepaApiKey] = useState("");
   const [ebayAppId, setEbayAppId] = useState("");
   const [amazonRefreshToken, setAmazonRefreshToken] = useState("");
   const [amazonLwaClientId, setAmazonLwaClientId] = useState("");
@@ -50,6 +51,7 @@ export default function SettingsPage() {
       setLineToken(t);
       setSavedToken(t);
       setAnthropicKey(s["anthropic_api_key"] ?? "");
+      setKeepaApiKey(s["keepa_api_key"] ?? "");
       setEbayAppId(s["ebay_app_id"] ?? "");
       setAmazonRefreshToken(s["amazon_refresh_token"] ?? "");
       setAmazonLwaClientId(s["amazon_lwa_client_id"] ?? "");
@@ -171,6 +173,7 @@ export default function SettingsPage() {
     try {
       await saveSettings({
         anthropic_api_key: anthropicKey.trim(),
+        keepa_api_key: keepaApiKey.trim(),
         ebay_app_id: ebayAppId.trim(),
         amazon_refresh_token: amazonRefreshToken.trim(),
         amazon_lwa_client_id: amazonLwaClientId.trim(),
@@ -452,6 +455,33 @@ export default function SettingsPage() {
             <input style={inp} type="password" value={anthropicKey} onChange={e => setAnthropicKey(e.target.value)} placeholder="sk-ant-api03-..." />
             <div style={{ fontSize: 11, color: "#8A8278", marginTop: 6 }}>
               設定すると利益スキャナーで「AI分析」ボタンが使えるようになります
+            </div>
+          </div>
+
+          {/* Keepa */}
+          <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 18 }}>📊</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>Keepa API（Amazon価格精度向上）</span>
+              {keepaApiKey ? (
+                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>設定済み</span>
+              ) : (
+                <span style={{ fontSize: 11, background: "rgba(255,100,0,0.1)", border: "1px solid rgba(255,100,0,0.3)", borderRadius: 20, padding: "2px 8px", color: "#ff8844" }}>未設定</span>
+              )}
+            </div>
+            <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 10, fontSize: 12 }}>
+              <div style={{ color: "#7deeaa", fontWeight: 700, marginBottom: 6 }}>APIキーの取得方法（月$19〜）</div>
+              <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
+                1. <span style={{ color: "#66ccff" }}>keepa.com</span> にアクセス・アカウント登録<br />
+                2.「API Access」プランを購入（月$19〜）<br />
+                3. ダッシュボード →「API Key」をコピー<br />
+                4. 設定するとAmazon価格がCAPTCHAなく安定取得できます
+              </div>
+            </div>
+            <label style={lbl}>Keepa API Key</label>
+            <input style={inp} type="password" value={keepaApiKey} onChange={e => setKeepaApiKey(e.target.value)} placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+            <div style={{ fontSize: 11, color: "#8A8278", marginTop: 6 }}>
+              未設定時はAmazonスクレイピング（不安定）にフォールバックします
             </div>
           </div>
 
