@@ -69,12 +69,13 @@ const navGroups = [
   },
 ];
 
-// モバイル下部4タブ
+// モバイル下部5タブ
 const BOTTOM_TABS = [
   { href: "/",          label: "ホーム",  icon: LayoutDashboard },
   { href: "/scanner",   label: "検索",    icon: Search },
-  { href: "/fba",       label: "FBA納品", icon: Package },
   { href: "/barcode",   label: "スキャン", icon: ScanLine },
+  { href: "/purchases", label: "仕入れ",  icon: ShoppingCart },
+  { href: "/support",   label: "ヘルプ",  icon: HelpCircle },
 ];
 
 export default function Sidebar() {

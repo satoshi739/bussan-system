@@ -149,6 +149,9 @@ export default function LoginPage() {
               {isPending ? <Loader size={16} /> : <Mail size={16} />}
               {isPending ? "送信中..." : "ログインリンクを送る"}
             </button>
+            <div style={{ marginTop: 14, textAlign: "center", fontSize: 12, color: "#6A6058" }}>
+              登録したメールアドレスにリンクが届きます。スパムフォルダもご確認ください。
+            </div>
           </form>
         ) : (
           <form onSubmit={handlePassword}>
@@ -156,9 +159,14 @@ export default function LoginPage() {
               <label style={{ display: "block", fontSize: 13, color: "#8A8278", marginBottom: 8, fontWeight: 600 }}>メールアドレス</label>
               <input type="email" value={pwEmail} onChange={e => setPwEmail(e.target.value)} placeholder="you@example.com" required style={inp} autoFocus />
             </div>
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 4 }}>
               <label style={{ display: "block", fontSize: 13, color: "#8A8278", marginBottom: 8, fontWeight: 600 }}>パスワード</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required style={inp} onKeyDown={e => e.key === "Enter" && handlePassword(e)} />
+            </div>
+            <div style={{ textAlign: "right", marginBottom: 16 }}>
+              <Link href="/login/forgot" style={{ fontSize: 12, color: "#6A6058", textDecoration: "none" }}>
+                パスワードを忘れた方はこちら
+              </Link>
             </div>
             {error && <div style={{ fontSize: 13, color: "#ff6666", marginBottom: 14, padding: "10px 14px", background: "rgba(255,80,50,0.08)", border: "1px solid rgba(255,80,50,0.2)", borderRadius: 8 }}>{error}</div>}
             <button type="submit" disabled={isPending || !pwEmail || !password} style={{ width: "100%", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "13px", fontSize: 15, fontWeight: 700, cursor: isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: isPending ? 0.7 : 1 }}>
@@ -168,7 +176,10 @@ export default function LoginPage() {
           </form>
         )}
 
-        <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(212,175,55,0.1)", textAlign: "center" }}>
+        <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(212,175,55,0.1)", textAlign: "center", display: "flex", justifyContent: "center", gap: 24 }}>
+          <Link href="/login/forgot" style={{ fontSize: 13, color: "#6A6058", textDecoration: "none" }}>
+            ログインできない方
+          </Link>
           <Link href="/pricing" style={{ fontSize: 13, color: "#8A8278", textDecoration: "none" }}>
             プランを確認する →
           </Link>
