@@ -1611,7 +1611,7 @@ async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit:
 
     # 高利益商品があればLINEに通知
     try:
-        settings = db.get_settings()
+        settings = db.get_settings(user_id=user_id)
         token = settings.get("line_token", "")
         if token:
             threshold = float(settings.get("auto_scan_notify_score", "70"))
@@ -2275,8 +2275,8 @@ def _detect_buy_price_by_platform(product_name: str, platform: str) -> Optional[
         return None
 
 
-def _send_source_sync_alert(message: str):
-    settings = db.get_settings()
+def _send_source_sync_alert(message: str, user_id: str = 'default'):
+    settings = db.get_settings(user_id=user_id)
     token = settings.get("line_token", "").strip()
     if token:
         _send_line(token, message)
@@ -2312,7 +2312,7 @@ def _is_safe_url(url: str) -> bool:
         return False
 
 
-def run_source_sync_once() -> Dict:
+def run_source_sync_once(user_id: str = 'default') -> Dict:
     """
     仕入れ元在庫/価格を1回チェック:
     - 仕入れ元ページが終了・売り切れなら active listing を paused に変更
@@ -2321,22 +2321,22 @@ def run_source_sync_once() -> Dict:
     import urllib.request
     from datetime import datetime
 
-    settings = db.get_settings()
+    settings = db.get_settings(user_id=user_id)
     threshold_pct = float(settings.get("source_sync_price_rise_threshold_pct", "8"))
     min_alert_delta_jpy = float(settings.get("source_sync_min_alert_delta_jpy", "300"))
     active_only = settings.get("source_sync_active_only", "1") == "1"
 
-    where_clause = "WHERE l.status = 'active'" if active_only else ""
+    status_clause = "AND l.status = 'active'" if active_only else ""
     rows = db.conn.execute(f"""
         SELECT l.id as listing_id, l.status as listing_status, l.selling_platform,
                l.listing_price, p.id as purchase_id, p.product_name, p.platform,
                p.purchase_price, p.purchase_shipping, p.purchase_url
         FROM listings l
         JOIN purchases p ON l.purchase_id = p.id
-        {where_clause}
+        WHERE p.user_id = ? {status_clause}
         ORDER BY l.id DESC
         LIMIT 100
-    """).fetchall()
+    """, (user_id,)).fetchall()
 
     sold_out_count = 0
     price_up_count = 0
@@ -2384,7 +2384,7 @@ def run_source_sync_once() -> Dict:
                     f"・{product_name}\n  仕入れ {baseline_buy:,.0f}円 → 現在 {market_buy:,.0f}円 (+{rise_pct:.1f}%)"
                 )
 
-    db.save_settings({"source_sync_last_run": str(_time.time())})
+    db.save_settings({"source_sync_last_run": str(_time.time())}, user_id=user_id)
     db.conn.commit()
 
     if sold_out_items:
@@ -2392,13 +2392,13 @@ def run_source_sync_once() -> Dict:
         msg += f"自動停止: {sold_out_count}件\n\n"
         for name in sold_out_items[:6]:
             msg += f"・{name}\n"
-        _send_source_sync_alert(msg)
+        _send_source_sync_alert(msg, user_id=user_id)
 
     if price_up_items:
         msg = "\n📈 仕入れ価格 上昇アラート\n"
         msg += f"対象: {price_up_count}件\n\n"
         msg += "\n\n".join(price_up_items[:5])
-        _send_source_sync_alert(msg)
+        _send_source_sync_alert(msg, user_id=user_id)
 
     return {
         "ok": True,
@@ -2410,57 +2410,68 @@ def run_source_sync_once() -> Dict:
 
 
 async def _source_sync_loop():
-    """定期ソース連動ループ（在庫連動/価格上昇監視）"""
+    """定期ソース連動ループ（全ユーザー分を在庫連動/価格上昇監視）"""
     while True:
         try:
-            settings = db.get_settings()
-            if settings.get("source_sync_enabled", "0") == "1":
-                interval_min = float(settings.get("source_sync_interval_min", "15"))
-                last_run = float(settings.get("source_sync_last_run", "0"))
-                now = _time.time()
-                if now - last_run >= interval_min * 60:
-                    print("[SourceSync] 在庫・価格チェック開始...")
-                    result = await asyncio.to_thread(run_source_sync_once)
-                    print(
-                        f"[SourceSync] 完了: checked={result['checked']} "
-                        f"sold_out={result['sold_out_detected']} price_rise={result['price_rise_detected']}"
-                    )
+            user_rows = db.conn.execute("SELECT DISTINCT user_id FROM settings ORDER BY user_id").fetchall()
+            user_ids = [r["user_id"] for r in user_rows] or ["default"]
+            for uid in user_ids:
+                try:
+                    settings = db.get_settings(user_id=uid)
+                    if settings.get("source_sync_enabled", "0") == "1":
+                        interval_min = float(settings.get("source_sync_interval_min", "15"))
+                        last_run = float(settings.get("source_sync_last_run", "0"))
+                        now = _time.time()
+                        if now - last_run >= interval_min * 60:
+                            print(f"[SourceSync] user={uid} 在庫・価格チェック開始...")
+                            result = await asyncio.to_thread(run_source_sync_once, uid)
+                            print(
+                                f"[SourceSync] user={uid} 完了: checked={result['checked']} "
+                                f"sold_out={result['sold_out_detected']} price_rise={result['price_rise_detected']}"
+                            )
+                except Exception as e:
+                    print(f"[SourceSync] user={uid} エラー: {e}")
         except Exception as e:
             print(f"[SourceSync] エラー: {e}")
         await asyncio.sleep(120)  # 2分ごとに実行判定
 
 
 async def _auto_scan_loop():
-    """定期スキャンループ：5分ごとに設定を確認し、経過時間に応じてスキャンを実行する"""
+    """定期スキャンループ：全ユーザー分を5分ごとに設定確認し実行する"""
     while True:
         try:
-            settings = db.get_settings()
-            if settings.get("auto_scan_enabled") == "1":
-                interval_hours = float(settings.get("auto_scan_interval_hours", "8"))
-                last_run = float(settings.get("auto_scan_last_run", "0"))
-                now = _time.time()
-                if now - last_run >= interval_hours * 3600:
-                    print(f"[AutoScan] スキャン開始...")
-                    results = await asyncio.to_thread(scan_all_keywords, 8, db)
-                    await asyncio.to_thread(db.save_scan_cache, results)
-                    db.save_settings({"auto_scan_last_run": str(now)})
-                    print(f"[AutoScan] 完了: {len(results)}件")
+            user_rows = db.conn.execute("SELECT DISTINCT user_id FROM settings ORDER BY user_id").fetchall()
+            user_ids = [r["user_id"] for r in user_rows] or ["default"]
+            for uid in user_ids:
+                try:
+                    settings = db.get_settings(user_id=uid)
+                    if settings.get("auto_scan_enabled") == "1":
+                        interval_hours = float(settings.get("auto_scan_interval_hours", "8"))
+                        last_run = float(settings.get("auto_scan_last_run", "0"))
+                        now = _time.time()
+                        if now - last_run >= interval_hours * 3600:
+                            print(f"[AutoScan] user={uid} スキャン開始...")
+                            results = await asyncio.to_thread(scan_all_keywords, 8, db)
+                            await asyncio.to_thread(db.save_scan_cache, results, None, uid)
+                            db.save_settings({"auto_scan_last_run": str(now)}, user_id=uid)
+                            print(f"[AutoScan] user={uid} 完了: {len(results)}件")
 
-                    # 高スコア商品があればLINEに通知
-                    threshold = float(settings.get("auto_scan_notify_score", "70"))
-                    top_items = [r for r in results if r.get("score", 0) >= threshold]
-                    if top_items:
-                        token = settings.get("line_token", "")
-                        if token:
-                            msg = f"\n🔍 利益スキャナー 自動結果\n高スコア商品 {len(top_items)}件\n\n"
-                            for item in top_items[:5]:
-                                msg += (
-                                    f"・{item.get('name', item.get('product_name', ''))}\n"
-                                    f"  スコア: {item.get('score', 0):.0f}"
-                                    f" / 利益率: {item.get('profit_rate', 0):.1f}%"
-                                    f" / 利益: ¥{int(item.get('net_profit_jpy', 0)):,}\n\n"
-                                )
-                            _send_line(token, msg)
+                            threshold = float(settings.get("auto_scan_notify_score", "70"))
+                            top_items = [r for r in results if r.get("score", 0) >= threshold]
+                            if top_items:
+                                token = settings.get("line_token", "")
+                                if token:
+                                    msg = f"\n🔍 利益スキャナー 自動結果\n高スコア商品 {len(top_items)}件\n\n"
+                                    for item in top_items[:5]:
+                                        msg += (
+                                            f"・{item.get('name', item.get('product_name', ''))}\n"
+                                            f"  スコア: {item.get('score', 0):.0f}"
+                                            f" / 利益率: {item.get('profit_rate', 0):.1f}%"
+                                            f" / 利益: ¥{int(item.get('net_profit_jpy', 0)):,}\n\n"
+                                        )
+                                    _send_line(token, msg)
+                except Exception as e:
+                    print(f"[AutoScan] user={uid} エラー: {e}")
         except Exception as e:
             print(f"[AutoScan] エラー: {e}")
 
@@ -2531,8 +2542,8 @@ def get_source_sync_settings(user_id: str = Depends(get_user_id)):
 
 
 @app.post("/api/source-sync/run")
-async def source_sync_run_now():
-    return await asyncio.to_thread(run_source_sync_once)
+async def source_sync_run_now(user_id: str = Depends(get_user_id)):
+    return await asyncio.to_thread(run_source_sync_once, user_id)
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3162,7 +3173,12 @@ def create_shipping_request(task_id: int, body: ShippingRequestCreate, user_id: 
     return {"ok": True}
 
 @app.get("/api/fulfillment/{task_id}/logs")
-def get_status_logs(task_id: int):
+def get_status_logs(task_id: int, user_id: str = Depends(get_user_id)):
+    task = db.conn.execute(
+        "SELECT id FROM fulfillment WHERE id = %s AND user_id = %s", (task_id, user_id)
+    ).fetchone()
+    if not task:
+        raise HTTPException(404, "タスクが見つかりません")
     rows = db.get_status_logs(task_id)
     return [dict(r) for r in rows]
 
