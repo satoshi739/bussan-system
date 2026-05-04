@@ -2515,14 +2515,15 @@ import io
 
 
 @app.get("/api/purchases/export/csv")
-def export_purchases_csv():
+def export_purchases_csv(user_id: str = Depends(get_user_id)):
     """仕入れデータをCSVでダウンロード"""
     rows = db.conn.execute("""
         SELECT id, product_name, platform, purchase_price, purchase_shipping,
                purchase_date, status, notes, purchase_url, created_at
         FROM purchases
+        WHERE user_id = ?
         ORDER BY purchase_date DESC
-    """).fetchall()
+    """, (user_id,)).fetchall()
 
     output = io.StringIO()
     writer = csv.writer(output)
