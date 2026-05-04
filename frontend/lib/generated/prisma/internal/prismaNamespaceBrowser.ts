@@ -56,6 +56,7 @@ export const ModelName = {
   Session: 'Session',
   VerificationToken: 'VerificationToken',
   Subscription: 'Subscription',
+  ActiveSession: 'ActiveSession',
   StripeEvent: 'StripeEvent'
 } as const
 
@@ -142,6 +143,17 @@ export const SubscriptionScalarFieldEnum = {
 } as const
 
 export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
+
+
+export const ActiveSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  sessionKey: 'sessionKey',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ActiveSessionScalarFieldEnum = (typeof ActiveSessionScalarFieldEnum)[keyof typeof ActiveSessionScalarFieldEnum]
 
 
 export const StripeEventScalarFieldEnum = {

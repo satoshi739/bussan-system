@@ -55,7 +55,7 @@ const card = (extra?: React.CSSProperties): React.CSSProperties => ({
 
 // ── Sample data ──────────────────────────────────────────
 const SAMPLE: Dashboard = {
-  stats: { total_purchases: 47, total_invested: 312000, total_sold: 39, total_profit: 98400 },
+  stats: { total_purchases: 47, total_invested: 312000, total_sold: 39, total_profit: 98400, roi: 31.5, avg_holding_days: 12.4, active_inventory_count: 8, active_inventory_value: 52000 },
   monthly_profit: [
     { month: "04月", profit: 98400, sales_count: 12 },
     { month: "03月", profit: 83100, sales_count: 10 },
@@ -634,7 +634,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Grid — デスクトップ表示 */}
-      <div className="kg" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12, marginBottom: 18 }}>
+      <div className="kg" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12, marginBottom: 10 }}>
         <div className="kcard" style={{ transition: "border-color .2s, box-shadow .2s" }}>
           <KpiCard label="今月の純利益" value={`¥${Math.round(thisM).toLocaleString()}`} diff={pDiff} sub="当月累計 純利益額" icon={TrendingUp} accent={thisM >= 0 ? C.gold : C.dn} loading={loading} />
         </div>
@@ -650,6 +650,48 @@ export default function DashboardPage() {
         <div className="kcard" style={{ transition: "border-color .2s, box-shadow .2s" }}>
           <KpiCard label="要対応" value={`${actions.length} 件`} sub={actions.length > 0 ? "早期対応を推奨" : "対応事項なし"} icon={AlertTriangle} accent={actions.length > 0 ? C.dn : C.t3} href="/purchases" loading={loading} />
         </div>
+      </div>
+
+      {/* KPI Sub-row — ROI / 平均保有日数 / 在庫投資額 */}
+      <div className="kg" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 18 }}>
+        {([
+          {
+            label: "ROI（投資対効果）",
+            value: loading ? "—" : `${(d?.stats.roi ?? rate).toFixed(1)}%`,
+            sub: "総利益 ÷ 総投資額",
+            col: (d?.stats.roi ?? rate) >= 20 ? C.gold : (d?.stats.roi ?? rate) >= 10 ? C.warn : C.dn,
+          },
+          {
+            label: "平均保有日数",
+            value: loading ? "—" : `${(d?.stats.avg_holding_days ?? 0).toFixed(1)} 日`,
+            sub: "仕入→売却の平均期間",
+            col: (d?.stats.avg_holding_days ?? 0) <= 14 ? C.up : (d?.stats.avg_holding_days ?? 0) <= 30 ? C.warn : C.dn,
+          },
+          {
+            label: "在庫投資額",
+            value: loading ? "—" : `¥${Math.round(d?.stats.active_inventory_value ?? 0).toLocaleString()}`,
+            sub: `現在 ${d?.stats.active_inventory_count ?? inStock} 件の在庫`,
+            col: C.info,
+          },
+        ] as { label: string; value: string; sub: string; col: string }[]).map(({ label, value, sub, col }) => (
+          <div key={label} style={{
+            background: C.bg1,
+            border: `1px solid ${C.bd}`,
+            borderRadius: 10,
+            padding: "12px 16px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 11, color: C.t4 }}>{sub}</div>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: col, fontFamily: "ui-monospace,'SF Mono',Menlo,monospace", letterSpacing: "-0.02em" }}>
+              {loading ? <Sk h={22} w={80} /> : value}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Goal */}

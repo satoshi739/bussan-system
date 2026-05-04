@@ -6,12 +6,12 @@ import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 import {
   getAnalyticsByPlatform, getAnalyticsByBuyPlatform, getBestProducts,
-  getSalesTrends, getMonthlyReport, sendMonthlyReportLine,
-  type MonthlyReport, type SalesTrends,
+  getSalesTrends, getMonthlyReport, sendMonthlyReportLine, getRouteMatrix,
+  type MonthlyReport, type SalesTrends, type RouteMatrixRow,
 } from "@/lib/api";
 
 const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
-type Tab = "analytics" | "trends" | "monthly";
+type Tab = "analytics" | "trends" | "monthly" | "route";
 
 type BestProduct = { product_name: string; buy_platform: string; selling_platform: string; purchase_price: number; sale_price: number; net_profit: number; sale_date: string; profit_rate: number };
 
@@ -24,11 +24,12 @@ function ReportPageContent() {
       <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20 }}>売上分析・トレンド予測・月次レポートを確認できます</div>
 
       {/* タブ */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 24, background: "rgba(0,10,3,0.8)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12, padding: 5, width: "fit-content" }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 24, background: "rgba(0,10,3,0.8)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12, padding: 5, width: "fit-content", flexWrap: "wrap" }}>
         {([
           { id: "analytics", label: "📊 売上分析" },
           { id: "trends",    label: "📈 トレンド予測" },
           { id: "monthly",   label: "📋 月次レポート" },
+          { id: "route",     label: "🗺 ルート分析" },
         ] as { id: Tab; label: string }[]).map(({ id, label }) => (
           <button key={id} onClick={() => setTab(id)} style={{ padding: "9px 18px", borderRadius: 9, border: "none", background: tab === id ? "linear-gradient(135deg,#1e1608,#2a1e08)" : "transparent", color: tab === id ? "#D4AF37" : "#7aaa8a", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
             {label}
@@ -39,6 +40,7 @@ function ReportPageContent() {
       {tab === "analytics" && <AnalyticsTab />}
       {tab === "trends"    && <TrendsTab />}
       {tab === "monthly"   && <MonthlyTab />}
+      {tab === "route"     && <RouteMatrixTab />}
     </div>
   );
 }
@@ -447,6 +449,126 @@ function MonthlyTab() {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+/* ── 仕入れルート × 販売先 マトリクス分析 ── */
+function RouteMatrixTab() {
+  const [rows, setRows] = useState<RouteMatrixRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getRouteMatrix()
+      .then(setRows)
+      .catch(e => toast(errMsg(e), "error"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div style={{ ...card, textAlign: "center", padding: 60, color: "#8A8278" }}>読み込み中...</div>;
+
+  if (rows.length === 0) {
+    return (
+      <div style={{ ...card, textAlign: "center", padding: 60 }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>🗺</div>
+        <div style={{ color: "#8A8278" }}>売上データが溜まると<br />仕入れ先×販売先の収益マトリクスが表示されます</div>
+      </div>
+    );
+  }
+
+  const maxProfit = Math.max(...rows.map(r => r.total_profit), 1);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={card}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>🗺 仕入れ先 × 販売先 ルート分析</div>
+        <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20 }}>どのルートが最も利益を生んでいるかを可視化します</div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid rgba(212,175,55,0.12)" }}>
+                {[
+                  { label: "仕入れ元",   align: "left"  as const },
+                  { label: "販売先",     align: "left"  as const },
+                  { label: "件数",       align: "right" as const },
+                  { label: "総利益",     align: "right" as const },
+                  { label: "平均利益",   align: "right" as const },
+                  { label: "平均利益率", align: "right" as const },
+                  { label: "平均日数",   align: "right" as const },
+                  { label: "利益シェア", align: "left"  as const },
+                ].map(({ label, align }) => (
+                  <th key={label} style={{ padding: "8px 12px", color: "#8A8278", fontWeight: 600, fontSize: 11, textTransform: "uppercase" as const, letterSpacing: "0.07em", textAlign: align }}>
+                    {label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => {
+                const share = (r.total_profit / maxProfit) * 100;
+                const rateCol = r.avg_rate >= 25 ? "#D4AF37" : r.avg_rate >= 15 ? "#ffcc44" : r.avg_rate >= 5 ? "#66ccff" : "#ff9966";
+                return (
+                  <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(212,175,55,0.03)")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <td style={{ padding: "12px 12px", color: "#F5F0E8", fontWeight: 600 }}>{r.buy_platform}</td>
+                    <td style={{ padding: "12px 12px", color: "#C8C0B0" }}>{r.sell_platform}</td>
+                    <td style={{ padding: "12px 12px", textAlign: "right", color: "#8A8278", fontFamily: "monospace" }}>{r.count}</td>
+                    <td style={{ padding: "12px 12px", textAlign: "right", color: "#D4AF37", fontFamily: "monospace", fontWeight: 700 }}>
+                      ¥{Math.round(r.total_profit).toLocaleString()}
+                    </td>
+                    <td style={{ padding: "12px 12px", textAlign: "right", color: "#C8C0B0", fontFamily: "monospace" }}>
+                      ¥{Math.round(r.avg_profit).toLocaleString()}
+                    </td>
+                    <td style={{ padding: "12px 12px", textAlign: "right", color: rateCol, fontFamily: "monospace", fontWeight: 700 }}>
+                      {r.avg_rate.toFixed(1)}%
+                    </td>
+                    <td style={{ padding: "12px 12px", textAlign: "right", color: "#8A8278", fontFamily: "monospace" }}>
+                      {r.avg_days.toFixed(1)}日
+                    </td>
+                    <td style={{ padding: "12px 20px 12px 12px", minWidth: 120 }}>
+                      <div style={{ background: "rgba(212,175,55,0.06)", borderRadius: 3, height: 6, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${share}%`, background: "linear-gradient(90deg,#1e1608,#D4AF37)", borderRadius: 3 }} />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* サマリーカード */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+        {[
+          {
+            label: "最高利益ルート",
+            value: `${rows[0]?.buy_platform} → ${rows[0]?.sell_platform}`,
+            sub: `¥${Math.round(rows[0]?.total_profit ?? 0).toLocaleString()} 総利益`,
+            col: "#D4AF37",
+          },
+          {
+            label: "最高利益率ルート",
+            value: (() => { const r = [...rows].sort((a,b) => b.avg_rate - a.avg_rate)[0]; return r ? `${r.buy_platform} → ${r.sell_platform}` : "—"; })(),
+            sub: (() => { const r = [...rows].sort((a,b) => b.avg_rate - a.avg_rate)[0]; return r ? `平均 ${r.avg_rate.toFixed(1)}% 利益率` : ""; })(),
+            col: "#ffcc44",
+          },
+          {
+            label: "最速回転ルート",
+            value: (() => { const r = [...rows].filter(x => x.count >= 2).sort((a,b) => a.avg_days - b.avg_days)[0]; return r ? `${r.buy_platform} → ${r.sell_platform}` : "—"; })(),
+            sub: (() => { const r = [...rows].filter(x => x.count >= 2).sort((a,b) => a.avg_days - b.avg_days)[0]; return r ? `平均 ${r.avg_days.toFixed(1)} 日で売却` : "2件以上のルートで算出"; })(),
+            col: "#66ccff",
+          },
+        ].map(({ label, value, sub, col }) => (
+          <div key={label} style={{ ...card, padding: "16px 20px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#8A8278", letterSpacing: "0.07em", textTransform: "uppercase" as const, marginBottom: 8 }}>{label}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: col, marginBottom: 4, lineHeight: 1.3 }}>{value}</div>
+            <div style={{ fontSize: 11, color: "#8A8278" }}>{sub}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -774,13 +774,40 @@ class Database:
                 COUNT(DISTINCT p.id) as total_purchases,
                 COALESCE(SUM(p.purchase_price + p.purchase_shipping), 0) as total_invested,
                 COUNT(DISTINCT CASE WHEN p.status = 'sold' THEN p.id END) as total_sold,
-                COALESCE(SUM(s.net_profit), 0) as total_profit
+                COALESCE(SUM(s.net_profit), 0) as total_profit,
+                COALESCE(AVG(s.sale_date - p.purchase_date), 0) as avg_holding_days,
+                COUNT(DISTINCT CASE WHEN p.status IN ('purchased', 'listed') THEN p.id END) as active_inventory_count,
+                COALESCE(SUM(CASE WHEN p.status IN ('purchased', 'listed') THEN p.purchase_price + p.purchase_shipping ELSE 0 END), 0) as active_inventory_value
             FROM purchases p
             LEFT JOIN listings l ON p.id = l.purchase_id
             LEFT JOIN sales s ON l.id = s.listing_id
             WHERE p.user_id = %s
         """, (user_id,)).fetchone()
-        return dict(row) if row else {}
+        if not row:
+            return {}
+        result = dict(row)
+        invested = float(result.get('total_invested') or 0)
+        result['roi'] = round(float(result.get('total_profit') or 0) / invested * 100, 1) if invested > 0 else 0.0
+        result['avg_holding_days'] = round(float(result.get('avg_holding_days') or 0), 1)
+        return result
+
+    def get_route_matrix(self, user_id: str = 'default') -> List:
+        return self.conn.execute("""
+            SELECT
+                p.platform as buy_platform,
+                l.selling_platform as sell_platform,
+                COUNT(*) as count,
+                COALESCE(SUM(s.net_profit), 0) as total_profit,
+                COALESCE(AVG(s.net_profit), 0) as avg_profit,
+                COALESCE(AVG(CASE WHEN s.sale_price > 0 THEN s.net_profit / s.sale_price * 100 END), 0) as avg_rate,
+                COALESCE(AVG(s.sale_date - p.purchase_date), 0) as avg_days
+            FROM sales s
+            JOIN listings l ON s.listing_id = l.id
+            JOIN purchases p ON l.purchase_id = p.id
+            WHERE p.user_id = %s
+            GROUP BY p.platform, l.selling_platform
+            ORDER BY total_profit DESC
+        """, (user_id,)).fetchall()
 
     def get_monthly_profit(self, user_id: str = 'default') -> List:
         return self.conn.execute("""

@@ -601,6 +601,12 @@ def get_best_products(limit: int = 10, user_id: str = Depends(get_user_id)):
     return [dict(r) for r in rows]
 
 
+@app.get("/api/analytics/route-matrix")
+def get_route_matrix(user_id: str = Depends(get_user_id)):
+    rows = db.get_route_matrix(user_id=user_id)
+    return [dict(r) for r in rows]
+
+
 # ── 月次目標 ──────────────────────────────────────────────
 
 @app.get("/api/goal")

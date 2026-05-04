@@ -114,11 +114,28 @@ export interface Dashboard {
     total_invested: number;
     total_sold: number;
     total_profit: number;
+    roi?: number;
+    avg_holding_days?: number;
+    active_inventory_count?: number;
+    active_inventory_value?: number;
   };
   monthly_profit: { month: string; profit: number; sales_count: number }[];
   status_breakdown: { status: string; count: number }[];
   platform_breakdown: { platform: string; count: number }[];
 }
+
+export interface RouteMatrixRow {
+  buy_platform: string;
+  sell_platform: string;
+  count: number;
+  total_profit: number;
+  avg_profit: number;
+  avg_rate: number;
+  avg_days: number;
+}
+
+export const getRouteMatrix = () =>
+  req<RouteMatrixRow[]>("/api/analytics/route-matrix");
 
 export interface Purchase {
   id: number;

@@ -23,9 +23,10 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts     Account[]
-  sessions     Session[]
-  subscription Subscription?
+  accounts       Account[]
+  sessions       Session[]
+  subscription   Subscription?
+  activeSessions ActiveSession[]
 }
 
 model Account {
@@ -79,6 +80,16 @@ model Subscription {
   currentPeriodEnd     DateTime?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActiveSession {
+  id         String   @id @default(cuid())
+  userId     String
+  sessionKey String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

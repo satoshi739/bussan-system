@@ -389,6 +389,7 @@ export const ModelName = {
   Session: 'Session',
   VerificationToken: 'VerificationToken',
   Subscription: 'Subscription',
+  ActiveSession: 'ActiveSession',
   StripeEvent: 'StripeEvent'
 } as const
 
@@ -405,7 +406,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "stripeEvent"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "stripeEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -779,6 +780,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ActiveSession: {
+      payload: Prisma.$ActiveSessionPayload<ExtArgs>
+      fields: Prisma.ActiveSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ActiveSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ActiveSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.ActiveSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ActiveSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload>
+        }
+        findMany: {
+          args: Prisma.ActiveSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload>[]
+        }
+        create: {
+          args: Prisma.ActiveSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload>
+        }
+        createMany: {
+          args: Prisma.ActiveSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ActiveSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.ActiveSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload>
+        }
+        update: {
+          args: Prisma.ActiveSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.ActiveSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ActiveSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ActiveSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.ActiveSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActiveSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.ActiveSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateActiveSession>
+        }
+        groupBy: {
+          args: Prisma.ActiveSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ActiveSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ActiveSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ActiveSessionCountAggregateOutputType> | number
+        }
+      }
+    }
     StripeEvent: {
       payload: Prisma.$StripeEventPayload<ExtArgs>
       fields: Prisma.StripeEventFieldRefs
@@ -959,6 +1034,17 @@ export const SubscriptionScalarFieldEnum = {
 } as const
 
 export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
+
+
+export const ActiveSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  sessionKey: 'sessionKey',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ActiveSessionScalarFieldEnum = (typeof ActiveSessionScalarFieldEnum)[keyof typeof ActiveSessionScalarFieldEnum]
 
 
 export const StripeEventScalarFieldEnum = {
@@ -1197,6 +1283,7 @@ export type GlobalOmitConfig = {
   session?: Prisma.SessionOmit
   verificationToken?: Prisma.VerificationTokenOmit
   subscription?: Prisma.SubscriptionOmit
+  activeSession?: Prisma.ActiveSessionOmit
   stripeEvent?: Prisma.StripeEventOmit
 }
 
