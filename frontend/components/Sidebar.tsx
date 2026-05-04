@@ -99,33 +99,51 @@ export default function Sidebar() {
     }}>
       {/* ── ロゴ ── */}
       <div style={{
-        padding: "22px 18px 18px",
+        padding: "20px 16px 16px",
         borderBottom: `1px solid ${T.bd}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 8,
+        marginBottom: 6,
       }}>
         <div style={{
-          fontSize: 16,
-          fontWeight: 800,
-          color: T.gold,
-          letterSpacing: "0.02em",
-          fontFamily: "'Hiragino Sans', 'Yu Gothic', sans-serif",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
         }}>
-          物販チェッカー
+          <div style={{
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            background: `linear-gradient(135deg, ${T.gold}22, ${T.gold}0a)`,
+            border: `1px solid ${T.gold}40`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 13 }}>📦</span>
+          </div>
+          <div style={{
+            fontSize: 14,
+            fontWeight: 800,
+            color: T.t1,
+            letterSpacing: "0.01em",
+          }}>
+            物販チェッカー
+          </div>
         </div>
         <button
           onClick={() => setMobileMenu(false)}
           className="sidebar-close-btn"
-          style={{ display: "none", background: "none", border: "none", color: T.t3, cursor: "pointer", padding: 4 }}
+          style={{ display: "none", background: "none", border: "none", color: T.t3, cursor: "pointer", padding: 4, borderRadius: 6 }}
         >
           <X size={16} />
         </button>
       </div>
 
       {/* ── ナビゲーション ── */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "4px 10px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "4px 8px" }}>
         {navGroups.map((group, gi) => (
           <div key={group.label} style={{ marginBottom: gi < navGroups.length - 1 ? 4 : 0 }}>
             {/* グループラベル */}
@@ -134,7 +152,7 @@ export default function Sidebar() {
               fontWeight: 700,
               color: GROUP_LABEL,
               letterSpacing: "0.14em",
-              padding: "10px 8px 5px",
+              padding: "10px 10px 5px",
               textTransform: "uppercase",
             }}>
               {group.label}
@@ -153,7 +171,7 @@ export default function Sidebar() {
                     alignItems: "center",
                     gap: 9,
                     padding: "8px 10px",
-                    borderRadius: 8,
+                    borderRadius: 10,
                     fontWeight: active ? 700 : 500,
                     fontSize: 12,
                     color:      active ? T.t1 : T.t2,
@@ -168,7 +186,7 @@ export default function Sidebar() {
                   <Icon size={13} style={{ flexShrink: 0 }} color={active ? T.gold : T.t3} />
                   <span>{label}</span>
                   {active && (
-                    <div style={{ marginLeft: "auto", width: 4, height: 4, borderRadius: "50%", background: T.gold, flexShrink: 0 }} />
+                    <div style={{ marginLeft: "auto", width: 5, height: 5, borderRadius: "50%", background: T.gold, flexShrink: 0 }} />
                   )}
                 </Link>
               );
@@ -182,7 +200,7 @@ export default function Sidebar() {
       </div>
 
       {/* ── フッター ── */}
-      <div style={{ padding: "14px 10px 0", borderTop: `1px solid ${T.bd}`, marginTop: 4 }}>
+      <div style={{ padding: "12px 8px 0", borderTop: `1px solid ${T.bd}`, marginTop: 4 }}>
         {session?.user && (
           <Link
             href="/settings/billing"
@@ -191,12 +209,12 @@ export default function Sidebar() {
               alignItems: "center",
               gap: 8,
               textDecoration: "none",
-              padding: "8px 11px",
-              borderRadius: 8,
+              padding: "9px 12px",
+              borderRadius: 12,
               border: `1px solid ${T.bd}`,
-              background: "rgba(200,164,68,0.04)",
-              marginBottom: 10,
-              transition: "border-color 0.15s",
+              background: `${T.gold}06`,
+              marginBottom: 8,
+              transition: "border-color 0.15s, background 0.15s",
             }}
           >
             <CreditCard size={11} color={PLAN_COLORS[plan] ?? T.t3} />
@@ -206,7 +224,15 @@ export default function Sidebar() {
           </Link>
         )}
 
-        {/* TODO: API接続状態の監視は将来 /admin/health ページに移管予定 */}
+        {session?.user && (session.user as { role?: string }).role === "ADMIN" && (
+          <Link
+            href="/admin"
+            style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", padding: "9px 12px", borderRadius: 12, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.06)", marginBottom: 8 }}
+          >
+            <span style={{ fontSize: 11 }}>👑</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#D4AF37", letterSpacing: "0.05em" }}>管理者ダッシュボード</span>
+          </Link>
+        )}
 
         {session?.user && (
           <button
@@ -220,11 +246,12 @@ export default function Sidebar() {
               color: T.t3,
               fontSize: 12,
               cursor: "pointer",
-              padding: "8px 4px",
-              marginTop: 2,
+              padding: "8px 6px",
+              marginTop: 0,
               letterSpacing: "0.04em",
               transition: "color 0.15s",
               minHeight: 36,
+              borderRadius: 10,
             }}
           >
             <LogOut size={11} /> ログアウト
