@@ -392,7 +392,12 @@ def get_listings(status: Optional[str] = None, user_id: str = Depends(get_user_i
     return [dict(r) for r in rows]
 
 @app.post("/api/listings")
-def create_listing(body: ListingCreate):
+def create_listing(body: ListingCreate, user_id: str = Depends(get_user_id)):
+    row = db.conn.execute(
+        "SELECT id FROM purchases WHERE id = %s AND user_id = %s", (body.purchase_id, user_id)
+    ).fetchone()
+    if not row:
+        raise HTTPException(403, "この仕入れにアクセスする権限がありません")
     data = body.model_dump()
     data["use_fba"] = 1 if data["use_fba"] else 0
     lid = db.add_listing(data)
@@ -407,7 +412,14 @@ def get_sales(user_id: str = Depends(get_user_id)):
     return [dict(r) for r in rows]
 
 @app.post("/api/sales")
-def create_sale(body: SaleCreate):
+def create_sale(body: SaleCreate, user_id: str = Depends(get_user_id)):
+    row = db.conn.execute("""
+        SELECT l.id FROM listings l
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE l.id = %s AND p.user_id = %s
+    """, (body.listing_id, user_id)).fetchone()
+    if not row:
+        raise HTTPException(403, "この出品にアクセスする権限がありません")
     sid = db.add_sale(body.model_dump())
     return {"id": sid}
 
@@ -775,22 +787,22 @@ def notify_test(body: LineTestRequest):
 
 
 @app.post("/api/notify/stale")
-def notify_stale(days: int = 14):
+def notify_stale(days: int = 14, user_id: str = Depends(get_user_id)):
     """売れ残り商品をLINEに通知"""
-    settings = db.get_settings()
+    settings = db.get_settings(user_id=user_id)
     token = settings.get('line_token', '')
     if not token:
         raise HTTPException(400, 'LINE tokenが設定されていません')
-    
+
     from datetime import datetime, timedelta
     cutoff = (datetime.today() - timedelta(days=days)).date().isoformat()
     rows = db.conn.execute("""
         SELECT product_name, purchase_date, purchase_price
         FROM purchases
-        WHERE status = 'purchased' AND purchase_date <= ?
+        WHERE status = 'purchased' AND purchase_date <= ? AND user_id = ?
         ORDER BY purchase_date ASC
         LIMIT 10
-    """, (cutoff,)).fetchall()
+    """, (cutoff, user_id)).fetchall()
     
     if not rows:
         return {'ok': True, 'msg': '売れ残りなし'}
@@ -878,27 +890,34 @@ async def notify_high_roi_scan(body: HighRoiScanRequest):
 
 
 @app.post("/api/notify/daily")
-def notify_daily():
+def notify_daily(user_id: str = Depends(get_user_id)):
     """今日の日次サマリーをLINEに通知"""
-    settings = db.get_settings()
+    settings = db.get_settings(user_id=user_id)
     token = settings.get('line_token', '')
     if not token:
         raise HTTPException(400, 'LINE tokenが設定されていません')
-    
+
     from datetime import datetime
     today = datetime.today().date().isoformat()
     month = datetime.today().strftime('%Y-%m')
-    
-    today_sales = db.conn.execute(
-        "SELECT COUNT(*) as c, COALESCE(SUM(net_profit),0) as p FROM sales WHERE sale_date = ?",
-        (today,)
-    ).fetchone()
-    month_sales = db.conn.execute(
-        "SELECT COUNT(*) as c, COALESCE(SUM(net_profit),0) as p FROM sales WHERE to_char(sale_date, 'YYYY-MM') = ?",
-        (month,)
-    ).fetchone()
+
+    today_sales = db.conn.execute("""
+        SELECT COUNT(*) as c, COALESCE(SUM(s.net_profit),0) as p
+        FROM sales s
+        JOIN listings l ON s.listing_id = l.id
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE s.sale_date = ? AND p.user_id = ?
+    """, (today, user_id)).fetchone()
+    month_sales = db.conn.execute("""
+        SELECT COUNT(*) as c, COALESCE(SUM(s.net_profit),0) as p
+        FROM sales s
+        JOIN listings l ON s.listing_id = l.id
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE to_char(s.sale_date, 'YYYY-MM') = ? AND p.user_id = ?
+    """, (month, user_id)).fetchone()
     stale_count = db.conn.execute(
-        "SELECT COUNT(*) as c FROM purchases WHERE status='purchased' AND purchase_date <= CURRENT_DATE - INTERVAL '14 days'"
+        "SELECT COUNT(*) as c FROM purchases WHERE status='purchased' AND purchase_date <= CURRENT_DATE - INTERVAL '14 days' AND user_id = ?",
+        (user_id,)
     ).fetchone()
     
     msg = f'\n📊 物販チェッカー 日次レポート\n{today}\n\n'
@@ -1710,7 +1729,7 @@ def listing_preview(body: ListingPreviewRequest):
 
 
 @app.post("/api/flow/quick-purchase-list")
-def quick_purchase_and_list(body: QuickPurchaseAndListRequest):
+def quick_purchase_and_list(body: QuickPurchaseAndListRequest, user_id: str = Depends(get_user_id)):
     """
     仕入れ登録 → 出品推奨価格計算 → 出品ディープリンク生成 を一括で行う。
     """
@@ -1721,8 +1740,8 @@ def quick_purchase_and_list(body: QuickPurchaseAndListRequest):
     cursor = db.conn.execute("""
         INSERT INTO purchases
           (product_name, platform, purchase_price, purchase_shipping,
-           purchase_url, purchase_date, status, notes, image_data)
-        VALUES (?, ?, ?, ?, ?, ?, 'purchased', ?, ?)
+           purchase_url, purchase_date, status, notes, image_data, user_id)
+        VALUES (?, ?, ?, ?, ?, ?, 'purchased', ?, ?, ?)
         RETURNING id
     """, (
         body.product_name,
@@ -1733,6 +1752,7 @@ def quick_purchase_and_list(body: QuickPurchaseAndListRequest):
         body.buy_date,
         body.condition,
         body.image_url,
+        user_id,
     ))
     row = cursor.fetchone()
     purchase_id = row["id"] if row else None
@@ -2795,9 +2815,9 @@ class AIResearchRequest(BaseModel):
     include_data: bool = True
 
 @app.post("/api/ai/research")
-def ai_research(body: AIResearchRequest):
+def ai_research(body: AIResearchRequest, user_id: str = Depends(get_user_id)):
     """物販AIリサーチアシスタント"""
-    settings = db.get_settings()
+    settings = db.get_settings(user_id=user_id)
     api_key = settings.get("anthropic_api_key", "").strip()
     if not api_key:
         raise HTTPException(400, "Anthropic APIキーが設定されていません（設定ページで登録してください）")
@@ -2811,15 +2831,16 @@ def ai_research(body: AIResearchRequest):
                 FROM sales s
                 JOIN listings l ON s.listing_id = l.id
                 JOIN purchases p ON l.purchase_id = p.id
+                WHERE p.user_id = %s
                 ORDER BY s.sale_date DESC LIMIT 5
-            """).fetchall()
+            """, (user_id,)).fetchall()
             if recent:
                 context_data += "【あなたの直近売上】\n"
                 for r in recent:
                     context_data += f"・{r['product_name']} {r['buy_platform']}→{r['selling_platform']} 利益¥{int(r['net_profit']):,}({r['profit_rate']}%)\n"
 
             active = db.conn.execute(
-                "SELECT COUNT(*) as c FROM purchases WHERE status='purchased'"
+                "SELECT COUNT(*) as c FROM purchases WHERE status='purchased' AND user_id = %s", (user_id,)
             ).fetchone()
             if active and active['c'] > 0:
                 context_data += f"\n現在仕入れ済み・未販売: {active['c']}件\n"
