@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getUserSubscription, hasAccess } from "@/lib/subscription";
 
 type Ctx = { params: Promise<{ path: string[] }> };
+
+// STANDARDプラン以上が必要なパスプレフィックス
+const STANDARD_PATHS = ["scan", "watchlist", "reports", "notify", "fba", "fulfillment", "monitor"];
+// PROプラン以上が必要なパスプレフィックス
+const PRO_PATHS = ["agents"];
 
 export async function GET(req: NextRequest, ctx: Ctx) {
   return forward(req, ctx, "GET");
@@ -22,11 +28,27 @@ async function forward(req: NextRequest, ctx: Ctx, method: string) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { path } = await ctx.params;
+  const topPath = path[0] ?? "";
+
+  const needsStandard = STANDARD_PATHS.includes(topPath);
+  const needsPro = PRO_PATHS.includes(topPath);
+
+  if (needsStandard || needsPro) {
+    const sub = await getUserSubscription();
+    const plan = sub?.plan ?? "FREE";
+    if (needsPro && !hasAccess(plan, "PRO")) {
+      return NextResponse.json({ error: "この機能はProプラン以上でご利用いただけます" }, { status: 403 });
+    }
+    if (needsStandard && !hasAccess(plan, "STANDARD")) {
+      return NextResponse.json({ error: "この機能はStandardプラン以上でご利用いただけます" }, { status: 403 });
+    }
+  }
+
   if (!process.env.FASTAPI_URL) {
     return NextResponse.json({ error: "Backend not configured" }, { status: 503 });
   }
 
-  const { path } = await ctx.params;
   const search = req.nextUrl.search;
   const url = `${process.env.FASTAPI_URL}/${path.join("/")}${search}`;
   const hasBody = method !== "GET" && method !== "DELETE";

@@ -38,6 +38,17 @@ def _get_db():
     return Database()
 
 
+def _get_all_user_ids(db) -> list:
+    """settingsテーブルに存在するユーザーID一覧を返す（'default' を先頭に）"""
+    rows = db.conn.execute(
+        "SELECT DISTINCT user_id FROM settings ORDER BY user_id"
+    ).fetchall()
+    ids = [r["user_id"] for r in rows]
+    if not ids:
+        ids = ["default"]
+    return ids
+
+
 # ── 定期タスク ───────────────────────────────────────────────────────
 
 def _run_domestic_notify(db, line_token: str):
@@ -77,60 +88,64 @@ def _run_domestic_notify(db, line_token: str):
         print(f"[Monitor] 国内転売通知エラー: {e}")
 
 
+def _daily_scan_for_user(db, user_id: str):
+    """指定ユーザーの毎朝スキャンを実行する"""
+    settings = db.get_settings(user_id=user_id)
+    api_key = settings.get("anthropic_api_key", "").strip()
+    line_token = settings.get("line_token", "").strip()
+
+    if not api_key:
+        return
+
+    from agents import CEOAgent
+    agent = CEOAgent(api_key=api_key, db=db)
+    result = agent.run(
+        goal="今日の定期スキャンです。登録済みキーワードを全てスキャンし、利益率25%以上の候補を承認キューに追加してください。季節トレンドも考慮してください。",
+        max_turns=10,
+    )
+
+    queued = result.get("queued_count", 0)
+    scanned = result.get("scanned_count", 0)
+
+    session_id = db.create_agent_session("自動デイリースキャン", user_id=user_id)
+    db.update_agent_session(session_id, {
+        "status": "completed",
+        "scanned_count": scanned,
+        "queued_count": queued,
+        "report": json.dumps(result.get("report", {}), ensure_ascii=False),
+        "log": json.dumps(result.get("log", []), ensure_ascii=False),
+        "completed_at": datetime.now().isoformat(),
+    })
+
+    if line_token:
+        if queued > 0:
+            msg = (
+                f"\n🌅 【毎朝スキャン完了】\n"
+                f"スキャン: {scanned}件 / 候補: {queued}件\n"
+                f"承認キューを確認して購入を承認してください！"
+            )
+        else:
+            msg = (
+                f"\n🌅 【毎朝スキャン完了】\n"
+                f"スキャン: {scanned}件 — 本日は有望な候補なし"
+            )
+        _send_line(line_token, msg)
+        _run_domestic_notify(db, line_token)
+
+    print(f"[Monitor] daily_scan user={user_id} 完了: queued={queued}")
+
+
 def daily_scan():
-    """毎朝自動スキャン: 登録キーワードをスキャンしてLINE通知"""
+    """毎朝自動スキャン: 全ユーザーの登録キーワードをスキャンしてLINE通知"""
     print(f"[Monitor] daily_scan 開始: {datetime.now().isoformat()}")
     db = None
     try:
         db = _get_db()
-        settings = db.get_settings()
-        api_key = settings.get("anthropic_api_key", "").strip()
-        line_token = settings.get("line_token", "").strip()
-
-        if not api_key:
-            print("[Monitor] APIキー未設定のためスキップ")
-            return
-
-        from agents import CEOAgent
-        agent = CEOAgent(api_key=api_key, db=db)
-        result = agent.run(
-            goal="今日の定期スキャンです。登録済みキーワードを全てスキャンし、利益率25%以上の候補を承認キューに追加してください。季節トレンドも考慮してください。",
-            max_turns=10,
-        )
-
-        queued = result.get("queued_count", 0)
-        scanned = result.get("scanned_count", 0)
-
-        session_id = db.create_agent_session("自動デイリースキャン", None)
-        db.update_agent_session(session_id, {
-            "status": "completed",
-            "scanned_count": scanned,
-            "queued_count": queued,
-            "report": json.dumps(result.get("report", {}), ensure_ascii=False),
-            "log": json.dumps(result.get("log", []), ensure_ascii=False),
-            "completed_at": datetime.now().isoformat(),
-        })
-
-        if line_token:
-            if queued > 0:
-                msg = (
-                    f"\n🌅 【毎朝スキャン完了】\n"
-                    f"スキャン: {scanned}件 / 候補: {queued}件\n"
-                    f"承認キューを確認して購入を承認してください！"
-                )
-            else:
-                msg = (
-                    f"\n🌅 【毎朝スキャン完了】\n"
-                    f"スキャン: {scanned}件 — 本日は有望な候補なし"
-                )
-            _send_line(line_token, msg)
-
-        # 国内転売スキャン（登録キーワードを対象に高ROI商品を通知）
-        if line_token:
-            _run_domestic_notify(db, line_token)
-
-        print(f"[Monitor] daily_scan 完了: queued={queued}")
-
+        for user_id in _get_all_user_ids(db):
+            try:
+                _daily_scan_for_user(db, user_id)
+            except Exception as e:
+                print(f"[Monitor] daily_scan user={user_id} エラー: {e}")
     except Exception as e:
         print(f"[Monitor] daily_scan エラー: {e}")
     finally:
@@ -138,48 +153,57 @@ def daily_scan():
             db.close()
 
 
+def _check_stale_inventory_for_user(db, user_id: str):
+    """指定ユーザーの売れ残り在庫をチェックしてLINE通知する"""
+    settings = db.get_settings(user_id=user_id)
+    line_token = settings.get("line_token", "").strip()
+    if not line_token:
+        return
+
+    threshold = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+    stale = db.conn.execute("""
+        SELECT p.product_name, p.purchase_price, p.purchase_date, p.platform
+        FROM purchases p
+        WHERE p.user_id = %s
+          AND p.purchase_date IS NOT NULL
+          AND p.purchase_date <= %s
+          AND p.status NOT IN ('sold', 'returned')
+        ORDER BY p.purchase_date ASC
+        LIMIT 10
+    """, (user_id, threshold)).fetchall()
+
+    if not stale:
+        return
+
+    lines = [f"\n⚠️ 【売れ残り警告】30日以上経過した在庫が{len(stale)}件あります\n"]
+    for row in stale[:5]:
+        purchase_date = row["purchase_date"]
+        if isinstance(purchase_date, str):
+            purchase_date = datetime.strptime(purchase_date, "%Y-%m-%d").date()
+        days_held = (datetime.now().date() - purchase_date).days
+        price = row["purchase_price"]
+        price_str = f"¥{price:,.0f}" if price is not None else "不明"
+        lines.append(f"・{row['product_name'][:20]} ({price_str} / {days_held}日経過)")
+
+    if len(stale) > 5:
+        lines.append(f"…他{len(stale)-5}件")
+    lines.append("\n値下げか別プラットフォームへの移動を検討してください")
+
+    _send_line(line_token, "\n".join(lines))
+    print(f"[Monitor] stale_inventory user={user_id}: {len(stale)}件警告")
+
+
 def check_stale_inventory():
-    """売れ残り在庫チェック: 30日以上売れていない商品をLINEで警告"""
+    """売れ残り在庫チェック: 全ユーザーの30日以上売れていない商品をLINEで警告"""
     print(f"[Monitor] stale_inventory チェック: {datetime.now().isoformat()}")
     db = None
     try:
         db = _get_db()
-        settings = db.get_settings()
-        line_token = settings.get("line_token", "").strip()
-        if not line_token:
-            return
-
-        threshold = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
-        stale = db.conn.execute("""
-            SELECT p.product_name, p.purchase_price, p.purchase_date, p.platform
-            FROM purchases p
-            WHERE p.purchase_date IS NOT NULL
-              AND p.purchase_date <= ?
-              AND p.status NOT IN ('sold', 'returned')
-            ORDER BY p.purchase_date ASC
-            LIMIT 10
-        """, (threshold,)).fetchall()
-
-        if not stale:
-            return
-
-        lines = [f"\n⚠️ 【売れ残り警告】30日以上経過した在庫が{len(stale)}件あります\n"]
-        for row in stale[:5]:
-            purchase_date = row["purchase_date"]
-            if isinstance(purchase_date, str):
-                purchase_date = datetime.strptime(purchase_date, "%Y-%m-%d").date()
-            days_held = (datetime.now().date() - purchase_date).days
-            price = row["purchase_price"]
-            price_str = f"¥{price:,.0f}" if price is not None else "不明"
-            lines.append(f"・{row['product_name'][:20]} ({price_str} / {days_held}日経過)")
-
-        if len(stale) > 5:
-            lines.append(f"…他{len(stale)-5}件")
-        lines.append("\n値下げか別プラットフォームへの移動を検討してください")
-
-        _send_line(line_token, "\n".join(lines))
-        print(f"[Monitor] stale_inventory: {len(stale)}件警告")
-
+        for user_id in _get_all_user_ids(db):
+            try:
+                _check_stale_inventory_for_user(db, user_id)
+            except Exception as e:
+                print(f"[Monitor] stale_inventory user={user_id} エラー: {e}")
     except Exception as e:
         print(f"[Monitor] stale_inventory エラー: {e}")
     finally:
@@ -187,60 +211,65 @@ def check_stale_inventory():
             db.close()
 
 
+def _weekly_report_for_user(db, user_id: str):
+    """指定ユーザーの週次レポートを生成してLINE送信する"""
+    settings = db.get_settings(user_id=user_id)
+    line_token = settings.get("line_token", "").strip()
+    if not line_token:
+        return
+
+    since = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+
+    sales = db.conn.execute("""
+        SELECT COUNT(*) as count,
+               COALESCE(SUM(net_profit), 0) as total_profit,
+               COALESCE(AVG(CASE WHEN sale_price > 0 THEN net_profit / sale_price * 100 END), 0) as avg_rate
+        FROM sales WHERE user_id = %s AND sale_date >= %s
+    """, (user_id, since)).fetchone()
+
+    purchases = db.conn.execute(
+        "SELECT COUNT(*) as purchase_count, COALESCE(SUM(purchase_price), 0) as purchase_total"
+        " FROM purchases WHERE user_id = %s AND purchase_date >= %s",
+        (user_id, since)
+    ).fetchone()
+
+    sessions = db.conn.execute(
+        "SELECT COUNT(*) as session_count,"
+        " COALESCE(SUM(queued_count), 0) as queued_total,"
+        " COALESCE(SUM(scanned_count), 0) as scanned_total"
+        " FROM agent_sessions WHERE user_id = %s AND created_at >= %s",
+        (user_id, since)
+    ).fetchone()
+
+    pending = db.conn.execute(
+        "SELECT COUNT(*) as pending_count FROM agent_approval_queue WHERE user_id = %s AND status = 'pending'",
+        (user_id,)
+    ).fetchone()["pending_count"]
+
+    msg = (
+        f"\n📊 【週次レポート】{since} 〜 今日\n\n"
+        f"💰 売上: {sales['count']}件 / 利益 ¥{sales['total_profit']:,.0f} / 平均利益率 {sales['avg_rate']:.1f}%\n"
+        f"🛒 仕入れ: {purchases['purchase_count']}件 / ¥{purchases['purchase_total']:,.0f}\n"
+        f"🤖 AIスキャン: {sessions['session_count']}回 / {sessions['scanned_total']}件スキャン / {sessions['queued_total']}件候補発見\n"
+        f"⏳ 承認待ち: {pending}件\n\n"
+        f"{'✅ 好調です！この調子で続けましょう' if sales['avg_rate'] >= 25 else '📈 利益率改善の余地あり。仕入れ単価を見直しましょう'}"
+    )
+
+    _send_line(line_token, msg)
+    print(f"[Monitor] weekly_report user={user_id} 完了")
+
+
 def weekly_report():
-    """週次レポート: 週間の売上・利益・エージェント活動をまとめてLINE送信"""
+    """週次レポート: 全ユーザーの週間売上・利益・エージェント活動をまとめてLINE送信"""
     print(f"[Monitor] weekly_report 開始: {datetime.now().isoformat()}")
     db = None
     try:
         db = _get_db()
-        settings = db.get_settings()
-        line_token = settings.get("line_token", "").strip()
-        if not line_token:
-            return
-
-        since = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
-
-        # 週間売上
-        sales = db.conn.execute("""
-            SELECT COUNT(*) as count,
-                   COALESCE(SUM(net_profit), 0) as total_profit,
-                   COALESCE(AVG(CASE WHEN sale_price > 0 THEN net_profit / sale_price * 100 END), 0) as avg_rate
-            FROM sales WHERE sale_date >= ?
-        """, (since,)).fetchone()
-
-        # 週間仕入れ
-        purchases = db.conn.execute(
-            "SELECT COUNT(*) as purchase_count, COALESCE(SUM(purchase_price), 0) as purchase_total"
-            " FROM purchases WHERE purchase_date >= ?",
-            (since,)
-        ).fetchone()
-
-        # エージェントの活動
-        sessions = db.conn.execute(
-            "SELECT COUNT(*) as session_count,"
-            " COALESCE(SUM(queued_count), 0) as queued_total,"
-            " COALESCE(SUM(scanned_count), 0) as scanned_total"
-            " FROM agent_sessions WHERE created_at >= ?",
-            (since,)
-        ).fetchone()
-
-        # 承認キュー
-        pending = db.conn.execute(
-            "SELECT COUNT(*) as pending_count FROM agent_approval_queue WHERE status = 'pending'"
-        ).fetchone()["pending_count"]
-
-        msg = (
-            f"\n📊 【週次レポート】{since} 〜 今日\n\n"
-            f"💰 売上: {sales['count']}件 / 利益 ¥{sales['total_profit']:,.0f} / 平均利益率 {sales['avg_rate']:.1f}%\n"
-            f"🛒 仕入れ: {purchases['purchase_count']}件 / ¥{purchases['purchase_total']:,.0f}\n"
-            f"🤖 AIスキャン: {sessions['session_count']}回 / {sessions['scanned_total']}件スキャン / {sessions['queued_total']}件候補発見\n"
-            f"⏳ 承認待ち: {pending}件\n\n"
-            f"{'✅ 好調です！この調子で続けましょう' if sales['avg_rate'] >= 25 else '📈 利益率改善の余地あり。仕入れ単価を見直しましょう'}"
-        )
-
-        _send_line(line_token, msg)
-        print(f"[Monitor] weekly_report 完了")
-
+        for user_id in _get_all_user_ids(db):
+            try:
+                _weekly_report_for_user(db, user_id)
+            except Exception as e:
+                print(f"[Monitor] weekly_report user={user_id} エラー: {e}")
     except Exception as e:
         print(f"[Monitor] weekly_report エラー: {e}")
     finally:

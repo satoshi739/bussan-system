@@ -843,13 +843,13 @@ class HighRoiScanRequest(BaseModel):
 
 
 @app.post("/api/notify/high-roi-scan")
-async def notify_high_roi_scan(body: HighRoiScanRequest):
+async def notify_high_roi_scan(body: HighRoiScanRequest, user_id: str = Depends(get_user_id)):
     """
     国内転売スキャンを実行し、条件を満たす高ROI商品をLINEに通知する。
     min_roi: 最低ROI%（デフォルト50%）
     min_profit_jpy: 最低純利益額（デフォルト¥2,000）
     """
-    settings = db.get_settings()
+    settings = db.get_settings(user_id=user_id)
     token = settings.get('line_token', '')
     if not token:
         raise HTTPException(400, 'LINE tokenが設定されていません。設定ページでLINE Notifyトークンを登録してください。')
@@ -2887,7 +2887,7 @@ def ai_research(body: AIResearchRequest, user_id: str = Depends(get_user_id)):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 @app.get("/api/reports/monthly")
-def get_monthly_report(month: Optional[str] = None):
+def get_monthly_report(month: Optional[str] = None, user_id: str = Depends(get_user_id)):
     """月次レポートを生成して返す"""
     from datetime import datetime, timedelta
 
@@ -2904,29 +2904,29 @@ def get_monthly_report(month: Optional[str] = None):
                COALESCE(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100), 0) as avg_rate,
                COALESCE(SUM(s.sale_price), 0) as total_revenue
         FROM sales s
-        WHERE to_char(s.sale_date, 'YYYY-MM') = ?
-    """, (month,)).fetchone()
+        WHERE s.user_id = ? AND to_char(s.sale_date, 'YYYY-MM') = ?
+    """, (user_id, month,)).fetchone()
 
     prev = db.conn.execute("""
         SELECT COUNT(*) as sale_count,
                COALESCE(SUM(net_profit), 0) as total_profit
-        FROM sales WHERE to_char(sale_date, 'YYYY-MM') = ?
-    """, (prev_month,)).fetchone()
+        FROM sales WHERE user_id = ? AND to_char(sale_date, 'YYYY-MM') = ?
+    """, (user_id, prev_month,)).fetchone()
 
     purchases = db.conn.execute("""
         SELECT COUNT(*) as count,
                COALESCE(SUM(purchase_price + purchase_shipping), 0) as invested
-        FROM purchases WHERE to_char(purchase_date, 'YYYY-MM') = ?
-    """, (month,)).fetchone()
+        FROM purchases WHERE user_id = ? AND to_char(purchase_date, 'YYYY-MM') = ?
+    """, (user_id, month,)).fetchone()
 
     by_platform = db.conn.execute("""
         SELECT l.selling_platform, COUNT(*) as count,
                ROUND(SUM(s.net_profit)) as profit,
                ROUND(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100), 1) as avg_rate
         FROM sales s JOIN listings l ON s.listing_id = l.id
-        WHERE to_char(s.sale_date, 'YYYY-MM') = ?
+        WHERE s.user_id = ? AND to_char(s.sale_date, 'YYYY-MM') = ?
         GROUP BY l.selling_platform ORDER BY profit DESC
-    """, (month,)).fetchall()
+    """, (user_id, month,)).fetchall()
 
     best = db.conn.execute("""
         SELECT p.product_name, p.platform as buy_platform,
@@ -2934,12 +2934,12 @@ def get_monthly_report(month: Optional[str] = None):
                ROUND(s.net_profit / NULLIF(s.sale_price, 0) * 100, 1) as profit_rate
         FROM sales s JOIN listings l ON s.listing_id = l.id
         JOIN purchases p ON l.purchase_id = p.id
-        WHERE to_char(s.sale_date, 'YYYY-MM') = ?
+        WHERE p.user_id = ? AND to_char(s.sale_date, 'YYYY-MM') = ?
         ORDER BY s.net_profit DESC LIMIT 5
-    """, (month,)).fetchall()
+    """, (user_id, month,)).fetchall()
 
     goal_row = db.conn.execute(
-        "SELECT value FROM settings WHERE key = ?", (f"goal_{month}",)
+        "SELECT value FROM settings WHERE user_id = ? AND key = ?", (user_id, f"goal_{month}",)
     ).fetchone()
     goal = float(goal_row['value']) if goal_row else 0
 
@@ -2971,18 +2971,18 @@ def get_monthly_report(month: Optional[str] = None):
 
 
 @app.post("/api/reports/monthly/line")
-def send_monthly_report_line(month: Optional[str] = None):
+def send_monthly_report_line(month: Optional[str] = None, user_id: str = Depends(get_user_id)):
     """月次レポートをLINEに送信"""
     from datetime import datetime
     if not month:
         month = datetime.today().strftime('%Y-%m')
 
-    settings = db.get_settings()
+    settings = db.get_settings(user_id=user_id)
     token = settings.get('line_token', '')
     if not token:
         raise HTTPException(400, 'LINE tokenが設定されていません')
 
-    r = get_monthly_report(month)
+    r = get_monthly_report(month, user_id=user_id)
     s = r['summary']
 
     msg = f'\n📋 {month} 月次レポート\n\n'
@@ -3122,8 +3122,8 @@ def delete_vendor(vendor_id: int, user_id: str = Depends(get_user_id)):
     return {"ok": True}
 
 @app.post("/api/fulfillment/vendors/{vendor_id}/test")
-def test_vendor(vendor_id: int):
-    vendor = db.get_vendor(vendor_id)
+def test_vendor(vendor_id: int, user_id: str = Depends(get_user_id)):
+    vendor = db.get_vendor(vendor_id, user_id=user_id)
     if not vendor:
         raise HTTPException(404, "業者が見つかりません")
     v = dict(vendor)
@@ -3252,7 +3252,9 @@ def delete_fba_shipment(shipment_id: int, user_id: str = Depends(get_user_id)):
     return {"ok": True}
 
 @app.post("/api/fba/shipments/{shipment_id}/items")
-def add_fba_shipment_item(shipment_id: int, body: FbaShipmentItemCreate):
+def add_fba_shipment_item(shipment_id: int, body: FbaShipmentItemCreate, user_id: str = Depends(get_user_id)):
+    if not db.get_fba_shipment(shipment_id, user_id=user_id):
+        raise HTTPException(403, "このFBA納品プランへのアクセス権限がありません")
     data = body.model_dump()
     data["shipment_id"] = shipment_id
     # FNSKU が未設定なら自動生成
@@ -3267,13 +3269,27 @@ def add_fba_shipment_item(shipment_id: int, body: FbaShipmentItemCreate):
     return {"id": new_id, "fnsku": data["fnsku"], "sku": data["sku"]}
 
 @app.patch("/api/fba/shipment-items/{item_id}")
-def update_fba_shipment_item(item_id: int, body: FbaShipmentItemUpdate):
+def update_fba_shipment_item(item_id: int, body: FbaShipmentItemUpdate, user_id: str = Depends(get_user_id)):
+    item_row = db.conn.execute(
+        "SELECT shipment_id FROM fba_shipment_items WHERE id = %s", (item_id,)
+    ).fetchone()
+    if not item_row:
+        raise HTTPException(404, "アイテムが見つかりません")
+    if not db.get_fba_shipment(item_row["shipment_id"], user_id=user_id):
+        raise HTTPException(403, "このアイテムへのアクセス権限がありません")
     data = {k: v for k, v in body.model_dump().items() if v is not None}
     db.update_fba_shipment_item(item_id, data)
     return {"ok": True}
 
 @app.delete("/api/fba/shipment-items/{item_id}")
-def delete_fba_shipment_item(item_id: int):
+def delete_fba_shipment_item(item_id: int, user_id: str = Depends(get_user_id)):
+    item_row = db.conn.execute(
+        "SELECT shipment_id FROM fba_shipment_items WHERE id = %s", (item_id,)
+    ).fetchone()
+    if not item_row:
+        raise HTTPException(404, "アイテムが見つかりません")
+    if not db.get_fba_shipment(item_row["shipment_id"], user_id=user_id):
+        raise HTTPException(403, "このアイテムへのアクセス権限がありません")
     db.delete_fba_shipment_item(item_id)
     return {"ok": True}
 
@@ -3585,6 +3601,8 @@ def approve_queue_item(item_id: int, user_id: str = Depends(get_user_id)):
     item = db.get_approval_queue_item(item_id)
     if not item:
         raise HTTPException(404, "アイテムが見つかりません")
+    if item.get("user_id") and item["user_id"] != user_id:
+        raise HTTPException(403, "このアイテムへのアクセス権限がありません")
     if item["status"] != "pending":
         raise HTTPException(400, f"このアイテムはすでに{item['status']}です")
 
@@ -3903,7 +3921,7 @@ _ADMIN_USER_ID = _os.environ.get("ADMIN_USER_ID", "")
 @app.get("/api/admin/user-stats")
 def get_admin_user_stats(user_id: str = Depends(get_user_id)):
     """全ユーザーの仕入れ・売上統計（管理者用）"""
-    if _ADMIN_USER_ID and user_id != _ADMIN_USER_ID:
+    if not _ADMIN_USER_ID or user_id != _ADMIN_USER_ID:
         raise HTTPException(403, "管理者のみアクセス可能です")
     rows = db.conn.execute("""
         SELECT
