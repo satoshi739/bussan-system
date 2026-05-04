@@ -424,13 +424,22 @@ def create_sale(body: SaleCreate, user_id: str = Depends(get_user_id)):
     return {"id": sid}
 
 @app.post("/api/sales/simple")
-def create_sale_simple(body: SimpleSaleCreate):
+def create_sale_simple(body: SimpleSaleCreate, user_id: str = Depends(get_user_id)):
     from datetime import datetime
+    purchase = db.conn.execute(
+        "SELECT id FROM purchases WHERE id = %s AND user_id = %s", (body.purchase_id, user_id)
+    ).fetchone()
+    if not purchase:
+        raise HTTPException(403, "この仕入れにアクセスする権限がありません")
     net_profit = db.record_sale_simple(body.purchase_id, body.sale_price, body.sell_platform)
     month = datetime.today().strftime("%Y-%m")
     row = db.conn.execute(
-        "SELECT COALESCE(SUM(net_profit), 0) as total FROM sales WHERE to_char(sale_date, 'YYYY-MM') = ?",
-        (month,)
+        """SELECT COALESCE(SUM(s.net_profit), 0) as total
+           FROM sales s
+           JOIN listings l ON s.listing_id = l.id
+           JOIN purchases p ON l.purchase_id = p.id
+           WHERE p.user_id = %s AND to_char(s.sale_date, 'YYYY-MM') = %s""",
+        (user_id, month)
     ).fetchone()
     monthly_profit = float(row["total"]) if row else 0.0
     return {"net_profit": net_profit, "monthly_profit": monthly_profit}

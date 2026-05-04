@@ -32,14 +32,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // イベントの重複チェック
-    const existing = await prisma.stripeEvent.findUnique({
-      where: { eventId: event.id },
-    });
-    if (existing) {
+    // イベントの重複チェック（atomic: unique制約違反をキャッチ）
+    try {
+      await prisma.stripeEvent.create({ data: { eventId: event.id } });
+    } catch {
+      // unique制約違反 = 既処理（レースコンディション含む）
       return NextResponse.json({ received: true });
     }
-    await prisma.stripeEvent.create({ data: { eventId: event.id } });
 
     switch (event.type) {
       case "checkout.session.completed": {
@@ -67,6 +66,8 @@ export async function POST(req: NextRequest) {
         await handlePaymentFailed(invoice);
         break;
       }
+      default:
+        console.log(`[webhook] unhandled event type: ${event.type}`);
     }
   } catch (err) {
     Sentry.captureException(err, { tags: { context: "stripe_webhook" } });

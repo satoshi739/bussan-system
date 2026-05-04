@@ -95,6 +95,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.sessionKey = await createSession(user.id as string);
         } catch (error) {
           console.error("[auth] createSession error:", error);
+          return null; // セッション追跡失敗時は再ログインを強制
         }
       }
 

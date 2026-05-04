@@ -420,9 +420,9 @@ function BulkSimTab({ domestic, overseas }: { domestic: [string, PlatformInfo][]
   const totalCost = qty * ((Number(form.purchase_price) || 0) + (Number(form.purchase_shipping) || 0));
   const profitPerItem = perItem ? perItem.gross_profit : 0;
 
-  // 損益分岐点
+  // 損益分岐点: qty個仕入れた場合、何個売れば総コストを回収できるか
   const breakEvenQty = perItem && profitPerItem > 0
-    ? Math.ceil((Number(form.purchase_price) + (Number(form.purchase_shipping) || 0)) / profitPerItem)
+    ? Math.ceil(totalCost / profitPerItem)
     : null;
 
   const SCENARIOS = [30, 50, 70, 100];

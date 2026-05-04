@@ -51,8 +51,8 @@ export default function AlertsPage() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {alerts.map((a, i) => (
-            <div key={i} style={{
+          {alerts.map((a) => (
+            <div key={a.keyword} style={{
               ...card,
               borderColor: a.direction === "down" ? "rgba(212,175,55,0.35)" : "rgba(255,100,100,0.35)",
             }}>

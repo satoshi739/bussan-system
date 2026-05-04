@@ -1,7 +1,8 @@
 "use client";
 
 import RequirePlan from "@/components/RequirePlan";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { searchMarket, getPriceHistory, calcMaxPurchase } from "@/lib/api";
 import { toast } from "@/components/Toast";
@@ -172,6 +173,7 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
 
 // ─── メインコンポーネント ─────────────────────────────────────
 function SearchPageContent() {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<"domestic" | "global">("domestic");
   const [keyword, setKeyword] = useState("");
 
@@ -255,6 +257,15 @@ function SearchPageContent() {
     }
   }, []);
 
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      setKeyword(q);
+      doDomSearch(q);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const calcMax = async () => {
     if (!stats) return;
     try {
@@ -274,7 +285,7 @@ function SearchPageContent() {
     try {
       const data = await req<SearchResult>("/api/global/all-platforms", {
         method: "POST",
-        body: JSON.stringify({ keyword: kw.trim(), buy_price_jpy: bp ? parseFloat(bp) : null, limit: 5 }),
+        body: JSON.stringify({ keyword: kw.trim(), buy_price_jpy: bp && Number(bp) > 0 ? parseFloat(bp) : null, limit: 5 }),
       });
       setGlobResult(data);
     } catch {
@@ -588,7 +599,9 @@ function SearchPageContent() {
 export default function SearchPage() {
   return (
     <RequirePlan requiredPlan="STANDARD" featureName="相場検索">
-      <SearchPageContent />
+      <Suspense>
+        <SearchPageContent />
+      </Suspense>
     </RequirePlan>
   );
 }

@@ -83,9 +83,22 @@ function AnalyticsTab() {
 
   if (noData) {
     return (
-      <div style={{ ...card, textAlign: "center", padding: 60 }}>
+      <div style={{ ...card, textAlign: "center", padding: "48px 40px" }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
-        <div style={{ color: "#8A8278" }}>売上データが溜まると<br />ここに分析が表示されます</div>
+        <div style={{ color: "#F5F0E8", fontWeight: 700, fontSize: 16, marginBottom: 8 }}>まだ分析データがありません</div>
+        <div style={{ color: "#8A8278", fontSize: 13, lineHeight: 1.9, marginBottom: 20 }}>
+          データが少ない段階では分析は表示されません。<br />
+          「仕入れ管理」で仕入れを登録し、「在庫・出品管理」で売上を記録すると<br />
+          プラットフォーム別利益・ベスト商品ランキングが自動で表示されます。
+        </div>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          <a href="/purchases" style={{ display: "inline-block", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "10px 22px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+            仕入れを登録する →
+          </a>
+          <a href="/sales" style={{ display: "inline-block", background: "transparent", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 10, color: "#8A8278", padding: "10px 22px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+            売上を記録する →
+          </a>
+        </div>
       </div>
     );
   }

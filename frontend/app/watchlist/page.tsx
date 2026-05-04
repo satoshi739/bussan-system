@@ -3,7 +3,8 @@
 import RequirePlan from "@/components/RequirePlan";
 import { useEffect, useState } from "react";
 import { getWatchlist, addWatchlist, removeWatchlist, calcMaxPurchase } from "@/lib/api";
-import { Plus, Trash2, Target } from "lucide-react";
+import Link from "next/link";
+import { Plus, Trash2, Target, Search } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
@@ -130,9 +131,18 @@ function WatchlistPageContent() {
                     </div>
                   </div>
 
-                  <button onClick={() => handleDelete(item.keyword)} style={{ background: "transparent", border: "1px solid rgba(255,80,80,0.15)", borderRadius: 8, color: "#ff6666", cursor: "pointer", padding: "6px 8px", flexShrink: 0 }}>
-                    <Trash2 size={14} />
-                  </button>
+                  <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                    <Link
+                      href={`/search?q=${encodeURIComponent(item.keyword)}`}
+                      style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,30,50,0.6)", border: "1px solid rgba(100,170,255,0.2)", borderRadius: 8, color: "#66aaff", cursor: "pointer", padding: "6px 10px", textDecoration: "none", fontSize: 12, fontWeight: 600 }}
+                      title="相場を検索"
+                    >
+                      <Search size={13} /> 相場
+                    </Link>
+                    <button onClick={() => handleDelete(item.keyword)} style={{ background: "transparent", border: "1px solid rgba(255,80,80,0.15)", borderRadius: 8, color: "#ff6666", cursor: "pointer", padding: "6px 8px" }}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );

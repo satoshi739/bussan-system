@@ -218,8 +218,64 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* ── LINE通知（シンプル設定） ── */}
       <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 600 }}>
+
+        {/* LINE通知設定（常に表示） */}
+        <div style={card}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <Bell size={16} color="#D4AF37" />
+            <span style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0" }}>LINE通知</span>
+            {savedToken && <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>接続済み</span>}
+          </div>
+          <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>
+            LINE Notifyのトークンを設定すると、売れ残り警告や日次レポートをLINEで受け取れます。
+          </div>
+
+          <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 12 }}>
+            <div style={{ color: "#7deeaa", fontWeight: 700, marginBottom: 8 }}>トークンの取得方法</div>
+            <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
+              1. <span style={{ color: "#66ccff" }}>notify-bot.line.me</span> にアクセス<br />
+              2. LINEでログイン<br />
+              3.「トークン生成」→ トークン名を入力<br />
+              4. 通知先を「1:1でLINE Notifyから通知」を選択<br />
+              5. 生成されたトークンをコピーして貼り付け
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <label style={lbl}>LINE Notify トークン</label>
+            <input type="password" style={inp} value={lineToken} onChange={e => setLineToken(e.target.value)} placeholder="トークンを貼り付け..." />
+          </div>
+          <button onClick={handleTest} disabled={testing || !lineToken} style={{ width: "100%", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "11px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: testing || !lineToken ? 0.5 : 1 }}>
+            {testing ? "送信中..." : "接続テスト（テストメッセージ送信）"}
+          </button>
+        </div>
+
+        {/* 手動通知（LINE接続済みの場合のみ表示） */}
+        {savedToken && (
+          <div style={card}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <Send size={16} color="#66ccff" />
+              <span style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0" }}>手動通知</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button onClick={handleNotifyStale} disabled={sending} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(28,10,0,0.8)", border: "1px solid rgba(255,150,0,0.3)", borderRadius: 10, color: "#ffaa44", padding: "14px 18px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+                <AlertTriangle size={18} />
+                <div style={{ textAlign: "left" }}>
+                  <div>売れ残り警告を今すぐ送信</div>
+                  <div style={{ fontSize: 11, fontWeight: 400, color: "#aa7733", marginTop: 2 }}>14日以上売れていない商品をLINEに通知</div>
+                </div>
+              </button>
+              <button onClick={handleNotifyDaily} disabled={sending} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(0,20,40,0.8)", border: "1px solid rgba(100,200,255,0.2)", borderRadius: 10, color: "#66ccff", padding: "14px 18px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+                <Send size={18} />
+                <div style={{ textAlign: "left" }}>
+                  <div>日次レポートを今すぐ送信</div>
+                  <div style={{ fontSize: 11, fontWeight: 400, color: "#4488aa", marginTop: 2 }}>今日の売上・今月累計・売れ残り数をLINEに通知</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── 詳細設定（折りたたみ） ── */}
         <div>
@@ -228,7 +284,7 @@ export default function SettingsPage() {
             style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 10, color: "#8A8278", padding: "12px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: showAdvanced ? 14 : 0 }}
           >
             {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            詳細設定（プラットフォーム連携・通知）
+            詳細設定（プラットフォームAPI連携）
             <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 400 }}>任意 — 設定しなくても使えます</span>
           </button>
           {showAdvanced && <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -584,62 +640,6 @@ export default function SettingsPage() {
           </button>
         </div>
 
-        {/* LINE通知設定 */}
-        <div style={card}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <Bell size={16} color="#D4AF37" />
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0" }}>LINE通知</span>
-            {savedToken && <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>接続済み</span>}
-          </div>
-          <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>
-            LINE Notifyのトークンを設定すると、売れ残り警告や日次レポートをLINEで受け取れます。
-          </div>
-
-          <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 12 }}>
-            <div style={{ color: "#7deeaa", fontWeight: 700, marginBottom: 8 }}>トークンの取得方法</div>
-            <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
-              1. <span style={{ color: "#66ccff" }}>notify-bot.line.me</span> にアクセス<br />
-              2. LINEでログイン<br />
-              3.「トークン生成」→ トークン名を入力<br />
-              4. 通知先を「1:1でLINE Notifyから通知」を選択<br />
-              5. 生成されたトークンをコピーして貼り付け
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>LINE Notify トークン</label>
-            <input type="password" style={inp} value={lineToken} onChange={e => setLineToken(e.target.value)} placeholder="トークンを貼り付け..." />
-          </div>
-          <button onClick={handleTest} disabled={testing || !lineToken} style={{ width: "100%", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "11px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: testing || !lineToken ? 0.5 : 1 }}>
-            {testing ? "送信中..." : "接続テスト（テストメッセージ送信）"}
-          </button>
-        </div>
-
-        {/* 手動通知 */}
-        {savedToken && (
-          <div style={card}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-              <Send size={16} color="#66ccff" />
-              <span style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0" }}>手動通知</span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <button onClick={handleNotifyStale} disabled={sending} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(28,10,0,0.8)", border: "1px solid rgba(255,150,0,0.3)", borderRadius: 10, color: "#ffaa44", padding: "14px 18px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
-                <AlertTriangle size={18} />
-                <div style={{ textAlign: "left" }}>
-                  <div>売れ残り警告を今すぐ送信</div>
-                  <div style={{ fontSize: 11, fontWeight: 400, color: "#aa7733", marginTop: 2 }}>14日以上売れていない商品をLINEに通知</div>
-                </div>
-              </button>
-              <button onClick={handleNotifyDaily} disabled={sending} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(0,20,40,0.8)", border: "1px solid rgba(100,200,255,0.2)", borderRadius: 10, color: "#66ccff", padding: "14px 18px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
-                <Send size={18} />
-                <div style={{ textAlign: "left" }}>
-                  <div>日次レポートを今すぐ送信</div>
-                  <div style={{ fontSize: 11, fontWeight: 400, color: "#4488aa", marginTop: 2 }}>今日の売上・今月累計・売れ残り数をLINEに通知</div>
-                </div>
-              </button>
-            </div>
-          </div>
-        )}
           </div>}
         </div>
 

@@ -109,11 +109,11 @@ export default function ForgotPage() {
             </div>
           </div>
           <div style={{ fontSize: 22, fontWeight: 900, color: C.t1, marginBottom: 10, letterSpacing: "-0.02em" }}>
-            ログインでお困りですか？
+            ログインリンクを再送する
           </div>
           <div style={{ fontSize: 13, color: C.t3, lineHeight: 1.8 }}>
             登録したメールアドレスを入力してください。<br />
-            ログインリンクをお送りします。
+            パスワード不要のログインリンクをお送りします。
           </div>
         </div>
 
@@ -176,7 +176,7 @@ export default function ForgotPage() {
           </Link>
           <div style={{ fontSize: 12, color: C.t4, textAlign: "center", lineHeight: 1.7 }}>
             それでもログインできない場合は<br />
-            <a href="mailto:satoshi6667s@gmail.com" style={{ color: C.gold, textDecoration: "none" }}>
+            <a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@upjapan.co.jp"}`} style={{ color: C.gold, textDecoration: "none" }}>
               サポートへお問い合わせください
             </a>
           </div>

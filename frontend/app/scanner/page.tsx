@@ -47,7 +47,7 @@ const PLATFORMS = [
 ];
 
 const RATING = {
-  excellent: { label: "おすすめ",        color: "#D4AF37", bg: "rgba(212,175,55,0.12)" },
+  excellent: { label: "強くおすすめ",    color: "#D4AF37", bg: "rgba(212,175,55,0.12)" },
   good:      { label: "おすすめ",        color: "#F0D060", bg: "rgba(212,175,55,0.1)"  },
   ok:        { label: "普通",            color: "#ffcc44", bg: "rgba(255,204,68,0.1)"  },
   marginal:  { label: "やめた方がいい",  color: "#ff9944", bg: "rgba(255,153,68,0.1)" },

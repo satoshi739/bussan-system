@@ -282,10 +282,10 @@ export default function LoginPage() {
               メールが届かない場合はスパムフォルダをご確認ください
             </div>
             <button
-              onClick={() => { setSent(false); setMode("password"); }}
+              onClick={() => { setSent(false); }}
               style={{ marginTop: 20, background: "transparent", border: "none", color: "#8A8278", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}
             >
-              パスワードでログインする
+              別のメールアドレスで再送する
             </button>
           </div>
         </div>
@@ -376,12 +376,17 @@ export default function LoginPage() {
             </form>
           )}
 
-          <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(212,175,55,0.1)", textAlign: "center", display: "flex", justifyContent: "center", gap: 24 }}>
-            <Link href="/login/forgot" style={{ fontSize: 13, color: "#6A6058", textDecoration: "none" }}>
-              ログインできない方
-            </Link>
-            <Link href="/pricing" style={{ fontSize: 13, color: "#8A8278", textDecoration: "none" }}>
-              プランを確認する →
+          <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(212,175,55,0.1)", textAlign: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 14 }}>
+              <Link href="/login/forgot" style={{ fontSize: 13, color: "#6A6058", textDecoration: "none" }}>
+                ログインできない方
+              </Link>
+              <Link href="/pricing" style={{ fontSize: 13, color: "#8A8278", textDecoration: "none" }}>
+                プランを確認する →
+              </Link>
+            </div>
+            <Link href="/pricing" style={{ display: "inline-block", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "11px 28px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+              アカウントをお持ちでない方 — 無料で始める →
             </Link>
           </div>
         </div>

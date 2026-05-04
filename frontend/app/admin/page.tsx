@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Users, TrendingUp, Crown, Package, RefreshCw, AlertTriangle, Activity, ShoppingCart } from "lucide-react";
+import { Users, TrendingUp, Crown, RefreshCw, AlertTriangle, Activity } from "lucide-react";
 
 interface UserStat {
   id: string;
@@ -53,7 +53,7 @@ export default function AdminPage() {
     if (status === "unauthenticated") { router.push("/login"); return; }
     if (status === "authenticated" && session.user.role !== "ADMIN") { router.push("/"); return; }
     if (status === "authenticated") fetchStats();
-  }, [status]);
+  }, [status, router, session?.user?.role]);
 
   const fetchStats = async () => {
     setLoading(true); setError("");

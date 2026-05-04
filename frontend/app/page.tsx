@@ -394,20 +394,31 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Empty-data banner — ログイン済み・データ0件 */}
+      {/* Empty-data banner — ログイン済み・データ0件 or バックエンドエラー */}
       {showEmptyBanner && (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: `linear-gradient(135deg, #0f0d05, #181408)`, border: `1px dashed ${C.gold}35`, borderRadius: 10, padding: "14px 20px", marginBottom: 16 }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>🚀</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: error ? "rgba(80,20,20,0.4)" : `linear-gradient(135deg, #0f0d05, #181408)`, border: `1px dashed ${error ? "rgba(255,80,80,0.4)" : C.gold + "35"}`, borderRadius: 10, padding: "14px 20px", marginBottom: 16 }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>{error ? "⚠️" : "🚀"}</span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, marginBottom: 2 }}>仕入れを登録すると、このダッシュボードに実データが反映されます</div>
-            <div style={{ fontSize: 11, color: C.t3 }}>今は月商¥98,400・利益率31.5%のサンプルを表示中。データを入れると自動で切り替わります。</div>
+            {error ? (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#ff9988", marginBottom: 2 }}>バックエンドに接続できないため、サンプルデータを表示しています</div>
+                <div style={{ fontSize: 11, color: C.t3 }}>しばらく待ってからページをリロードしてください。</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, marginBottom: 2 }}>仕入れを登録すると、このダッシュボードに実データが反映されます</div>
+                <div style={{ fontSize: 11, color: C.t3 }}>今は月商¥98,400・利益率31.5%のサンプルを表示中。データを入れると自動で切り替わります。</div>
+              </>
+            )}
           </div>
+          {!error && (
           <Link
             href="/purchases"
             style={{ display: "flex", alignItems: "center", gap: 5, background: `linear-gradient(135deg, #1E1608, #2A1E08)`, border: `1px solid ${C.gold}60`, borderRadius: 8, color: C.gold, padding: "9px 18px", fontSize: 12, fontWeight: 800, textDecoration: "none", whiteSpace: "nowrap", boxShadow: `0 0 12px ${C.gold}15` }}
           >
             仕入れを登録する →
           </Link>
+          )}
         </div>
       )}
 

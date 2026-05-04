@@ -81,7 +81,7 @@ const BOTTOM_TABS = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { plan } = usePlan();
+  const { plan, error: planError } = usePlan();
   const [mobileMenu, setMobileMenu] = useState(false);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -212,15 +212,15 @@ export default function Sidebar() {
               textDecoration: "none",
               padding: "9px 12px",
               borderRadius: 12,
-              border: `1px solid ${T.bd}`,
-              background: `${T.gold}06`,
+              border: `1px solid ${planError ? "rgba(255,100,50,0.3)" : T.bd}`,
+              background: planError ? "rgba(255,100,50,0.05)" : `${T.gold}06`,
               marginBottom: 8,
               transition: "border-color 0.15s, background 0.15s",
             }}
           >
-            <CreditCard size={11} color={PLAN_COLORS[plan] ?? T.t3} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: PLAN_COLORS[plan] ?? T.t3, letterSpacing: "0.05em" }}>
-              {PLAN_LABELS[plan] ?? plan} プラン
+            <CreditCard size={11} color={planError ? "#ff9966" : (PLAN_COLORS[plan] ?? T.t3)} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: planError ? "#ff9966" : (PLAN_COLORS[plan] ?? T.t3), letterSpacing: "0.05em" }}>
+              {planError ? "プラン取得失敗" : `${PLAN_LABELS[plan] ?? plan} プラン`}
             </span>
           </Link>
         )}

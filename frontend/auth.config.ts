@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 
-const PUBLIC_PATHS = ["/login", "/pricing", "/deals", "/api/auth", "/api/stripe/webhook", "/api/sentry-test"];
+const PUBLIC_PATHS = ["/login", "/pricing", "/deals", "/api/auth", "/api/stripe/webhook"];
 
 /**
  * Edge Runtime でも動くライトウェイトな設定
@@ -28,7 +28,7 @@ export const authConfig = {
       if (isPublic) return true;
       if (!isLoggedIn) {
         const loginUrl = new URL("/login", nextUrl);
-        loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+        loginUrl.searchParams.set("callbackUrl", nextUrl.pathname + nextUrl.search);
         return Response.redirect(loginUrl);
       }
       return true;

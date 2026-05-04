@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { Check, Zap, Building2, Gift, ChevronDown, ChevronUp } from "lucide-react";
 import { PLANS } from "@/lib/stripe";
 import { toast } from "@/components/Toast";
+import { usePlan } from "@/lib/usePlan";
 
 const card: React.CSSProperties = {
   background: "rgba(20,20,22,0.9)",
@@ -24,16 +25,16 @@ const proCard: React.CSSProperties = {
 
 // ── 機能比較表データ ──────────────────────────────────────
 const COMPARISON = [
-  { label: "仕入れ管理",           free: "30件まで",    pro: "無制限",   biz: "無制限"  },
-  { label: "利益計算（4種）",       free: true,         pro: true,       biz: true      },
-  { label: "利益スキャナー",        free: false,        pro: true,       biz: true      },
-  { label: "国内外 相場検索",       free: false,        pro: true,       biz: true      },
-  { label: "ウォッチリスト",        free: false,        pro: true,       biz: true      },
-  { label: "在庫・出品・売上管理",  free: false,        pro: true,       biz: true      },
-  { label: "AI アシスタント",       free: false,        pro: true,       biz: true      },
-  { label: "高度な分析レポート",    free: false,        pro: false,      biz: true      },
-  { label: "CSV エクスポート",      free: false,        pro: false,      biz: true      },
-  { label: "優先サポート",          free: false,        pro: false,      biz: true      },
+  { label: "仕入れ管理",           free: "30件まで",    standard: "無制限",   pro: "無制限"  },
+  { label: "利益計算（4種）",       free: true,         standard: true,       pro: true      },
+  { label: "利益スキャナー",        free: false,        standard: true,       pro: true      },
+  { label: "国内外 相場検索",       free: false,        standard: true,       pro: true      },
+  { label: "ウォッチリスト",        free: false,        standard: true,       pro: true      },
+  { label: "在庫・出品・売上管理",  free: false,        standard: true,       pro: true      },
+  { label: "AI アシスタント",       free: false,        standard: true,       pro: true      },
+  { label: "高度な分析レポート",    free: false,        standard: false,      pro: true      },
+  { label: "CSV エクスポート",      free: true,         standard: true,       pro: true      },
+  { label: "優先サポート",          free: false,        standard: false,      pro: true      },
 ];
 
 // ── FAQ データ ───────────────────────────────────────────
@@ -70,11 +71,20 @@ function CellVal({ val }: { val: boolean | string }) {
   return <span style={{ color: "#D4AF37", fontSize: 12, fontWeight: 700, fontFamily: "monospace" }}>{val}</span>;
 }
 
+function CurrentPlanBadge() {
+  return (
+    <div style={{ display: "inline-block", background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.4)", borderRadius: 20, padding: "3px 12px", fontSize: 11, fontWeight: 800, color: "#22c55e", marginTop: 6 }}>
+      ✓ 現在のプラン
+    </div>
+  );
+}
+
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { status } = useSession();
   const router = useRouter();
+  const { plan: currentPlan, loading: planLoading } = usePlan();
 
   const handleSubscribe = async (planKey: "STANDARD" | "PRO") => {
     if (status === "unauthenticated") {
@@ -158,6 +168,7 @@ export default function PricingPage() {
               </div>
               <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.FREE.name}</span>
             </div>
+            {!planLoading && status === "authenticated" && currentPlan === "FREE" && <CurrentPlanBadge />}
             <div style={{ marginBottom: 24 }}>
               <span style={{ fontSize: 36, fontWeight: 900, color: "#F5F0E8", fontFamily: "monospace" }}>¥0</span>
               <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
@@ -189,6 +200,7 @@ export default function PricingPage() {
               </div>
               <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.STANDARD.name}</span>
             </div>
+            {!planLoading && status === "authenticated" && currentPlan === "STANDARD" && <CurrentPlanBadge />}
             <div style={{ marginBottom: 8 }}>
               <span style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>¥{PLANS.STANDARD.price.toLocaleString()}</span>
               <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
@@ -223,6 +235,7 @@ export default function PricingPage() {
               </div>
               <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.PRO.name}</span>
             </div>
+            {!planLoading && status === "authenticated" && currentPlan === "PRO" && <CurrentPlanBadge />}
             <div style={{ marginBottom: 8 }}>
               <span style={{ fontSize: 36, fontWeight: 900, color: "#66aaff", fontFamily: "monospace" }}>¥{PLANS.PRO.price.toLocaleString()}</span>
               <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
@@ -302,8 +315,8 @@ export default function PricingPage() {
               >
                 <div style={{ padding: "13px 20px", fontSize: 13, color: "#C8C0B0" }}>{row.label}</div>
                 <div style={{ padding: "13px 20px", textAlign: "center" }}><CellVal val={row.free} /></div>
-                <div style={{ padding: "13px 20px", textAlign: "center", background: "rgba(212,175,55,0.03)" }}><CellVal val={row.pro} /></div>
-                <div style={{ padding: "13px 20px", textAlign: "center" }}><CellVal val={row.biz} /></div>
+                <div style={{ padding: "13px 20px", textAlign: "center", background: "rgba(212,175,55,0.03)" }}><CellVal val={row.standard} /></div>
+                <div style={{ padding: "13px 20px", textAlign: "center" }}><CellVal val={row.pro} /></div>
               </div>
             ))}
           </div>

@@ -8,7 +8,6 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datasource: {
     url: process.env["DATABASE_URL"],
     // @ts-expect-error directUrl is supported at runtime but missing from Prisma's type definition
