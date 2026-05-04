@@ -40,10 +40,10 @@ export default function PlanGate({ userPlan, requiredPlan, children, featureName
             <Lock size={28} color="#ffcc44" />
           </div>
         </div>
-        <div style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8", marginBottom: 10 }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#f5f1e8", marginBottom: 10 }}>
           {featureName ? `${featureName}は上位プランの機能です` : "上位プランが必要です"}
         </div>
-        <div style={{ fontSize: 14, color: "#8A8278", lineHeight: 1.8, marginBottom: 28 }}>
+        <div style={{ fontSize: 14, color: "#8a9ab8", lineHeight: 1.8, marginBottom: 28 }}>
           この機能は <strong style={{ color: "#ffcc44" }}>{PLAN_LABELS[requiredPlan]}プラン</strong> 以上でご利用いただけます。
           <br />
           現在のプラン: {PLAN_LABELS[userPlan]}
@@ -53,9 +53,9 @@ export default function PlanGate({ userPlan, requiredPlan, children, featureName
           style={{
             display: "inline-block",
             background: "linear-gradient(135deg,#1e1608,#2a1e08)",
-            border: "1px solid rgba(212,175,55,0.4)",
+            border: "1px solid rgba(201,169,107,0.40)",
             borderRadius: 10,
-            color: "#D4AF37",
+            color: "#c9a96b",
             padding: "12px 28px",
             fontSize: 14,
             fontWeight: 800,

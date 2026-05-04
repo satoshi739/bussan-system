@@ -1,13 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0c0b0a;
-  --surface: rgba(22, 20, 18, 0.97);
-  --border: rgba(212, 175, 55, 0.16);
-  --gold: #D4AF37;
-  --gold-dim: #9A7D25;
-  --text: #F5F0E8;
-  --text-muted: #8A8278;
+  /* UPJ LP 準拠カラーシステム — Deep Navy × Warm Gold × Azure */
+  --bg: #07101f;                       /* deep navy-black */
+  --surface: rgba(10, 21, 48, 0.97);  /* LP --ink */
+  --border: rgba(201, 169, 107, 0.16);
+  --gold: #c9a96b;                    /* LP --gold (warm muted) */
+  --gold-lt: #e6c87a;                 /* LP --gold-2 */
+  --gold-dim: #8a6d35;                /* LP --gold-deep */
+  --azure: #4a7fc1;                   /* LP --azure */
+  --azure-glow: #7eb0e8;
+  --text: #f5f1e8;                    /* LP --paper (cream) */
+  --text-muted: #8a9ab8;              /* navy-tinted muted */
 
   /* ── Radius scale ── */
   --r-xs:   6px;
@@ -28,8 +32,8 @@ body {
 
 body {
   background-image:
-    radial-gradient(ellipse at 18% 0%,   rgba(212, 175, 55, 0.055) 0%, transparent 42%),
-    radial-gradient(ellipse at 82% 100%, rgba(212, 175, 55, 0.025) 0%, transparent 38%);
+    radial-gradient(ellipse at 18% 0%,   rgba(74, 127, 193, 0.06) 0%, transparent 48%),
+    radial-gradient(ellipse at 82% 100%, rgba(201, 169, 107, 0.04) 0%, transparent 40%);
   background-attachment: fixed;
 }
 
@@ -37,11 +41,11 @@ body {
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.22);
+  background: rgba(201, 169, 107, 0.22);
   border-radius: var(--r-full);
   transition: background 0.2s;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.4); }
+::-webkit-scrollbar-thumb:hover { background: rgba(201, 169, 107, 0.4); }
 
 /* ── フォーム要素の基本スタイル ── */
 button {
@@ -53,7 +57,7 @@ input, select, textarea {
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.28);
+  box-shadow: 0 0 0 2px rgba(201, 169, 107, 0.28);
 }
 
 /* ═══ レスポンシブ・グリッドユーティリティ ═══ */

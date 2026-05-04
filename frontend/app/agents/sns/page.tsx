@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Share2, Copy, CheckCircle, RefreshCw } from "lucide-react";
-import { getAgentSNSContent, publishSNSContent, type AgentSNSContent } from "@/lib/api";
+import { Share2, Copy, CheckCircle, RefreshCw, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { getAgentSNSContent, publishSNSContent, generateSNSContent, type AgentSNSContent } from "@/lib/api";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
 const C = {
-  bg0: "#0a0a0b", bg1: "#141414", bg2: "#1c1c1e", bg3: "#242424",
-  t1: "#F5F0E8", t2: "#D4CCBC", t3: "#A09488", t4: "#5A5248",
-  gold: "#D4AF37", goldLt: "#F0D060", goldDm: "#9A7D25",
-  up: "#4ade80", dn: "#f87171", warn: "#fbbf24",
-  bd: "rgba(212,175,55,0.18)", bdSt: "rgba(212,175,55,0.38)",
+  bg0: "#07101f", bg1: "#0a1530", bg2: "#111e44", bg3: "#1a2956",
+  t1: "#f5f1e8", t2: "#e5d9bc", t3: "#8a9ab8", t4: "#4d6080",
+  gold: "#c9a96b", goldLt: "#e6c87a", goldDm: "#8a6d35",
+  azure: "#4a7fc1",
+  up: "#4ade80", dn: "#c46060", warn: "#c9993a",
+  bd: "rgba(201,169,107,0.18)", bdSt: "rgba(201,169,107,0.38)",
 };
 
 const card: React.CSSProperties = {
@@ -30,11 +31,24 @@ const POST_TYPE_LABELS: Record<string, string> = {
   sold: "✅ 売れた報告",
 };
 
+const DEFAULT_FORM = {
+  product_name: "",
+  buy_price: "",
+  sell_price: "",
+  buy_source: "eBay",
+  sell_platform: "メルカリ",
+  post_type: "listing" as "haul" | "listing" | "sold",
+  platforms: ["instagram", "twitter", "tiktok"] as string[],
+};
+
 export default function SNSPage() {
   const [contents, setContents] = useState<AgentSNSContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [copied, setCopied] = useState<number | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(DEFAULT_FORM);
+  const [generating, setGenerating] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -71,6 +85,48 @@ export default function SNSPage() {
     }
   };
 
+  const togglePlatform = (p: string) => {
+    setForm(f => ({
+      ...f,
+      platforms: f.platforms.includes(p) ? f.platforms.filter(x => x !== p) : [...f.platforms, p],
+    }));
+  };
+
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.product_name || !form.buy_price || !form.sell_price) {
+      toast("商品名・仕入れ値・販売価格を入力してください", "error");
+      return;
+    }
+    if (form.platforms.length === 0) {
+      toast("投稿するSNSを1つ以上選択してください", "error");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const buyNum = Number(form.buy_price);
+      const sellNum = Number(form.sell_price);
+      await generateSNSContent({
+        product_name: form.product_name,
+        buy_price: buyNum,
+        sell_price: sellNum,
+        profit_jpy: sellNum - buyNum,
+        buy_source: form.buy_source,
+        sell_platform: form.sell_platform,
+        post_type: form.post_type,
+        platforms: form.platforms,
+      });
+      toast("SNS投稿文を生成しました", "success");
+      setForm(DEFAULT_FORM);
+      setShowForm(false);
+      load();
+    } catch (e) {
+      toast(errMsg(e), "error");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const platforms = ["all", "instagram", "twitter", "tiktok"];
   const filtered = filter === "all" ? contents : contents.filter(c => c.platform === filter);
 
@@ -91,6 +147,124 @@ export default function SNSPage() {
         <button onClick={load} style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t3, padding: "8px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
           <RefreshCw size={14} /> 更新
         </button>
+      </div>
+
+      {/* 生成フォーム */}
+      <div style={{ ...card, marginBottom: 20 }}>
+        <button
+          onClick={() => setShowForm(v => !v)}
+          style={{ width: "100%", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, padding: 0 }}
+        >
+          <div style={{ background: `linear-gradient(135deg, #D4AF37, #F0D060)`, borderRadius: 8, padding: "6px 8px", display: "flex" }}>
+            <Sparkles size={16} color="#07101f" />
+          </div>
+          <span style={{ color: C.t1, fontSize: 15, fontWeight: 700, flex: 1, textAlign: "left" }}>SNS投稿を生成する</span>
+          {showForm ? <ChevronUp size={16} color={C.t3} /> : <ChevronDown size={16} color={C.t3} />}
+        </button>
+
+        {showForm && (
+          <form onSubmit={handleGenerate} style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={{ fontSize: 12, color: C.t3, display: "block", marginBottom: 6, fontWeight: 600 }}>商品名 *</label>
+                <input
+                  value={form.product_name}
+                  onChange={e => setForm(f => ({ ...f, product_name: e.target.value }))}
+                  placeholder="例: セイコー 5 SNXS79 自動巻き 中古"
+                  style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t1, padding: "10px 14px", fontSize: 13, outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: C.t3, display: "block", marginBottom: 6, fontWeight: 600 }}>仕入れ値（円） *</label>
+                <input
+                  type="number" value={form.buy_price}
+                  onChange={e => setForm(f => ({ ...f, buy_price: e.target.value }))}
+                  placeholder="例: 4200"
+                  style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t1, padding: "10px 14px", fontSize: 13, outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: C.t3, display: "block", marginBottom: 6, fontWeight: 600 }}>販売価格（円） *</label>
+                <input
+                  type="number" value={form.sell_price}
+                  onChange={e => setForm(f => ({ ...f, sell_price: e.target.value }))}
+                  placeholder="例: 12800"
+                  style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t1, padding: "10px 14px", fontSize: 13, outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: C.t3, display: "block", marginBottom: 6, fontWeight: 600 }}>仕入れ元</label>
+                <select
+                  value={form.buy_source}
+                  onChange={e => setForm(f => ({ ...f, buy_source: e.target.value }))}
+                  style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t1, padding: "10px 14px", fontSize: 13, outline: "none" }}
+                >
+                  {["eBay", "メルカリ", "ヤフオク", "Shopee", "店舗", "その他"].map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: C.t3, display: "block", marginBottom: 6, fontWeight: 600 }}>販売先</label>
+                <select
+                  value={form.sell_platform}
+                  onChange={e => setForm(f => ({ ...f, sell_platform: e.target.value }))}
+                  style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t1, padding: "10px 14px", fontSize: 13, outline: "none" }}
+                >
+                  {["メルカリ", "Amazon", "eBay", "ヤフオク", "楽天", "その他"].map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* 投稿タイプ */}
+            <div>
+              <label style={{ fontSize: 12, color: C.t3, display: "block", marginBottom: 8, fontWeight: 600 }}>投稿タイプ</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {([["haul", "🛒 仕入れ報告"], ["listing", "📦 出品告知"], ["sold", "✅ 売れた報告"]] as const).map(([v, l]) => (
+                  <button
+                    key={v} type="button"
+                    onClick={() => setForm(f => ({ ...f, post_type: v }))}
+                    style={{ flex: 1, background: form.post_type === v ? `${C.gold}22` : C.bg2, border: `1px solid ${form.post_type === v ? C.gold : C.bd}`, borderRadius: 8, color: form.post_type === v ? C.gold : C.t3, padding: "8px 6px", fontSize: 12, fontWeight: form.post_type === v ? 700 : 400, cursor: "pointer" }}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* SNSプラットフォーム */}
+            <div>
+              <label style={{ fontSize: 12, color: C.t3, display: "block", marginBottom: 8, fontWeight: 600 }}>投稿するSNS（複数選択可）</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {(["instagram", "twitter", "tiktok"] as const).map(p => {
+                  const meta = { instagram: { icon: "📸", label: "Instagram", color: "#E1306C" }, twitter: { icon: "🐦", label: "X", color: "#1DA1F2" }, tiktok: { icon: "🎵", label: "TikTok", color: "#69C9D0" } }[p];
+                  const active = form.platforms.includes(p);
+                  return (
+                    <button key={p} type="button" onClick={() => togglePlatform(p)}
+                      style={{ flex: 1, background: active ? `${meta.color}22` : C.bg2, border: `1px solid ${active ? meta.color : C.bd}`, borderRadius: 8, color: active ? meta.color : C.t3, padding: "8px 6px", fontSize: 12, fontWeight: active ? 700 : 400, cursor: "pointer" }}
+                    >
+                      {meta.icon} {meta.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 利益プレビュー */}
+            {form.buy_price && form.sell_price && (
+              <div style={{ background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 8, padding: "10px 14px", display: "flex", gap: 20, fontSize: 12 }}>
+                <span style={{ color: C.t3 }}>利益: <span style={{ color: C.up, fontWeight: 700, fontFamily: "monospace" }}>¥{(Number(form.sell_price) - Number(form.buy_price)).toLocaleString()}</span></span>
+                <span style={{ color: C.t3 }}>利益率: <span style={{ color: C.gold, fontWeight: 700, fontFamily: "monospace" }}>{Number(form.sell_price) > 0 ? ((Number(form.sell_price) - Number(form.buy_price)) / Number(form.sell_price) * 100).toFixed(1) : 0}%</span></span>
+              </div>
+            )}
+
+            <button
+              type="submit" disabled={generating}
+              style={{ background: generating ? C.bg2 : `linear-gradient(135deg, #D4AF37, #F0D060)`, border: "none", borderRadius: 9, color: generating ? C.t3 : "#07101f", padding: "13px 0", fontSize: 14, fontWeight: 800, cursor: generating ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+            >
+              <Sparkles size={15} />
+              {generating ? "AI生成中..." : "SNS投稿文を生成する"}
+            </button>
+          </form>
+        )}
       </div>
 
       {/* サマリー */}

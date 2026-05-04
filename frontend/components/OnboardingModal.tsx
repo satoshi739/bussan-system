@@ -9,28 +9,32 @@ const CHECKLIST_KEY = "bussan_checklist";
 
 const STEPS = [
   {
-    icon: <Radar size={32} color="#D4AF37" />,
-    title: "利益スキャナーで商品を探す",
-    desc: "キーワードを入力するだけで、国内外の相場を自動比較。利益が出る商品をワンクリックで発見できます。",
-    action: { label: "スキャナーを使う →", href: "/scanner" },
+    icon: <Radar size={32} color="#c9a96b" />,
+    title: "まず1商品をスキャンしてください",
+    desc: "商品名やキーワードを入力するだけ。eBay・メルカリの相場と利益率が30秒でわかります。最初の1回で使いやすさを実感できます。",
+    action: { label: "今すぐスキャンする →", href: "/scanner" },
+    primaryCta: true,
   },
   {
     icon: <span style={{ fontSize: 32 }}>📷</span>,
     title: "バーコードスキャンで即計算",
     desc: "スマホのカメラで商品バーコードを読み取るだけ。店頭・倉庫でその場で利益判定できます。",
     action: { label: "スキャンしてみる →", href: "/barcode" },
+    primaryCta: false,
   },
   {
-    icon: <ShoppingCart size={32} color="#D4AF37" />,
+    icon: <ShoppingCart size={32} color="#c9a96b" />,
     title: "仕入れを登録する",
     desc: "商品名・仕入価格・プラットフォームを入力するだけで自動管理がスタートします。",
     action: { label: "仕入れ管理へ →", href: "/purchases" },
+    primaryCta: false,
   },
   {
-    icon: <TrendingUp size={32} color="#D4AF37" />,
+    icon: <TrendingUp size={32} color="#c9a96b" />,
     title: "ダッシュボードで収益を確認",
     desc: "売上・利益・在庫をリアルタイムで一覧。月次グラフで成長トレンドを把握できます。",
     action: { label: "ダッシュボードへ →", href: "/" },
+    primaryCta: false,
   },
 ];
 
@@ -119,8 +123,8 @@ export default function OnboardingModal({ onComplete }: Props) {
       {/* Modal */}
       <div style={{
         position: "relative",
-        background: "#141414",
-        border: "1px solid rgba(212,175,55,0.3)",
+        background: "#0a1530",
+        border: "1px solid rgba(201,169,107,0.30)",
         borderRadius: 16,
         width: "100%",
         maxWidth: 520,
@@ -130,7 +134,7 @@ export default function OnboardingModal({ onComplete }: Props) {
         {/* Close */}
         <button
           onClick={onComplete}
-          style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "#8A8278", cursor: "pointer", padding: 4 }}
+          style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "#8a9ab8", cursor: "pointer", padding: 4 }}
         >
           <X size={18} />
         </button>
@@ -144,7 +148,7 @@ export default function OnboardingModal({ onComplete }: Props) {
                 height: 3,
                 flex: 1,
                 borderRadius: 2,
-                background: i <= step ? "#D4AF37" : "rgba(212,175,55,0.18)",
+                background: i <= step ? "#c9a96b" : "rgba(201,169,107,0.18)",
                 transition: "background 0.3s",
               }}
             />
@@ -158,7 +162,7 @@ export default function OnboardingModal({ onComplete }: Props) {
             alignItems: "center",
             justifyContent: "center",
             background: "rgba(212,175,55,0.1)",
-            border: "1px solid rgba(212,175,55,0.25)",
+            border: "1px solid rgba(201,169,107,0.25)",
             borderRadius: 16,
             width: 72,
             height: 72,
@@ -166,13 +170,13 @@ export default function OnboardingModal({ onComplete }: Props) {
           }}>
             {STEPS[step].icon}
           </div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#D4AF37", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#c9a96b", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>
             STEP {step + 1} / {STEPS.length}
           </div>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: "#F5F0E8", margin: "0 0 12px", letterSpacing: "-0.02em" }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: "#f5f1e8", margin: "0 0 12px", letterSpacing: "-0.02em" }}>
             {STEPS[step].title}
           </h2>
-          <p style={{ fontSize: 14, color: "#A09488", lineHeight: 1.8, margin: 0 }}>
+          <p style={{ fontSize: 14, color: "#8a9ab8", lineHeight: 1.8, margin: 0 }}>
             {STEPS[step].desc}
           </p>
         </div>
@@ -180,8 +184,8 @@ export default function OnboardingModal({ onComplete }: Props) {
         {/* Video (step 0 only) */}
         {step === 0 && (
           <div style={{
-            background: "#0a0a0b",
-            border: "1px solid rgba(212,175,55,0.18)",
+            background: "#07101f",
+            border: "1px solid rgba(201,169,107,0.18)",
             borderRadius: 10,
             padding: "14px 18px",
             marginBottom: 24,
@@ -199,19 +203,19 @@ export default function OnboardingModal({ onComplete }: Props) {
               justifyContent: "center",
               flexShrink: 0,
             }}>
-              <Play size={18} color="#D4AF37" fill="#D4AF37" />
+              <Play size={18} color="#c9a96b" fill="#c9a96b" />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 2 }}>3分で使い方を確認</div>
-              <div style={{ fontSize: 11, color: "#8A8278" }}>物販チェッカー 入門ガイド動画</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#d0d8e8", marginBottom: 2 }}>3分で使い方を確認</div>
+              <div style={{ fontSize: 11, color: "#8a9ab8" }}>物販チェッカー 入門ガイド動画</div>
             </div>
             <button
               onClick={() => setVideoPlaying(!videoPlaying)}
               style={{
-                background: "rgba(212,175,55,0.15)",
-                border: "1px solid rgba(212,175,55,0.3)",
+                background: "rgba(201,169,107,0.15)",
+                border: "1px solid rgba(201,169,107,0.30)",
                 borderRadius: 7,
-                color: "#D4AF37",
+                color: "#c9a96b",
                 fontSize: 11,
                 fontWeight: 700,
                 padding: "6px 14px",
@@ -224,73 +228,100 @@ export default function OnboardingModal({ onComplete }: Props) {
         )}
 
         {/* Navigation */}
-        <div style={{ display: "flex", gap: 10 }}>
-          {step > 0 && (
-            <button
-              onClick={() => setStep(s => s - 1)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                background: "none",
-                border: "1px solid rgba(212,175,55,0.2)",
-                borderRadius: 9,
-                color: "#8A8278",
-                padding: "11px 18px",
-                fontSize: 13,
-                cursor: "pointer",
-              }}
-            >
-              <ChevronLeft size={14} /> 戻る
-            </button>
-          )}
-          <div style={{ flex: 1 }} />
-          {isLast ? (
-            <button
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {/* step 0: スキャナーへの直接CTA */}
+          {step === 0 && (
+            <Link
+              href={STEPS[0].action.href}
               onClick={onComplete}
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 6,
-                background: "linear-gradient(135deg,#1E1608,#2A1E08)",
-                border: "1px solid rgba(212,175,55,0.5)",
-                borderRadius: 9,
-                color: "#D4AF37",
-                padding: "11px 24px",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
+                justifyContent: "center",
+                gap: 8,
+                background: "linear-gradient(135deg,#0a1530,#111e44)",
+                border: "2px solid rgba(201,169,107,0.60)",
+                borderRadius: 10,
+                color: "#c9a96b",
+                padding: "14px 24px",
+                fontSize: 15,
+                fontWeight: 800,
+                textDecoration: "none",
+                letterSpacing: "0.02em",
+                boxShadow: "0 0 20px rgba(201,169,107,0.18)",
               }}
             >
-              <CheckCircle size={14} /> 使い始める
-            </button>
-          ) : (
-            <button
-              onClick={() => setStep(s => s + 1)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                background: "linear-gradient(135deg,#1E1608,#2A1E08)",
-                border: "1px solid rgba(212,175,55,0.5)",
-                borderRadius: 9,
-                color: "#D4AF37",
-                padding: "11px 22px",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              次へ <ChevronRight size={14} />
-            </button>
+              <Radar size={16} /> {STEPS[0].action.label}
+            </Link>
           )}
+          <div style={{ display: "flex", gap: 10 }}>
+            {step > 0 && (
+              <button
+                onClick={() => setStep(s => s - 1)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  background: "none",
+                  border: "1px solid rgba(212,175,55,0.2)",
+                  borderRadius: 9,
+                  color: "#8a9ab8",
+                  padding: "11px 18px",
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                <ChevronLeft size={14} /> 戻る
+              </button>
+            )}
+            <div style={{ flex: 1 }} />
+            {isLast ? (
+              <button
+                onClick={onComplete}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "linear-gradient(135deg,#0a1530,#111e44)",
+                  border: "1px solid rgba(201,169,107,0.50)",
+                  borderRadius: 9,
+                  color: "#c9a96b",
+                  padding: "11px 24px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                <CheckCircle size={14} /> 使い始める
+              </button>
+            ) : (
+              <button
+                onClick={() => setStep(s => s + 1)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  background: step === 0 ? "none" : "linear-gradient(135deg,#0a1530,#111e44)",
+                  border: `1px solid ${step === 0 ? "rgba(212,175,55,0.2)" : "rgba(201,169,107,0.50)"}`,
+                  borderRadius: 9,
+                  color: step === 0 ? "#8a9ab8" : "#c9a96b",
+                  padding: "11px 22px",
+                  fontSize: 13,
+                  fontWeight: step === 0 ? 400 : 700,
+                  cursor: "pointer",
+                }}
+              >
+                {step === 0 ? "あとで確認する" : "次へ"} <ChevronRight size={14} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Skip */}
         <div style={{ textAlign: "center", marginTop: 16 }}>
           <button
             onClick={onComplete}
-            style={{ background: "none", border: "none", color: "#6A6058", fontSize: 12, cursor: "pointer" }}
+            style={{ background: "none", border: "none", color: "#4d6080", fontSize: 12, cursor: "pointer" }}
           >
             スキップ
           </button>
@@ -312,9 +343,9 @@ export function OnboardingChecklist() {
 
   return (
     <div style={{
-      background: "#141414",
-      border: "1px solid rgba(212,175,55,0.22)",
-      borderTop: "3px solid #D4AF37",
+      background: "#0a1530",
+      border: "1px solid rgba(201,169,107,0.22)",
+      borderTop: "3px solid #c9a96b",
       borderRadius: 12,
       padding: "20px 22px",
       marginBottom: 20,
@@ -322,25 +353,25 @@ export function OnboardingChecklist() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 800, color: "#D4CCBC", letterSpacing: "0.02em" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#e5d9bc", letterSpacing: "0.02em" }}>
             セットアップ進行中
           </div>
-          <div style={{ fontSize: 11, color: "#A09488", marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: "#8a9ab8", marginTop: 2 }}>
             あと {items.length - doneCount} ステップで完了です
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#D4AF37", fontFamily: "ui-monospace,monospace", lineHeight: 1 }}>{pct}%</div>
-          <div style={{ fontSize: 10, color: "#A09488", marginTop: 2 }}>{doneCount}/{items.length} 完了</div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#c9a96b", fontFamily: "ui-monospace,monospace", lineHeight: 1 }}>{pct}%</div>
+          <div style={{ fontSize: 10, color: "#8a9ab8", marginTop: 2 }}>{doneCount}/{items.length} 完了</div>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div style={{ background: "#0a0a0b", borderRadius: 4, height: 6, overflow: "hidden", marginBottom: 16 }}>
+      <div style={{ background: "#07101f", borderRadius: 4, height: 6, overflow: "hidden", marginBottom: 16 }}>
         <div style={{
           height: "100%",
           width: `${pct}%`,
-          background: `linear-gradient(90deg,#D4AF3780,#D4AF37)`,
+          background: `linear-gradient(90deg,#c9a96b80,#c9a96b)`,
           borderRadius: 4,
           transition: "width 0.5s ease",
         }} />
@@ -357,8 +388,8 @@ export function OnboardingChecklist() {
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                background: isNext ? "rgba(212,175,55,0.06)" : "transparent",
-                border: `1px solid ${isNext ? "rgba(212,175,55,0.22)" : "transparent"}`,
+                background: isNext ? "rgba(201,169,107,0.06)" : "transparent",
+                border: `1px solid ${isNext ? "rgba(201,169,107,0.22)" : "transparent"}`,
                 borderRadius: 9,
                 padding: isNext ? "10px 12px" : "6px 4px",
                 transition: "all 0.2s",
@@ -371,7 +402,7 @@ export function OnboardingChecklist() {
               >
                 {item.done
                   ? <CheckCircle size={20} color="#22c55e" />
-                  : <Circle size={20} color={isNext ? "#D4AF37" : "#6A6058"} />
+                  : <Circle size={20} color={isNext ? "#c9a96b" : "#4d6080"} />
                 }
               </button>
               <Link
@@ -380,15 +411,15 @@ export function OnboardingChecklist() {
                   flex: 1,
                   fontSize: 13,
                   fontWeight: isNext ? 700 : 500,
-                  color: item.done ? "#6A6058" : isNext ? "#D4CCBC" : "#A09488",
+                  color: item.done ? "#4d6080" : isNext ? "#e5d9bc" : "#8a9ab8",
                   textDecoration: item.done ? "line-through" : "none",
-                  textDecorationColor: "#6A6058",
+                  textDecorationColor: "#4d6080",
                 }}
               >
                 {item.label}
               </Link>
               {isNext && (
-                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#D4AF37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 6, padding: "3px 9px", flexShrink: 0 }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#c9a96b", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(201,169,107,0.25)", borderRadius: 6, padding: "3px 9px", flexShrink: 0 }}>
                   次はここ <ChevronRight size={11} />
                 </span>
               )}

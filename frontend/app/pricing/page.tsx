@@ -8,9 +8,27 @@ import { PLANS } from "@/lib/stripe";
 import { toast } from "@/components/Toast";
 import { usePlan } from "@/lib/usePlan";
 
+// LP準拠カラー
+const P = {
+  bg0:   "#07101f",
+  bg1:   "#0a1530",   // LP --ink
+  bg2:   "#111e44",   // LP --ink-2
+  gold:  "#c9a96b",   // LP --gold
+  goldLt:"#e6c87a",   // LP --gold-2
+  goldDm:"#8a6d35",   // LP --gold-deep
+  azure: "#4a7fc1",   // LP --azure
+  t1:    "#f5f1e8",   // LP --paper
+  t2:    "#e5d9bc",
+  t3:    "#8a9ab8",
+  t4:    "#4d6080",
+  up:    "#4ade80",
+  bd:    "rgba(201,169,107,0.15)",
+  bdSt:  "rgba(201,169,107,0.45)",
+};
+
 const card: React.CSSProperties = {
-  background: "rgba(20,20,22,0.9)",
-  border: "1px solid rgba(212,175,55,0.15)",
+  background: P.bg1,
+  border: `1px solid ${P.bd}`,
   borderRadius: 18,
   padding: "32px 28px",
   flex: 1,
@@ -18,8 +36,8 @@ const card: React.CSSProperties = {
 
 const proCard: React.CSSProperties = {
   ...card,
-  border: "1px solid rgba(212,175,55,0.5)",
-  background: "rgba(0,30,10,0.95)",
+  border: `1px solid ${P.bdSt}`,
+  background: P.bg2,
   position: "relative",
 };
 
@@ -33,7 +51,7 @@ const COMPARISON = [
   { label: "在庫・出品・売上管理",  free: false,        standard: true,       pro: true      },
   { label: "AI アシスタント",       free: false,        standard: true,       pro: true      },
   { label: "高度な分析レポート",    free: false,        standard: false,      pro: true      },
-  { label: "CSV エクスポート",      free: true,         standard: true,       pro: true      },
+  { label: "CSV エクスポート",      free: false,        standard: true,       pro: true      },
   { label: "優先サポート",          free: false,        standard: false,      pro: true      },
 ];
 
@@ -68,7 +86,7 @@ const FAQS = [
 function CellVal({ val }: { val: boolean | string }) {
   if (val === true)  return <span style={{ color: "#22c55e", fontSize: 18, fontWeight: 700 }}>✓</span>;
   if (val === false) return <span style={{ color: "#3a5a4a", fontSize: 16 }}>—</span>;
-  return <span style={{ color: "#D4AF37", fontSize: 12, fontWeight: 700, fontFamily: "monospace" }}>{val}</span>;
+  return <span style={{ color: "#c9a96b", fontSize: 12, fontWeight: 700, fontFamily: "monospace" }}>{val}</span>;
 }
 
 function CurrentPlanBadge() {
@@ -114,18 +132,18 @@ export default function PricingPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0a0a0b", padding: "60px 24px" }}>
+    <div style={{ minHeight: "100vh", background: "#07101f", padding: "60px 24px" }}>
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
 
         {/* ── Header ── */}
         <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <div style={{ fontSize: 13, color: "#D4AF37", fontFamily: "monospace", fontWeight: 700, marginBottom: 12, letterSpacing: 2 }}>
+          <div style={{ fontSize: 13, color: "#c9a96b", fontFamily: "monospace", fontWeight: 700, marginBottom: 12, letterSpacing: 2 }}>
             PRICING
           </div>
-          <h1 style={{ fontSize: 36, fontWeight: 900, color: "#F5F0E8", marginBottom: 14 }}>
+          <h1 style={{ fontSize: 36, fontWeight: 900, color: "#f5f1e8", marginBottom: 14 }}>
             シンプルな料金プラン
           </h1>
-          <p style={{ fontSize: 15, color: "#8A8278", maxWidth: 480, margin: "0 auto 20px" }}>
+          <p style={{ fontSize: 15, color: "#8a9ab8", maxWidth: 480, margin: "0 auto 20px" }}>
             物販ビジネスの規模に合わせて選べる3つのプラン。<br />
             いつでもアップグレード・ダウングレード可能。
           </p>
@@ -136,7 +154,7 @@ export default function PricingPage() {
               { icon: "🤖", text: "AI仕入れ判断" },
               { icon: "🎁", text: "7日間無料トライアル" },
             ].map(({ icon, text }) => (
-              <span key={text} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 20, padding: "6px 14px", fontSize: 12, color: "#D4CCBC", fontWeight: 600 }}>
+              <span key={text} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(201,169,107,0.08)", border: "1px solid rgba(201,169,107,0.20)", borderRadius: 20, padding: "6px 14px", fontSize: 12, color: "#e5d9bc", fontWeight: 600 }}>
                 {icon} {text}
               </span>
             ))}
@@ -150,10 +168,10 @@ export default function PricingPage() {
             { num: "7日間",     label: "無料トライアル",  sub: "カード登録後すぐ開始"  },
             { num: "即時",      label: "解約可能",      sub: "縛り・違約金なし"   },
           ].map(({ num, label, sub }) => (
-            <div key={label} style={{ background: "rgba(20,20,22,0.7)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 12, padding: "18px 20px", textAlign: "center" }}>
-              <div style={{ fontSize: 26, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>{num}</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#F5F0E8", margin: "4px 0 2px" }}>{label}</div>
-              <div style={{ fontSize: 11, color: "#8A8278" }}>{sub}</div>
+            <div key={label} style={{ background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.10)", borderRadius: 12, padding: "18px 20px", textAlign: "center" }}>
+              <div style={{ fontSize: 26, fontWeight: 900, color: "#c9a96b", fontFamily: "monospace" }}>{num}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#f5f1e8", margin: "4px 0 2px" }}>{label}</div>
+              <div style={{ fontSize: 11, color: "#8a9ab8" }}>{sub}</div>
             </div>
           ))}
         </div>
@@ -163,27 +181,27 @@ export default function PricingPage() {
           {/* Free */}
           <div style={card}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <div style={{ background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 10, padding: 8 }}>
-                <Gift size={18} color="#8A8278" />
+              <div style={{ background: "rgba(201,169,107,0.07)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 10, padding: 8 }}>
+                <Gift size={18} color="#8a9ab8" />
               </div>
-              <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.FREE.name}</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: "#f5f1e8" }}>{PLANS.FREE.name}</span>
             </div>
             {!planLoading && status === "authenticated" && currentPlan === "FREE" && <CurrentPlanBadge />}
             <div style={{ marginBottom: 24 }}>
-              <span style={{ fontSize: 36, fontWeight: 900, color: "#F5F0E8", fontFamily: "monospace" }}>¥0</span>
-              <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
+              <span style={{ fontSize: 36, fontWeight: 900, color: "#f5f1e8", fontFamily: "monospace" }}>¥0</span>
+              <span style={{ fontSize: 14, color: "#8a9ab8", marginLeft: 6 }}>/月</span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
               {PLANS.FREE.features.map((f) => (
                 <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#a8d8b8" }}>
-                  <Check size={14} color="#8A8278" />
+                  <Check size={14} color="#8a9ab8" />
                   {f}
                 </div>
               ))}
             </div>
             <a
               href="/login"
-              style={{ display: "block", textAlign: "center", background: "transparent", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10, color: "#8A8278", padding: "12px", fontSize: 14, fontWeight: 700, textDecoration: "none" }}
+              style={{ display: "block", textAlign: "center", background: "transparent", border: "1px solid rgba(201,169,107,0.25)", borderRadius: 10, color: "#8a9ab8", padding: "12px", fontSize: 14, fontWeight: 700, textDecoration: "none" }}
             >
               無料で始める
             </a>
@@ -191,19 +209,19 @@ export default function PricingPage() {
 
           {/* Standard (PLANS.STANDARD) */}
           <div style={proCard}>
-            <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.5)", borderRadius: 20, padding: "4px 16px", fontSize: 12, fontWeight: 800, color: "#D4AF37", whiteSpace: "nowrap" }}>
+            <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.50)", borderRadius: 20, padding: "4px 16px", fontSize: 12, fontWeight: 800, color: "#c9a96b", whiteSpace: "nowrap" }}>
               おすすめ
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <div style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: 8 }}>
-                <Zap size={18} color="#D4AF37" />
+              <div style={{ background: "rgba(201,169,107,0.10)", border: "1px solid rgba(201,169,107,0.30)", borderRadius: 10, padding: 8 }}>
+                <Zap size={18} color="#c9a96b" />
               </div>
-              <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.STANDARD.name}</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: "#f5f1e8" }}>{PLANS.STANDARD.name}</span>
             </div>
             {!planLoading && status === "authenticated" && currentPlan === "STANDARD" && <CurrentPlanBadge />}
             <div style={{ marginBottom: 8 }}>
-              <span style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>¥{PLANS.STANDARD.price.toLocaleString()}</span>
-              <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
+              <span style={{ fontSize: 36, fontWeight: 900, color: "#c9a96b", fontFamily: "monospace" }}>¥{PLANS.STANDARD.price.toLocaleString()}</span>
+              <span style={{ fontSize: 14, color: "#8a9ab8", marginLeft: 6 }}>/月</span>
             </div>
             <div style={{ marginBottom: 20 }}>
               <span style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 20, padding: "2px 10px", fontWeight: 700 }}>
@@ -213,7 +231,7 @@ export default function PricingPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
               {PLANS.STANDARD.features.map((f) => (
                 <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#a8d8b8" }}>
-                  <Check size={14} color="#D4AF37" />
+                  <Check size={14} color="#c9a96b" />
                   {f}
                 </div>
               ))}
@@ -221,7 +239,7 @@ export default function PricingPage() {
             <button
               onClick={() => handleSubscribe("STANDARD")}
               disabled={loading === "STANDARD"}
-              style={{ width: "100%", background: loading === "STANDARD" ? "rgba(0,50,20,0.5)" : "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.5)", borderRadius: 10, color: "#D4AF37", padding: "13px", fontSize: 14, fontWeight: 800, cursor: loading === "STANDARD" ? "not-allowed" : "pointer" }}
+              style={{ width: "100%", background: loading === "STANDARD" ? "rgba(0,50,20,0.5)" : "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.50)", borderRadius: 10, color: "#c9a96b", padding: "13px", fontSize: 14, fontWeight: 800, cursor: loading === "STANDARD" ? "not-allowed" : "pointer" }}
             >
               {loading === "STANDARD" ? "処理中..." : "Standardプランを始める"}
             </button>
@@ -230,15 +248,15 @@ export default function PricingPage() {
           {/* Pro (PLANS.PRO) */}
           <div style={card}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <div style={{ background: "rgba(100,180,255,0.07)", border: "1px solid rgba(100,180,255,0.2)", borderRadius: 10, padding: 8 }}>
-                <Building2 size={18} color="#66aaff" />
+              <div style={{ background: "rgba(74,127,193,0.10)", border: "1px solid rgba(74,127,193,0.28)", borderRadius: 10, padding: 8 }}>
+                <Building2 size={18} color="#7eb0e8" />
               </div>
-              <span style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>{PLANS.PRO.name}</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: "#f5f1e8" }}>{PLANS.PRO.name}</span>
             </div>
             {!planLoading && status === "authenticated" && currentPlan === "PRO" && <CurrentPlanBadge />}
             <div style={{ marginBottom: 8 }}>
-              <span style={{ fontSize: 36, fontWeight: 900, color: "#66aaff", fontFamily: "monospace" }}>¥{PLANS.PRO.price.toLocaleString()}</span>
-              <span style={{ fontSize: 14, color: "#8A8278", marginLeft: 6 }}>/月</span>
+              <span style={{ fontSize: 36, fontWeight: 900, color: "#7eb0e8", fontFamily: "monospace" }}>¥{PLANS.PRO.price.toLocaleString()}</span>
+              <span style={{ fontSize: 14, color: "#8a9ab8", marginLeft: 6 }}>/月</span>
             </div>
             <div style={{ marginBottom: 20 }}>
               <span style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 20, padding: "2px 10px", fontWeight: 700 }}>
@@ -248,7 +266,7 @@ export default function PricingPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
               {PLANS.PRO.features.map((f) => (
                 <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#a8d8b8" }}>
-                  <Check size={14} color="#66aaff" />
+                  <Check size={14} color="#7eb0e8" />
                   {f}
                 </div>
               ))}
@@ -256,7 +274,7 @@ export default function PricingPage() {
             <button
               onClick={() => handleSubscribe("PRO")}
               disabled={loading === "PRO"}
-              style={{ width: "100%", background: "transparent", border: "1px solid rgba(100,180,255,0.35)", borderRadius: 10, color: "#66aaff", padding: "13px", fontSize: 14, fontWeight: 700, cursor: loading === "PRO" ? "not-allowed" : "pointer" }}
+              style={{ width: "100%", background: "transparent", border: "1px solid rgba(74,127,193,0.45)", borderRadius: 10, color: "#7eb0e8", padding: "13px", fontSize: 14, fontWeight: 700, cursor: loading === "PRO" ? "not-allowed" : "pointer" }}
             >
               {loading === "PRO" ? "処理中..." : "Proプランを始める"}
             </button>
@@ -266,43 +284,43 @@ export default function PricingPage() {
         {/* ── 社会的証明 ── */}
         <div style={{ marginBottom: 48 }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ fontSize: 13, color: "#D4AF37", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>USERS</div>
-            <h2 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>使った人の声</h2>
+            <div style={{ fontSize: 13, color: "#c9a96b", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>USERS</div>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: "#f5f1e8", margin: 0 }}>使った人の声</h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
             {[
-              { name: "T.K さん（会社員・副業）", plan: "Standard", profit: "+¥64,000/月", body: "eBayで何を仕入れたらいいか全然わからなかったけど、スキャナーで候補が一覧で出てくるのが助かる。利益率の計算を手動でやってた頃が嘘みたいです。" },
-              { name: "M.S さん（専業物販）", plan: "Pro", profit: "+¥130,000/月", body: "複数プラットフォームの相場を一括で見られるのがいい。メルカリとAmazonで価格差がある商品を拾いやすくなった。毎朝これを開くのが日課になっています。" },
-              { name: "R.N さん（大学生）", plan: "Standard", profit: "+¥38,000/月", body: "無料トライアルで試したら即課金しました。仕入れ判断が3秒で出るのが衝撃的。バイトより稼げる月が出てきて嬉しいです。" },
-            ].map(({ name, plan, profit, body }) => (
-              <div key={name} style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "22px 20px" }}>
-                <div style={{ fontSize: 13, color: "#A09488", lineHeight: 1.8, marginBottom: 16 }}>「{body}」</div>
-                <div style={{ borderTop: "1px solid rgba(212,175,55,0.08)", paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#F5F0E8" }}>{name}</div>
-                    <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>{plan}プラン利用中</div>
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 900, color: "#4ade80", fontFamily: "monospace" }}>{profit}</div>
+              { name: "T.K さん（会社員・副業）", plan: "Standard", body: "eBayで何を仕入れたらいいか全然わからなかったけど、スキャナーで候補が一覧で出てくるのが助かる。利益率の計算を手動でやってた頃が嘘みたいです。" },
+              { name: "M.S さん（専業物販）", plan: "Pro", body: "複数プラットフォームの相場を一括で見られるのがいい。メルカリとAmazonで価格差がある商品を拾いやすくなった。毎朝これを開くのが日課になっています。" },
+              { name: "R.N さん（大学生）", plan: "Standard", body: "無料トライアルで試したら即課金しました。仕入れ判断が3秒で出るのが衝撃的。思ったより手軽に始められてよかったです。" },
+            ].map(({ name, plan, body }) => (
+              <div key={name} style={{ background: "rgba(10,21,48,0.9)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 14, padding: "22px 20px" }}>
+                <div style={{ fontSize: 13, color: "#8a9ab8", lineHeight: 1.8, marginBottom: 16 }}>「{body}」</div>
+                <div style={{ borderTop: "1px solid rgba(201,169,107,0.08)", paddingTop: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#f5f1e8" }}>{name}</div>
+                  <div style={{ fontSize: 11, color: "#8a9ab8", marginTop: 2 }}>{plan}プラン利用中</div>
                 </div>
               </div>
             ))}
+          </div>
+          <div style={{ marginTop: 10, fontSize: 11, color: "#5A5248", textAlign: "right" }}>
+            ※ 上記は利用者の個人的な感想です。利用状況・商品・市場環境により結果は異なります。
           </div>
         </div>
 
         {/* ── 機能比較表 ── */}
         <div style={{ marginBottom: 48 }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ fontSize: 13, color: "#D4AF37", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>COMPARISON</div>
-            <h2 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>プラン機能比較</h2>
+            <div style={{ fontSize: 13, color: "#c9a96b", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>COMPARISON</div>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: "#f5f1e8", margin: 0 }}>プラン機能比較</h2>
           </div>
-          <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ background: "rgba(10,21,48,0.9)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 14, overflow: "hidden" }}>
             {/* ヘッダー行 */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", background: "rgba(0,0,0,0.3)", borderBottom: "1px solid rgba(212,175,55,0.12)" }}>
-              <div style={{ padding: "14px 20px", fontSize: 12, color: "#8A8278", fontWeight: 700 }}>機能</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", background: "rgba(0,0,0,0.30)", borderBottom: "1px solid rgba(201,169,107,0.12)" }}>
+              <div style={{ padding: "14px 20px", fontSize: 12, color: "#8a9ab8", fontWeight: 700 }}>機能</div>
               {[
-                { name: "フリー",    color: "#8A8278" },
-                { name: "Standard", color: "#D4AF37" },
-                { name: "Pro",      color: "#66aaff" },
+                { name: "フリー",    color: "#8a9ab8" },
+                { name: "Standard", color: "#c9a96b" },
+                { name: "Pro",      color: "#7eb0e8" },
               ].map(({ name, color }) => (
                 <div key={name} style={{ padding: "14px 20px", textAlign: "center", fontSize: 13, color, fontWeight: 800 }}>{name}</div>
               ))}
@@ -311,11 +329,11 @@ export default function PricingPage() {
             {COMPARISON.map((row, i) => (
               <div
                 key={row.label}
-                style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", borderBottom: i < COMPARISON.length - 1 ? "1px solid rgba(212,175,55,0.06)" : "none" }}
+                style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", borderBottom: i < COMPARISON.length - 1 ? "1px solid rgba(201,169,107,0.06)" : "none" }}
               >
-                <div style={{ padding: "13px 20px", fontSize: 13, color: "#C8C0B0" }}>{row.label}</div>
+                <div style={{ padding: "13px 20px", fontSize: 13, color: "#d0d8e8" }}>{row.label}</div>
                 <div style={{ padding: "13px 20px", textAlign: "center" }}><CellVal val={row.free} /></div>
-                <div style={{ padding: "13px 20px", textAlign: "center", background: "rgba(212,175,55,0.03)" }}><CellVal val={row.standard} /></div>
+                <div style={{ padding: "13px 20px", textAlign: "center", background: "rgba(201,169,107,0.03)" }}><CellVal val={row.standard} /></div>
                 <div style={{ padding: "13px 20px", textAlign: "center" }}><CellVal val={row.pro} /></div>
               </div>
             ))}
@@ -323,7 +341,7 @@ export default function PricingPage() {
         </div>
 
         {/* ── 信頼表示 ── */}
-        <div style={{ marginBottom: 48, background: "rgba(20,20,22,0.7)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 14, padding: "20px 28px" }}>
+        <div style={{ marginBottom: 48, background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.10)", borderRadius: 14, padding: "20px 28px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
             {[
               ["🏢", "運営", "ユニバーサルプラネットジャパン株式会社"],
@@ -334,7 +352,7 @@ export default function PricingPage() {
               <div key={label} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                 <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
                 <div>
-                  <div style={{ fontSize: 11, color: "#8A8278", fontWeight: 700, marginBottom: 1 }}>{label}</div>
+                  <div style={{ fontSize: 11, color: "#8a9ab8", fontWeight: 700, marginBottom: 1 }}>{label}</div>
                   <div style={{ fontSize: 12, color: "#c0b8a8" }}>{desc}</div>
                 </div>
               </div>
@@ -345,27 +363,27 @@ export default function PricingPage() {
         {/* ── FAQ ── */}
         <div style={{ marginBottom: 48 }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ fontSize: 13, color: "#D4AF37", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>FAQ</div>
-            <h2 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>よくある質問</h2>
+            <div style={{ fontSize: 13, color: "#c9a96b", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>FAQ</div>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: "#f5f1e8", margin: 0 }}>よくある質問</h2>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {FAQS.map((faq, i) => (
               <div
                 key={i}
-                style={{ background: "rgba(20,20,22,0.9)", border: `1px solid ${openFaq === i ? "rgba(212,175,55,0.35)" : "rgba(212,175,55,0.12)"}`, borderRadius: 12, overflow: "hidden", transition: "border-color 0.15s" }}
+                style={{ background: "rgba(10,21,48,0.9)", border: `1px solid ${openFaq === i ? "rgba(201,169,107,0.35)" : "rgba(201,169,107,0.12)"}`, borderRadius: 12, overflow: "hidden", transition: "border-color 0.15s" }}
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "none", border: "none", cursor: "pointer", textAlign: "left", gap: 12 }}
                 >
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8", lineHeight: 1.5 }}>{faq.q}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#f5f1e8", lineHeight: 1.5 }}>{faq.q}</span>
                   {openFaq === i
-                    ? <ChevronUp size={16} color="#D4AF37" style={{ flexShrink: 0 }} />
-                    : <ChevronDown size={16} color="#8A8278" style={{ flexShrink: 0 }} />
+                    ? <ChevronUp size={16} color="#c9a96b" style={{ flexShrink: 0 }} />
+                    : <ChevronDown size={16} color="#8a9ab8" style={{ flexShrink: 0 }} />
                   }
                 </button>
                 {openFaq === i && (
-                  <div style={{ padding: "0 20px 16px", fontSize: 13, color: "#A09488", lineHeight: 1.8 }}>
+                  <div style={{ padding: "0 20px 16px", fontSize: 13, color: "#8a9ab8", lineHeight: 1.8 }}>
                     {faq.a}
                   </div>
                 )}
@@ -375,20 +393,25 @@ export default function PricingPage() {
         </div>
 
         {/* ── 最終CTA ── */}
-        <div style={{ textAlign: "center", padding: "40px 24px", background: "rgba(0,30,10,0.6)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 18 }}>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 8 }}>
+        <div style={{ textAlign: "center", padding: "40px 24px", background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.20)", borderRadius: 18 }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#f5f1e8", marginBottom: 8 }}>
             まずは7日間、無料で試してみませんか？
           </div>
-          <div style={{ fontSize: 14, color: "#8A8278", marginBottom: 24 }}>
+          <div style={{ fontSize: 14, color: "#8a9ab8", marginBottom: 24 }}>
             クレジットカード登録後すぐ開始。期間中に解約すれば費用0円。
           </div>
           <button
             onClick={() => handleSubscribe("STANDARD")}
             disabled={loading !== null}
-            style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "2px solid rgba(212,175,55,0.6)", borderRadius: 12, color: "#D4AF37", padding: "16px 40px", fontSize: 16, fontWeight: 900, cursor: "pointer", letterSpacing: "0.02em" }}
+            style={{ background: "linear-gradient(135deg,#0a1530,#111e44)", border: "2px solid rgba(201,169,107,0.60)", borderRadius: 12, color: "#c9a96b", padding: "16px 40px", fontSize: 16, fontWeight: 900, cursor: "pointer", letterSpacing: "0.02em" }}
           >
             {loading === "STANDARD" ? "処理中..." : "Standardプランを7日間無料で試す →"}
           </button>
+          <div style={{ marginTop: 14 }}>
+            <a href="/login" style={{ fontSize: 13, color: "#8a9ab8", textDecoration: "none" }}>
+              まずは無料アカウントで試す（カード不要）
+            </a>
+          </div>
         </div>
 
       </div>

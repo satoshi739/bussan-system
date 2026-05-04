@@ -8,7 +8,7 @@ import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
 
-const GROUP_LABEL = "#6A6058";
+const GROUP_LABEL = "#4d6080";
 
 const PLAN_LABELS: Record<string, string> = { FREE: "フリー", STANDARD: "Standard", PRO: "Pro" };
 const PLAN_COLORS: Record<string, string> = { FREE: T.t3, STANDARD: T.gold, PRO: T.goldLt };
@@ -228,10 +228,10 @@ export default function Sidebar() {
         {session?.user && (session.user as { role?: string }).role === "ADMIN" && (
           <Link
             href="/admin"
-            style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", padding: "9px 12px", borderRadius: 12, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.06)", marginBottom: 8 }}
+            style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", padding: "9px 12px", borderRadius: 12, border: "1px solid rgba(201,169,107,0.30)", background: "rgba(212,175,55,0.06)", marginBottom: 8 }}
           >
             <span style={{ fontSize: 11 }}>👑</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#D4AF37", letterSpacing: "0.05em" }}>管理者ダッシュボード</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#c9a96b", letterSpacing: "0.05em" }}>管理者ダッシュボード</span>
           </Link>
         )}
 

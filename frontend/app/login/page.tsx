@@ -15,7 +15,7 @@ const TIKTOKS = [
     tag: "#物販チェッカー #副業 #せどり",
     likes: "2.3K",
     comments: "147",
-    accent: "rgba(212,175,55,0.15)",
+    accent: "rgba(201,169,107,0.15)",
   },
   {
     id: 2,
@@ -55,7 +55,7 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
       <div
         style={{
           height: 320,
-          background: `radial-gradient(ellipse at 50% 40%, ${t.accent} 0%, #0a0a0b 70%)`,
+          background: `radial-gradient(ellipse at 50% 40%, ${t.accent} 0%, #07101f 70%)`,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -85,7 +85,7 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
         <div
           style={{
             fontSize: 11.5,
-            color: "#F5F0E8",
+            color: "#f5f1e8",
             textAlign: "center",
             lineHeight: 1.6,
             fontWeight: 600,
@@ -114,7 +114,7 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
         <div
           style={{
             fontSize: 11,
-            color: "#F5F0E8",
+            color: "#f5f1e8",
             fontWeight: 700,
             marginBottom: 8,
           }}
@@ -136,7 +136,7 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
                 alignItems: "center",
                 gap: 3,
                 fontSize: 10,
-                color: "#8A8278",
+                color: "#8a9ab8",
               }}
             >
               <Heart size={10} color="#ff6b6b" fill="#ff6b6b" />
@@ -148,7 +148,7 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
                 alignItems: "center",
                 gap: 3,
                 fontSize: 10,
-                color: "#8A8278",
+                color: "#8a9ab8",
               }}
             >
               <MessageCircle size={10} />
@@ -161,7 +161,7 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
               alignItems: "center",
               gap: 3,
               fontSize: 9,
-              color: "#6A6058",
+              color: "#4d6080",
             }}
           >
             <Music2 size={9} />
@@ -173,7 +173,7 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
           style={{
             marginTop: 8,
             fontSize: 9,
-            color: "#6A6058",
+            color: "#4d6080",
             textAlign: "center",
           }}
         >
@@ -239,8 +239,8 @@ export default function LoginPage() {
   };
 
   const card: React.CSSProperties = {
-    background: "rgba(20,20,22,0.95)",
-    border: "1px solid rgba(212,175,55,0.2)",
+    background: "rgba(10,21,48,0.97)",
+    border: "1px solid rgba(201,169,107,0.20)",
     borderRadius: 18,
     padding: "48px 44px",
     maxWidth: 420,
@@ -251,9 +251,9 @@ export default function LoginPage() {
   const inp: React.CSSProperties = {
     width: "100%",
     background: "rgba(10,10,11,0.9)",
-    border: "1px solid rgba(212,175,55,0.25)",
+    border: "1px solid rgba(201,169,107,0.25)",
     borderRadius: 10,
-    color: "#F5F0E8",
+    color: "#f5f1e8",
     padding: "12px 16px",
     fontSize: 14,
     outline: "none",
@@ -262,28 +262,28 @@ export default function LoginPage() {
 
   if (sent) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0a0a0b" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#07101f" }}>
         <div style={card}>
           <div style={{ textAlign: "center" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-              <div style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 16, padding: 18 }}>
-                <Mail size={32} color="#D4AF37" />
+              <div style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(201,169,107,0.25)", borderRadius: 16, padding: 18 }}>
+                <Mail size={32} color="#c9a96b" />
               </div>
             </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: "#F5F0E8", marginBottom: 10 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#f5f1e8", marginBottom: 10 }}>
               メールを送信しました
             </div>
-            <div style={{ fontSize: 14, color: "#8A8278", lineHeight: 1.8 }}>
-              <strong style={{ color: "#D4AF37" }}>{email}</strong> へ<br />
+            <div style={{ fontSize: 14, color: "#8a9ab8", lineHeight: 1.8 }}>
+              <strong style={{ color: "#c9a96b" }}>{email}</strong> へ<br />
               ログインリンクを送りました。<br />
               メールのリンクをクリックしてください。
             </div>
-            <div style={{ marginTop: 24, fontSize: 12, color: "#8A8278" }}>
+            <div style={{ marginTop: 24, fontSize: 12, color: "#8a9ab8" }}>
               メールが届かない場合はスパムフォルダをご確認ください
             </div>
             <button
               onClick={() => { setSent(false); }}
-              style={{ marginTop: 20, background: "transparent", border: "none", color: "#8A8278", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}
+              style={{ marginTop: 20, background: "transparent", border: "none", color: "#8a9ab8", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}
             >
               別のメールアドレスで再送する
             </button>
@@ -304,7 +304,7 @@ export default function LoginPage() {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "100vh",
-          background: "#0a0a0b",
+          background: "#07101f",
           gap: 40,
           padding: "24px 16px",
         }}
@@ -320,18 +320,18 @@ export default function LoginPage() {
         {/* 中央：ログインフォーム */}
         <div style={card}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontSize: 28, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace", marginBottom: 8 }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "#c9a96b", fontFamily: "monospace", marginBottom: 8 }}>
               物販チェッカー
             </div>
           </div>
 
           {/* タブ */}
-          <div style={{ display: "flex", gap: 0, marginBottom: 28, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(212,175,55,0.2)" }}>
+          <div style={{ display: "flex", gap: 0, marginBottom: 28, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(201,169,107,0.20)" }}>
             {([["magic", "メールリンク", <Mail key="m" size={13} />], ["password", "パスワード", <Lock key="p" size={13} />]] as const).map(([m, label, icon]) => (
               <button
                 key={m}
                 onClick={() => { setMode(m); setError(""); }}
-                style={{ flex: 1, padding: "10px", background: mode === m ? "rgba(212,175,55,0.12)" : "transparent", border: "none", color: mode === m ? "#D4AF37" : "#8A8278", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, borderRight: m === "magic" ? "1px solid rgba(212,175,55,0.2)" : "none" }}
+                style={{ flex: 1, padding: "10px", background: mode === m ? "rgba(212,175,55,0.12)" : "transparent", border: "none", color: mode === m ? "#c9a96b" : "#8a9ab8", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, borderRight: m === "magic" ? "1px solid rgba(201,169,107,0.20)" : "none" }}
               >
                 {icon}{label}
               </button>
@@ -341,35 +341,35 @@ export default function LoginPage() {
           {mode === "magic" ? (
             <form onSubmit={handleMagicLink}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 13, color: "#8A8278", marginBottom: 8, fontWeight: 600 }}>メールアドレス</label>
+                <label style={{ display: "block", fontSize: 13, color: "#8a9ab8", marginBottom: 8, fontWeight: 600 }}>メールアドレス</label>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required style={inp} />
               </div>
               {error && <div style={{ fontSize: 13, color: "#ff6666", marginBottom: 14, padding: "10px 14px", background: "rgba(255,80,50,0.08)", border: "1px solid rgba(255,80,50,0.2)", borderRadius: 8 }}>{error}</div>}
-              <button type="submit" disabled={isPending || !email} style={{ width: "100%", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "13px", fontSize: 15, fontWeight: 700, cursor: isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: isPending ? 0.7 : 1 }}>
+              <button type="submit" disabled={isPending || !email} style={{ width: "100%", background: "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.40)", borderRadius: 10, color: "#c9a96b", padding: "13px", fontSize: 15, fontWeight: 700, cursor: isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: isPending ? 0.7 : 1 }}>
                 {isPending ? <Loader size={16} /> : <Mail size={16} />}
                 {isPending ? "送信中..." : "ログインリンクを送る"}
               </button>
-              <div style={{ marginTop: 14, textAlign: "center", fontSize: 12, color: "#6A6058" }}>
+              <div style={{ marginTop: 14, textAlign: "center", fontSize: 12, color: "#4d6080" }}>
                 登録したメールアドレスにリンクが届きます。スパムフォルダもご確認ください。
               </div>
             </form>
           ) : (
             <form onSubmit={handlePassword}>
               <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 13, color: "#8A8278", marginBottom: 8, fontWeight: 600 }}>メールアドレス</label>
+                <label style={{ display: "block", fontSize: 13, color: "#8a9ab8", marginBottom: 8, fontWeight: 600 }}>メールアドレス</label>
                 <input type="email" value={pwEmail} onChange={e => setPwEmail(e.target.value)} placeholder="you@example.com" required style={inp} autoFocus />
               </div>
               <div style={{ marginBottom: 4 }}>
-                <label style={{ display: "block", fontSize: 13, color: "#8A8278", marginBottom: 8, fontWeight: 600 }}>パスワード</label>
+                <label style={{ display: "block", fontSize: 13, color: "#8a9ab8", marginBottom: 8, fontWeight: 600 }}>パスワード</label>
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required style={inp} onKeyDown={e => e.key === "Enter" && handlePassword(e)} />
               </div>
               <div style={{ textAlign: "right", marginBottom: 16 }}>
-                <Link href="/login/forgot" style={{ fontSize: 12, color: "#6A6058", textDecoration: "none" }}>
+                <Link href="/login/forgot" style={{ fontSize: 12, color: "#4d6080", textDecoration: "none" }}>
                   パスワードを忘れた方はこちら
                 </Link>
               </div>
               {error && <div style={{ fontSize: 13, color: "#ff6666", marginBottom: 14, padding: "10px 14px", background: "rgba(255,80,50,0.08)", border: "1px solid rgba(255,80,50,0.2)", borderRadius: 8 }}>{error}</div>}
-              <button type="submit" disabled={isPending || !pwEmail || !password} style={{ width: "100%", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "13px", fontSize: 15, fontWeight: 700, cursor: isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: isPending ? 0.7 : 1 }}>
+              <button type="submit" disabled={isPending || !pwEmail || !password} style={{ width: "100%", background: "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.40)", borderRadius: 10, color: "#c9a96b", padding: "13px", fontSize: 15, fontWeight: 700, cursor: isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: isPending ? 0.7 : 1 }}>
                 {isPending ? <Loader size={16} /> : <Lock size={16} />}
                 {isPending ? "ログイン中..." : "ログイン"}
               </button>
@@ -378,14 +378,14 @@ export default function LoginPage() {
 
           <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(212,175,55,0.1)", textAlign: "center" }}>
             <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 14 }}>
-              <Link href="/login/forgot" style={{ fontSize: 13, color: "#6A6058", textDecoration: "none" }}>
+              <Link href="/login/forgot" style={{ fontSize: 13, color: "#4d6080", textDecoration: "none" }}>
                 ログインできない方
               </Link>
-              <Link href="/pricing" style={{ fontSize: 13, color: "#8A8278", textDecoration: "none" }}>
+              <Link href="/pricing" style={{ fontSize: 13, color: "#8a9ab8", textDecoration: "none" }}>
                 プランを確認する →
               </Link>
             </div>
-            <Link href="/pricing" style={{ display: "inline-block", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "11px 28px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+            <Link href="/pricing" style={{ display: "inline-block", background: "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.40)", borderRadius: 10, color: "#c9a96b", padding: "11px 28px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
               アカウントをお持ちでない方 — 無料で始める →
             </Link>
           </div>

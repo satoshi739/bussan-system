@@ -6,42 +6,46 @@ import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type D
 import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Brain } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
-import { OnboardingChecklist } from "@/components/OnboardingModal";
+import OnboardingModal, { OnboardingChecklist, useOnboarding } from "@/components/OnboardingModal";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
 // ─────────────────────────────────────────────────────────
-//  Design System — Premium Dark × Real Gold
-//  bg must be clearly darker than card; gold must LOOK gold
+//  Design System — UPJ LP準拠 Deep Navy × Warm Gold × Azure
+//  LP palette: --ink:#0a1530 / --gold:#c9a96b / --azure:#4a7fc1
 // ─────────────────────────────────────────────────────────
 const C = {
-  // backgrounds — 3-step lift
-  bg0:  "#0a0a0b",   // page base (deep black)
-  bg1:  "#141414",   // card surface
-  bg2:  "#1c1c1e",   // elevated / header tint
-  bg3:  "#242424",   // tooltips, dropdowns
+  // backgrounds — LP navy family
+  bg0:  "#07101f",   // deeper than LP --ink (page base)
+  bg1:  "#0a1530",   // LP --ink (card surface)
+  bg2:  "#111e44",   // LP --ink-2 (elevated)
+  bg3:  "#1a2956",   // LP --ink-3 (tooltips)
 
-  // text — WCAG AA準拠のコントラスト比 4.5:1以上
-  t1:   "#F5F0E8",   // primary warm white (14.2:1)
-  t2:   "#D4CCBC",   // secondary (8.1:1) ← 改善
-  t3:   "#A09488",   // muted (4.6:1) ← 改善
-  t4:   "#5A5248",   // faint decorative (2.4:1) ← 改善（更新時刻等）
+  // text — LP paper family
+  t1:   "#f5f1e8",   // LP --paper (cream)
+  t2:   "#e5d9bc",   // warm cream secondary
+  t3:   "#8a9ab8",   // navy-tinted muted
+  t4:   "#4d6080",   // dark navy-gray faint
 
-  // accent — gold
-  gold:   "#D4AF37",   // classic gold
-  goldLt: "#F0D060",   // bright gold highlight
-  goldDm: "#9A7D25",   // dim gold for borders
+  // accent — LP warm gold
+  gold:   "#c9a96b",   // LP --gold
+  goldLt: "#e6c87a",   // LP --gold-2
+  goldDm: "#8a6d35",   // LP --gold-deep
+
+  // azure accent (LP --azure)
+  azure:     "#4a7fc1",
+  azureGlow: "#7eb0e8",
 
   // signal colors
-  up:    "#4ade80",   // profit positive (green)
-  dn:    "#f87171",   // profit negative (red)
-  warn:  "#fbbf24",   // amber warning
-  info:  "#D4AF37",   // gold info
+  up:    "#4ade80",   // profit positive (keep)
+  dn:    "#c46060",   // loss (LP --rose-ish)
+  warn:  "#c9993a",   // amber (gold-toned)
+  info:  "#c9a96b",   // gold info
 
-  // borders
-  bd:    "rgba(212,175,55,0.18)",
-  bdSt:  "rgba(212,175,55,0.38)",
-  bdSub: "rgba(212,175,55,0.09)",
+  // borders — adjusted for LP gold
+  bd:    "rgba(201,169,107,0.18)",
+  bdSt:  "rgba(201,169,107,0.38)",
+  bdSub: "rgba(201,169,107,0.09)",
 };
 
 // Card style — clean solid, no grain noise
@@ -197,6 +201,110 @@ function ProfitCandidateCard({ name, buy, sell, profit, rate, stars }: typeof SA
   );
 }
 
+// ── Quick Profit Check ────────────────────────────────────
+function QuickProfitCheck() {
+  const [buy,  setBuy]  = useState("");
+  const [sell, setSell] = useState("");
+  const [name, setName] = useState("");
+
+  const buyN  = Number(buy)  || 0;
+  const sellN = Number(sell) || 0;
+  const fee   = sellN * 0.1;                      // メルカリ10%
+  const profit = sellN - fee - buyN;
+  const rate   = sellN > 0 ? (profit / sellN) * 100 : 0;
+  const hasResult = buyN > 0 && sellN > 0;
+
+  const verdict = rate >= 30
+    ? { label: "仕入れをおすすめ",   color: C.gold,  bg: `${C.gold}18`,  icon: "◎" }
+    : rate >= 15
+    ? { label: "条件次第で検討",     color: C.warn,  bg: `${C.warn}14`,  icon: "△" }
+    : { label: "見送りをおすすめ",   color: C.dn,    bg: `${C.dn}12`,    icon: "✕" };
+
+  return (
+    <div style={{
+      background: `linear-gradient(135deg, #0e0c04, #181408)`,
+      border: `2px solid ${C.gold}60`,
+      borderRadius: 16,
+      padding: "24px 28px",
+      marginBottom: 16,
+      boxShadow: `0 0 40px ${C.gold}12`,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+        <div style={{ background: `${C.gold}20`, border: `1px solid ${C.gold}40`, borderRadius: 10, padding: "8px 10px" }}>
+          <Zap size={20} color={C.gold} />
+        </div>
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 900, color: C.t1, letterSpacing: "-0.01em" }}>
+            まず1商品の利益を計算してみましょう
+          </div>
+          <div style={{ fontSize: 11, color: C.t3, marginTop: 2 }}>仕入れ値と販売価格を入れるだけ。30秒で判断できます。</div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+        <div>
+          <label style={{ fontSize: 11, color: C.t3, fontWeight: 700, display: "block", marginBottom: 6, letterSpacing: "0.06em", textTransform: "uppercase" }}>仕入れ値（円）</label>
+          <input
+            type="number" placeholder="例: 3,000" value={buy}
+            onChange={e => setBuy(e.target.value)}
+            style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 9, color: C.t1, padding: "12px 14px", fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "ui-monospace, monospace" }}
+          />
+        </div>
+        <div>
+          <label style={{ fontSize: 11, color: C.t3, fontWeight: 700, display: "block", marginBottom: 6, letterSpacing: "0.06em", textTransform: "uppercase" }}>販売価格（円）</label>
+          <input
+            type="number" placeholder="例: 8,000" value={sell}
+            onChange={e => setSell(e.target.value)}
+            style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 9, color: C.t1, padding: "12px 14px", fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "ui-monospace, monospace" }}
+          />
+        </div>
+        <div style={{ gridColumn: "1 / -1" }}>
+          <label style={{ fontSize: 11, color: C.t3, fontWeight: 700, display: "block", marginBottom: 6, letterSpacing: "0.06em", textTransform: "uppercase" }}>商品名（任意）</label>
+          <input
+            type="text" placeholder="例: セイコー 腕時計 中古" value={name}
+            onChange={e => setName(e.target.value)}
+            style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bdSub}`, borderRadius: 9, color: C.t1, padding: "10px 14px", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+          />
+        </div>
+      </div>
+
+      {hasResult && (
+        <div style={{ background: verdict.bg, border: `1px solid ${verdict.color}40`, borderRadius: 12, padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(3,1fr) auto", gap: 16, alignItems: "center", animation: "none" }}>
+          {[
+            { label: "利益額",  val: `${profit >= 0 ? "+" : ""}¥${Math.round(profit).toLocaleString()}`, col: profit >= 0 ? C.up : C.dn },
+            { label: "利益率",  val: `${rate.toFixed(1)}%`,                                              col: rate >= 30 ? C.gold : rate >= 15 ? C.warn : C.dn },
+            { label: "販売手数料", val: `¥${Math.round(fee).toLocaleString()}`,                          col: C.t3 },
+          ].map(({ label, val, col }) => (
+            <div key={label}>
+              <div style={{ fontSize: 10, color: C.t3, marginBottom: 4, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: col, fontFamily: "ui-monospace, monospace", letterSpacing: "-0.02em" }}>{val}</div>
+            </div>
+          ))}
+          <div style={{ background: verdict.bg, border: `1px solid ${verdict.color}50`, borderRadius: 10, padding: "10px 18px", textAlign: "center" }}>
+            <div style={{ fontSize: 20, marginBottom: 4 }}>{verdict.icon}</div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: verdict.color, whiteSpace: "nowrap" }}>{verdict.label}</div>
+          </div>
+        </div>
+      )}
+
+      {!hasResult && (
+        <div style={{ textAlign: "center", padding: "12px 0", color: C.t4, fontSize: 12 }}>
+          仕入れ値と販売価格を入力すると判定が表示されます
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+        <Link href="/calculator" style={{ fontSize: 12, color: C.t3, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+          詳細計算（送料・手数料込み） →
+        </Link>
+        <Link href="/scanner" style={{ marginLeft: "auto", fontSize: 12, color: C.gold, textDecoration: "none", display: "flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+          AI で仕入れ候補を探す →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // ── AI CEO Hero ──────────────────────────────────────────
 function AICEOHero() {
   return (
@@ -269,6 +377,7 @@ export default function DashboardPage() {
   const [showAllActions, setShowAllActions] = useState(false);
 
   const isGuest = status === "unauthenticated";
+  const { show: showOnboarding, complete: completeOnboarding } = useOnboarding();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -346,6 +455,8 @@ export default function DashboardPage() {
   // ── Render ──────────────────────────────────────────────
   return (
     <div style={{ color: C.t1, minHeight: "100vh" }}>
+      {/* Onboarding modal — ログイン済み・初回のみ表示 */}
+      {!isGuest && showOnboarding && <OnboardingModal onComplete={completeOnboarding} />}
       <style>{`
         @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
@@ -374,6 +485,9 @@ export default function DashboardPage() {
         .btn-primary:hover { background: linear-gradient(135deg,#2A1E08,#3A2A0A) !important; border-color: ${C.gold}88 !important; }
         .btn-secondary:hover { background: rgba(212,175,55,0.08) !important; }
       `}</style>
+
+      {/* Quick Profit Check — ログイン済み・データなし時に最上部表示 */}
+      {!isGuest && useSample && !loading && !error && <QuickProfitCheck />}
 
       {/* AI CEO Hero — ゲスト・空データ時にトップ表示 */}
       {useSample && <AICEOHero />}

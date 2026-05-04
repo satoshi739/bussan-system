@@ -19,7 +19,7 @@ export function toast(message: string, type: ToastType = "success", duration?: n
 }
 
 const COLORS: Record<ToastType, { bg: string; border: string; text: string; icon: string }> = {
-  success: { bg: "rgba(0,25,8,0.98)",  border: "#D4AF37", text: "#D4AF37", icon: "✅" },
+  success: { bg: "rgba(0,25,8,0.98)",  border: "#c9a96b", text: "#c9a96b", icon: "✅" },
   error:   { bg: "rgba(28,0,0,0.98)",  border: "#ff6666", text: "#ff8888", icon: "❌" },
   warn:    { bg: "rgba(28,14,0,0.98)", border: "#ff9944", text: "#ffbb66", icon: "⚠️" },
   info:    { bg: "rgba(0,12,28,0.98)", border: "#66ccff", text: "#88ddff", icon: "ℹ️" },
