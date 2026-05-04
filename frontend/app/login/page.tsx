@@ -54,7 +54,7 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
       {/* 動画エリア */}
       <div
         style={{
-          height: 240,
+          height: 320,
           background: `radial-gradient(ellipse at 50% 40%, ${t.accent} 0%, #0a0a0b 70%)`,
           display: "flex",
           flexDirection: "column",
@@ -297,7 +297,6 @@ export default function LoginPage() {
     <>
       <style>{`
         @media (max-width: 1100px) { .tt-col { display: none !important; } }
-        @media (max-width: 1280px) { .tt-col-right-2 { display: none !important; } }
       `}</style>
       <div
         style={{
@@ -313,7 +312,7 @@ export default function LoginPage() {
         {/* 左 */}
         <div
           className="tt-col"
-          style={{ display: "flex", flexDirection: "column", gap: 20, alignItems: "flex-end" }}
+          style={{ display: "flex", alignItems: "center" }}
         >
           <TikTokCard t={TIKTOKS[0]} />
         </div>
@@ -390,12 +389,9 @@ export default function LoginPage() {
         {/* 右 */}
         <div
           className="tt-col"
-          style={{ display: "flex", flexDirection: "column", gap: 20, alignItems: "flex-start" }}
+          style={{ display: "flex", alignItems: "center" }}
         >
           <TikTokCard t={TIKTOKS[1]} />
-          <div className="tt-col-right-2">
-            <TikTokCard t={TIKTOKS[2]} />
-          </div>
         </div>
       </div>
     </>
