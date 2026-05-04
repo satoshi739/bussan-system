@@ -2,10 +2,37 @@
 
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import OnboardingModal, { useOnboarding } from "@/components/OnboardingModal";
 
 const PUBLIC_PATHS = ["/login", "/pricing", "/deals"];
+
+const CHECKLIST_KEY = "bussan_checklist";
+const PAGE_CHECKLIST_MAP: Record<string, string> = {
+  "/settings":  "settings",
+  "/scanner":   "scan",
+  "/barcode":   "barcode",
+  "/purchases": "register",
+};
+
+function useAutoChecklist(pathname: string) {
+  useEffect(() => {
+    const itemId = PAGE_CHECKLIST_MAP[pathname];
+    if (!itemId) return;
+    try {
+      const raw = localStorage.getItem(CHECKLIST_KEY);
+      if (!raw) return;
+      const items = JSON.parse(raw) as { id: string; done: boolean }[];
+      const item = items.find((i) => i.id === itemId);
+      if (item && !item.done) {
+        const updated = items.map((i) => i.id === itemId ? { ...i, done: true } : i);
+        localStorage.setItem(CHECKLIST_KEY, JSON.stringify(updated));
+        window.dispatchEvent(new StorageEvent("storage", { key: CHECKLIST_KEY, newValue: JSON.stringify(updated) }));
+      }
+    } catch { /* ignore */ }
+  }, [pathname]);
+}
 
 export default function ClientShell({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
@@ -14,6 +41,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   const showSidebar = !isPublic;
 
   const { show: showOnboarding, complete: completeOnboarding } = useOnboarding();
+  useAutoChecklist(pathname);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>

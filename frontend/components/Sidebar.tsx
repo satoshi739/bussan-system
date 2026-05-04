@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
@@ -233,6 +233,24 @@ export default function Sidebar() {
             <span style={{ fontSize: 11, fontWeight: 700, color: "#D4AF37", letterSpacing: "0.05em" }}>管理者ダッシュボード</span>
           </Link>
         )}
+
+        <Link
+          href="/support"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            textDecoration: "none",
+            padding: "8px 6px",
+            borderRadius: 10,
+            color: T.t3,
+            fontSize: 12,
+            transition: "color 0.15s",
+            marginBottom: 2,
+          }}
+        >
+          <HelpCircle size={11} /> ヘルプ・サポート
+        </Link>
 
         {session?.user && (
           <button
