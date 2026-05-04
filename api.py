@@ -788,10 +788,10 @@ class LineTestRequest(BaseModel):
     token: str
 
 @app.post("/api/notify/test")
-def notify_test(body: LineTestRequest):
+def notify_test(body: LineTestRequest, user_id: str = Depends(get_user_id)):
     ok, err = _send_line(body.token, '\n✅ 物販チェッカーとLINEの連携が完了しました！\n売れ残り警告や日次レポートが届きます。')
     if ok:
-        db.save_settings({'line_token': body.token})
+        db.save_settings({'line_token': body.token}, user_id=user_id)
     return {'ok': ok, 'error': err if not ok else None}
 
 
@@ -3610,11 +3610,13 @@ def approve_queue_item(item_id: int, user_id: str = Depends(get_user_id)):
 
 
 @app.post("/api/agents/approval-queue/{item_id}/reject")
-def reject_queue_item(item_id: int, body: RejectRequest):
+def reject_queue_item(item_id: int, body: RejectRequest, user_id: str = Depends(get_user_id)):
     """承認キューのアイテムを却下する"""
     item = db.get_approval_queue_item(item_id)
     if not item:
         raise HTTPException(404, "アイテムが見つかりません")
+    if item.get("user_id") != user_id:
+        raise HTTPException(403, "このアイテムへのアクセス権がありません")
     db.reject_queue_item(item_id, reason=body.reason)
     return {"ok": True, "message": "却下しました"}
 
@@ -3661,8 +3663,13 @@ def get_agent_listings(purchase_id: Optional[int] = None, status: Optional[str] 
 
 
 @app.post("/api/agents/listings/{listing_id}/publish")
-def publish_agent_listing(listing_id: int):
+def publish_agent_listing(listing_id: int, user_id: str = Depends(get_user_id)):
     """出品文を公開済みにマークする"""
+    row = db.conn.execute("SELECT user_id FROM agent_listings WHERE id = %s", (listing_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, "出品文が見つかりません")
+    if row["user_id"] != user_id:
+        raise HTTPException(403, "この出品文へのアクセス権がありません")
     db.publish_agent_listing(listing_id)
     return {"ok": True}
 
@@ -3720,8 +3727,13 @@ def get_agent_sns_content(purchase_id: Optional[int] = None, status: Optional[st
 
 
 @app.post("/api/agents/sns/{content_id}/publish")
-def publish_sns_content(content_id: int):
+def publish_sns_content(content_id: int, user_id: str = Depends(get_user_id)):
     """SNSコンテンツを公開済みにマークする"""
+    row = db.conn.execute("SELECT user_id FROM agent_sns_content WHERE id = %s", (content_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, "SNSコンテンツが見つかりません")
+    if row["user_id"] != user_id:
+        raise HTTPException(403, "このSNSコンテンツへのアクセス権がありません")
     db.publish_agent_sns_content(content_id)
     return {"ok": True}
 
@@ -3736,8 +3748,13 @@ class SNSPerformanceRequest(BaseModel):
     led_to_sale: bool = False
 
 @app.post("/api/agents/sns/{content_id}/performance")
-def record_sns_performance(content_id: int, body: SNSPerformanceRequest):
+def record_sns_performance(content_id: int, body: SNSPerformanceRequest, user_id: str = Depends(get_user_id)):
     """SNS投稿のパフォーマンスを記録してエージェントに学習させる"""
+    row = db.conn.execute("SELECT user_id FROM agent_sns_content WHERE id = %s", (content_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, "SNSコンテンツが見つかりません")
+    if row["user_id"] != user_id:
+        raise HTTPException(403, "このSNSコンテンツへのアクセス権がありません")
     api_key = _get_agent_api_key()
     from agents import SNSAgent
     agent = SNSAgent(api_key=api_key, db=db)
@@ -3881,9 +3898,13 @@ async def research_history(days: int = 60):
 
 # ── 管理者統計 ────────────────────────────────────────────
 
+_ADMIN_USER_ID = _os.environ.get("ADMIN_USER_ID", "")
+
 @app.get("/api/admin/user-stats")
-def get_admin_user_stats():
+def get_admin_user_stats(user_id: str = Depends(get_user_id)):
     """全ユーザーの仕入れ・売上統計（管理者用）"""
+    if _ADMIN_USER_ID and user_id != _ADMIN_USER_ID:
+        raise HTTPException(403, "管理者のみアクセス可能です")
     rows = db.conn.execute("""
         SELECT
             p.user_id,
