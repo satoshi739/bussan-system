@@ -14,46 +14,96 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     }),
     prisma.subscription.findMany({
-      select: { userId: true, plan: true, status: true, createdAt: true, currentPeriodEnd: true, stripeSubscriptionId: true },
+      select: { userId: true, plan: true, status: true, createdAt: true, currentPeriodEnd: true },
     }),
   ]);
 
+  // バックエンドのユーザー別アクティビティを取得
+  let backendStats: Record<string, { purchase_count: number; sold_count: number; listed_count: number; purchased_count: number; last_purchase_date: string | null; total_invested: number }> = {};
+  try {
+    const backendUrl = process.env.FASTAPI_URL ?? "http://localhost:8000";
+    const apiKey = process.env.INTERNAL_API_KEY ?? "";
+    const res = await fetch(`${backendUrl}/api/admin/user-stats`, {
+      headers: { "X-API-Key": apiKey },
+      next: { revalidate: 0 },
+    });
+    if (res.ok) {
+      const rows: { user_id: string; purchase_count: number; sold_count: number; listed_count: number; purchased_count: number; last_purchase_date: string | null; total_invested: number }[] = await res.json();
+      for (const r of rows) {
+        backendStats[r.user_id] = r;
+      }
+    }
+  } catch {
+    // バックエンドが落ちていても管理画面は表示する
+  }
+
   const subMap = new Map(subscriptions.map(s => [s.userId, s]));
 
-  const PLAN_PRICE: Record<string, number> = {
-    FREE: 0,
-    STANDARD: 9800,
-    PRO: 19800,
-  };
-
+  const PLAN_PRICE: Record<string, number> = { FREE: 0, STANDARD: 9800, PRO: 19800 };
   const planCount = { FREE: 0, STANDARD: 0, PRO: 0 };
   let mrr = 0;
 
   for (const sub of subscriptions) {
     const plan = sub.plan as keyof typeof planCount;
     if (planCount[plan] !== undefined) planCount[plan]++;
-    if (sub.status === "ACTIVE" && plan !== "FREE") {
-      mrr += PLAN_PRICE[plan] ?? 0;
-    }
+    if (sub.status === "ACTIVE" && plan !== "FREE") mrr += PLAN_PRICE[plan] ?? 0;
   }
 
-  const usersWithPlan = users.map(u => ({
-    ...u,
-    plan: subMap.get(u.id)?.plan ?? "FREE",
-    subStatus: subMap.get(u.id)?.status ?? "INACTIVE",
-    currentPeriodEnd: subMap.get(u.id)?.currentPeriodEnd ?? null,
-  }));
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
 
-  const recentSignups = usersWithPlan.slice(0, 20);
+  const usersWithStats = users.map(u => {
+    const sub = subMap.get(u.id);
+    const activity = backendStats[u.id];
+    const daysSinceSignup = Math.floor((now - new Date(u.createdAt).getTime()) / DAY);
+    const plan = sub?.plan ?? "FREE";
 
-  const last30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    // チャーンリスク算出
+    let churnRisk: "high" | "medium" | "low" | "safe" = "safe";
+    if (plan === "FREE") {
+      if (daysSinceSignup >= 14) churnRisk = "high";
+      else if (daysSinceSignup >= 7) churnRisk = "medium";
+      else churnRisk = "low";
+    }
+
+    return {
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      createdAt: u.createdAt,
+      plan,
+      subStatus: sub?.status ?? "INACTIVE",
+      currentPeriodEnd: sub?.currentPeriodEnd ?? null,
+      daysSinceSignup,
+      churnRisk,
+      purchaseCount: activity?.purchase_count ?? 0,
+      soldCount: activity?.sold_count ?? 0,
+      listedCount: activity?.listed_count ?? 0,
+      pendingCount: activity?.purchased_count ?? 0,
+      totalInvested: activity?.total_invested ?? 0,
+      lastPurchaseDate: activity?.last_purchase_date ?? null,
+      isActive: (activity?.purchase_count ?? 0) > 0,
+    };
+  });
+
+  const last30 = new Date(now - 30 * DAY);
   const newUsersLast30 = users.filter(u => new Date(u.createdAt) > last30).length;
+  const activeUsers = usersWithStats.filter(u => u.isActive).length;
+
+  const churnSummary = {
+    high: usersWithStats.filter(u => u.churnRisk === "high").length,
+    medium: usersWithStats.filter(u => u.churnRisk === "medium").length,
+    low: usersWithStats.filter(u => u.churnRisk === "low").length,
+    safe: usersWithStats.filter(u => u.churnRisk === "safe").length,
+  };
 
   return NextResponse.json({
     totalUsers: users.length,
+    activeUsers,
     newUsersLast30,
     mrr,
     planCount,
-    recentSignups,
+    churnSummary,
+    users: usersWithStats,
   });
 }

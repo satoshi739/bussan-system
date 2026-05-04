@@ -3829,3 +3829,23 @@ async def research_history(days: int = 60):
         from agents import ResearchAgent
         return ResearchAgent(db=db).analyze_own_history(days=days)
     return await asyncio.to_thread(_run)
+
+
+# ── 管理者統計 ────────────────────────────────────────────
+
+@app.get("/api/admin/user-stats")
+def get_admin_user_stats():
+    """全ユーザーの仕入れ・売上統計（管理者用）"""
+    rows = db.conn.execute("""
+        SELECT
+            p.user_id,
+            COUNT(DISTINCT p.id) AS purchase_count,
+            SUM(CASE WHEN p.status = 'sold' THEN 1 ELSE 0 END) AS sold_count,
+            SUM(CASE WHEN p.status = 'listed' THEN 1 ELSE 0 END) AS listed_count,
+            SUM(CASE WHEN p.status = 'purchased' THEN 1 ELSE 0 END) AS purchased_count,
+            MAX(p.purchase_date) AS last_purchase_date,
+            COALESCE(SUM(p.purchase_price + p.purchase_shipping), 0) AS total_invested
+        FROM purchases p
+        GROUP BY p.user_id
+    """).fetchall()
+    return [dict(r) for r in rows]
