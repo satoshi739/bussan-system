@@ -2477,18 +2477,18 @@ class AutoScanSettings(BaseModel):
 
 
 @app.post("/api/scanner/auto-scan-settings")
-def update_auto_scan_settings(body: AutoScanSettings):
+def update_auto_scan_settings(body: AutoScanSettings, user_id: str = Depends(get_user_id)):
     db.save_settings({
         "auto_scan_enabled": "1" if body.enabled else "0",
         "auto_scan_interval_hours": str(body.interval_hours),
         "auto_scan_notify_score": str(body.notify_score),
-    })
+    }, user_id=user_id)
     return {"ok": True}
 
 
 @app.get("/api/scanner/auto-scan-settings")
-def get_auto_scan_settings():
-    settings = db.get_settings()
+def get_auto_scan_settings(user_id: str = Depends(get_user_id)):
+    settings = db.get_settings(user_id=user_id)
     return {
         "enabled": settings.get("auto_scan_enabled") == "1",
         "interval_hours": float(settings.get("auto_scan_interval_hours", "8")),
@@ -2506,20 +2506,20 @@ class SourceSyncSettings(BaseModel):
 
 
 @app.post("/api/source-sync/settings")
-def update_source_sync_settings(body: SourceSyncSettings):
+def update_source_sync_settings(body: SourceSyncSettings, user_id: str = Depends(get_user_id)):
     db.save_settings({
         "source_sync_enabled": "1" if body.enabled else "0",
         "source_sync_interval_min": str(body.interval_min),
         "source_sync_price_rise_threshold_pct": str(body.price_rise_threshold_pct),
         "source_sync_min_alert_delta_jpy": str(body.min_alert_delta_jpy),
         "source_sync_active_only": "1" if body.active_only else "0",
-    })
+    }, user_id=user_id)
     return {"ok": True}
 
 
 @app.get("/api/source-sync/settings")
-def get_source_sync_settings():
-    settings = db.get_settings()
+def get_source_sync_settings(user_id: str = Depends(get_user_id)):
+    settings = db.get_settings(user_id=user_id)
     return {
         "enabled": settings.get("source_sync_enabled", "0") == "1",
         "interval_min": float(settings.get("source_sync_interval_min", "15")),
@@ -2652,7 +2652,7 @@ def set_budget(body: BudgetRequest, user_id: str = Depends(get_user_id)):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 @app.get("/api/alerts/price-changes")
-def get_price_change_alerts(days: int = 7, threshold: float = 5.0):
+def get_price_change_alerts(days: int = 7, threshold: float = 5.0, user_id: str = Depends(get_user_id)):
     """
     直近 days 日間の価格変化を検出してアラートを返す。
     threshold: 変化率の閾値（%、デフォルト5%）
@@ -2692,7 +2692,7 @@ def get_price_change_alerts(days: int = 7, threshold: float = 5.0):
 
     alerts.sort(key=lambda x: abs(x['change_rate']), reverse=True)
 
-    watchlist = db.get_watchlist()
+    watchlist = db.get_watchlist(user_id=user_id)
     watchlist_kws = {w['keyword'] for w in watchlist}
     for a in alerts:
         a['in_watchlist'] = a['keyword'] in watchlist_kws
@@ -3374,8 +3374,10 @@ def inventory_summary(user_id: str = Depends(get_user_id)):
 # ── バックアップ ───────────────────────────────────────────────
 
 @app.post("/api/backup")
-def create_backup():
-    """DBをバックアップして保存パスを返す"""
+def create_backup(user_id: str = Depends(get_user_id)):
+    """DBをバックアップして保存パスを返す（管理者のみ）"""
+    if not _ADMIN_USER_ID or user_id != _ADMIN_USER_ID:
+        raise HTTPException(403, "管理者のみ実行できます")
     try:
         path = db.backup()
         backups = db.list_backups()
@@ -3389,8 +3391,10 @@ def create_backup():
 
 
 @app.get("/api/backup/list")
-def list_backups():
-    """バックアップ一覧を返す"""
+def list_backups(user_id: str = Depends(get_user_id)):
+    """バックアップ一覧を返す（管理者のみ）"""
+    if not _ADMIN_USER_ID or user_id != _ADMIN_USER_ID:
+        raise HTTPException(403, "管理者のみ実行できます")
     backups = db.list_backups()
     return {"backups": backups, "count": len(backups)}
 
@@ -3818,9 +3822,11 @@ def get_agent_memory(agent_name: Optional[str] = None, memory_type: Optional[str
     return result
 
 @app.delete("/api/agents/memory/{memory_id}")
-def delete_memory(memory_id: int):
-    """指定した記憶を削除する"""
-    db.conn.execute("DELETE FROM agent_memory WHERE id = ?", (memory_id,))
+def delete_memory(memory_id: int, user_id: str = Depends(get_user_id)):
+    """指定した記憶を削除する（管理者のみ）"""
+    if not _ADMIN_USER_ID or user_id != _ADMIN_USER_ID:
+        raise HTTPException(403, "管理者のみ実行できます")
+    db.conn.execute("DELETE FROM agent_memory WHERE id = %s", (memory_id,))
     db.conn.commit()
     return {"ok": True}
 
@@ -3837,8 +3843,10 @@ def get_monitor_status():
         return {"running": False, "error": str(e)}
 
 @app.post("/api/monitor/run-now")
-async def run_monitor_now(task: str = "daily_scan"):
-    """指定タスクを今すぐ手動実行する"""
+async def run_monitor_now(task: str = "daily_scan", user_id: str = Depends(get_user_id)):
+    """指定タスクを今すぐ手動実行する（管理者のみ）"""
+    if not _ADMIN_USER_ID or user_id != _ADMIN_USER_ID:
+        raise HTTPException(403, "管理者のみ実行できます")
     valid_tasks = {
         "daily_scan": "daily_scan",
         "stale_check": "check_stale_inventory",
@@ -3861,13 +3869,13 @@ class MonitorSettingsRequest(BaseModel):
     weekly_report_time: Optional[str] = None
 
 @app.post("/api/monitor/settings")
-def save_monitor_settings(body: MonitorSettingsRequest):
+def save_monitor_settings(body: MonitorSettingsRequest, user_id: str = Depends(get_user_id)):
     """モニタリング設定を保存してスケジュールを再設定する"""
     updates = {k: str(v) for k, v in body.model_dump().items() if v is not None}
     if updates:
-        existing = db.get_settings()
+        existing = db.get_settings(user_id=user_id)
         existing.update({f"monitor_{k}": v for k, v in updates.items()})
-        db.save_settings(existing)
+        db.save_settings(existing, user_id=user_id)
     try:
         import monitor
         monitor.setup_schedules()
@@ -3906,11 +3914,11 @@ def research_seasonal():
     return ResearchAgent(db=db).get_seasonal_intelligence()
 
 @app.get("/api/agents/research/history")
-async def research_history(days: int = 60):
+async def research_history(days: int = 60, user_id: str = Depends(get_user_id)):
     """自社売上履歴分析を返す"""
     def _run():
         from agents import ResearchAgent
-        return ResearchAgent(db=db).analyze_own_history(days=days)
+        return ResearchAgent(db=db).analyze_own_history(days=days, user_id=user_id)
     return await asyncio.to_thread(_run)
 
 

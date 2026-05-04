@@ -160,7 +160,7 @@ class ResearchAgent:
 
     # ── 自社売上履歴分析 ──────────────────────────────────────────────
 
-    def analyze_own_history(self, days: int = 90) -> Dict:
+    def analyze_own_history(self, days: int = 90, user_id: str = 'default') -> Dict:
         """
         過去N日間の仕入れ→販売データを分析し、
         「何が稼げて何が稼げなかったか」を返す。
@@ -179,19 +179,19 @@ class ResearchAgent:
             FROM sales s
             JOIN listings l ON s.listing_id = l.id
             JOIN purchases p ON l.purchase_id = p.id
-            WHERE s.sale_date >= ?
+            WHERE p.user_id = ? AND s.sale_date >= ?
             ORDER BY s.net_profit DESC
-        """, (since,)).fetchall()
+        """, (user_id, since)).fetchall()
 
         # 売れ残り（仕入れたが販売されていない）
         unsold = self.db.conn.execute("""
             SELECT p.product_name, p.platform, p.purchase_price,
                    p.purchase_date, p.status
             FROM purchases p
-            WHERE p.purchase_date >= ?
+            WHERE p.user_id = ? AND p.purchase_date >= ?
               AND p.status NOT IN ('sold', 'returned')
               AND p.id NOT IN (SELECT purchase_id FROM listings WHERE status = 'active')
-        """, (since,)).fetchall()
+        """, (user_id, since)).fetchall()
 
         sold_list = [dict(r) for r in sold]
         unsold_list = [dict(r) for r in unsold]
