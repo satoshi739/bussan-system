@@ -620,6 +620,17 @@ def search_all_buy_sites(keyword: str, limit: int = 5) -> List[Dict]:
             'condition': item.get('condition', ''),
         })
 
+    # メルカリ落札済み（実売価格 — 出品中より信頼性が高い）
+    for item in search_mercari_sold(keyword, min(limit, 5)):
+        results.append({
+            'source':    '🛍️ メルカリ落札',
+            'name':      item['name'],
+            'price':     item['price'],
+            'url':       item['url'],
+            'image':     item.get('image', ''),
+            'condition': '売り切れ',
+        })
+
     # ラクマ
     for item in search_rakuma(keyword, limit):
         results.append({

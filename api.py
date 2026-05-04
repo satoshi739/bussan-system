@@ -493,15 +493,15 @@ def calc_all_platforms(body: AllPlatformsRequest):
 
 
 @app.get("/api/purchases/stale")
-def get_stale_purchases(days: int = 14):
+def get_stale_purchases(days: int = 14, user_id: str = Depends(get_user_id)):
     """N日以上売れていない仕入れ済み商品"""
     from datetime import datetime, timedelta
     cutoff = (datetime.today() - timedelta(days=days)).date().isoformat()
     rows = db.conn.execute("""
         SELECT * FROM purchases
-        WHERE status = 'purchased' AND purchase_date <= ?
+        WHERE status = 'purchased' AND purchase_date <= ? AND user_id = ?
         ORDER BY purchase_date ASC
-    """, (cutoff,)).fetchall()
+    """, (cutoff, user_id)).fetchall()
     return [dict(r) for r in rows]
 
 
@@ -2592,18 +2592,18 @@ class BudgetRequest(BaseModel):
 
 
 @app.get("/api/budget")
-def get_budget():
+def get_budget(user_id: str = Depends(get_user_id)):
     """今月の予算と使用額を返す"""
     from datetime import datetime
-    settings = db.get_settings()
+    settings = db.get_settings(user_id=user_id)
     budget = float(settings.get("monthly_budget", "0"))
     month = datetime.today().strftime('%Y-%m')
 
     row = db.conn.execute(
         """SELECT COALESCE(SUM(purchase_price + purchase_shipping), 0) as spent
            FROM purchases
-           WHERE to_char(purchase_date, 'YYYY-MM') = ?""",
-        (month,)
+           WHERE to_char(purchase_date, 'YYYY-MM') = ? AND user_id = ?""",
+        (month, user_id)
     ).fetchone()
 
     spent = float(row["spent"]) if row else 0
@@ -2611,9 +2611,9 @@ def get_budget():
 
 
 @app.post("/api/budget")
-def set_budget(body: BudgetRequest):
+def set_budget(body: BudgetRequest, user_id: str = Depends(get_user_id)):
     """月次予算を設定する"""
-    db.save_settings({"monthly_budget": str(body.budget)})
+    db.save_settings({"monthly_budget": str(body.budget)}, user_id=user_id)
     return {"ok": True}
 
 
