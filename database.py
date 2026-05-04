@@ -86,6 +86,12 @@ class _Connection:
                 cur = self._new_cursor()
                 cur.execute(sql_pg, params or ())
                 return _Cursor(cur)
+            except psycopg2.errors.InFailedSqlTransaction:
+                # 前のクエリが失敗してトランザクションが壊れた場合はロールバックして1回リトライ
+                self._conn.rollback()
+                cur = self._new_cursor()
+                cur.execute(sql_pg, params or ())
+                return _Cursor(cur)
 
     def executescript(self, script: str):
         statements = [s.strip() for s in script.split(";") if s.strip()]
