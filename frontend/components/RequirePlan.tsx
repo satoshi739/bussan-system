@@ -22,9 +22,12 @@ export default function RequirePlan({ requiredPlan, featureName, children }: Pro
     );
   }
 
-  // プラン取得エラー時は機能制限せずそのままアクセスを許可する
   if (error) {
-    return <>{children}</>;
+    return (
+      <PlanGate userPlan="FREE" requiredPlan={requiredPlan} featureName={featureName}>
+        {children}
+      </PlanGate>
+    );
   }
 
   return (

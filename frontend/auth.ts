@@ -23,27 +23,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const adminPassword = process.env.ADMIN_PASSWORD;
-        if (!adminPassword) return null;
-        if (!credentials?.email || !credentials?.password) return null;
-        if (credentials.password !== adminPassword) return null;
+        try {
+          const adminPassword = process.env.ADMIN_PASSWORD;
+          console.log("[auth] ADMIN_PASSWORD set:", !!adminPassword, "length:", adminPassword?.length);
+          if (!adminPassword) return null;
+          if (!credentials?.email || !credentials?.password) return null;
+          const pwMatch = credentials.password === adminPassword.trim();
+          console.log("[auth] password match:", pwMatch, "input length:", String(credentials.password).length);
+          if (!pwMatch) return null;
 
-        const email = credentials.email as string;
-        let user = await prisma.user.findUnique({ where: { email } });
-        if (!user) {
-          user = await prisma.user.create({
-            data: { email, name: email.split("@")[0], role: "ADMIN" },
-          });
-          await prisma.subscription.create({
-            data: { userId: user.id, plan: "FREE", status: "ACTIVE" },
-          });
-        } else {
-          user = await prisma.user.update({
-            where: { email },
-            data: { role: "ADMIN" },
-          });
+          const email = credentials.email as string;
+          let user = await prisma.user.findUnique({ where: { email } });
+          if (!user) {
+            user = await prisma.user.create({
+              data: { email, name: email.split("@")[0], role: "ADMIN" },
+            });
+            try {
+              await prisma.subscription.create({
+                data: { userId: user.id, plan: "FREE", status: "ACTIVE" },
+              });
+            } catch (e) {
+              console.log("[auth] subscription already exists, skipping:", e);
+            }
+          } else {
+            user = await prisma.user.update({
+              where: { email },
+              data: { role: "ADMIN" },
+            });
+          }
+          return { id: user.id, email: user.email, name: user.name };
+        } catch (error) {
+          console.error("[auth] authorize error:", error);
+          return null;
         }
-        return { id: user.id, email: user.email, name: user.name };
       },
     }),
   ],

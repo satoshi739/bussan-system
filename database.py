@@ -681,18 +681,19 @@ class Database:
         self.conn.commit()
         return row["id"]
 
-    def get_listings(self, status: str = None) -> List:
-        query = """
+    def get_listings(self, status: str = None, user_id: str = 'default') -> List:
+        base = """
             SELECT l.*, p.product_name, p.purchase_price, p.purchase_shipping,
                    p.platform, p.id as purchase_id
             FROM listings l
             JOIN purchases p ON l.purchase_id = p.id
+            WHERE p.user_id = %s
         """
         if status:
             return self.conn.execute(
-                query + " WHERE l.status = %s ORDER BY l.listed_date DESC", (status,)
+                base + " AND l.status = %s ORDER BY l.listed_date DESC", (user_id, status)
             ).fetchall()
-        return self.conn.execute(query + " ORDER BY l.listed_date DESC").fetchall()
+        return self.conn.execute(base + " ORDER BY l.listed_date DESC", (user_id,)).fetchall()
 
     # ===== SALES =====
 
@@ -756,17 +757,18 @@ class Database:
 
         return net_profit
 
-    def get_all_sales(self) -> List:
+    def get_all_sales(self, user_id: str = 'default') -> List:
         return self.conn.execute("""
             SELECT s.*, p.product_name, p.purchase_price, p.purchase_shipping,
                    p.platform as buy_platform, l.selling_platform
             FROM sales s
             JOIN listings l ON s.listing_id = l.id
             JOIN purchases p ON l.purchase_id = p.id
+            WHERE p.user_id = %s
             ORDER BY s.sale_date DESC
-        """).fetchall()
+        """, (user_id,)).fetchall()
 
-    def get_summary_stats(self) -> Dict:
+    def get_summary_stats(self, user_id: str = 'default') -> Dict:
         row = self.conn.execute("""
             SELECT
                 COUNT(DISTINCT p.id) as total_purchases,
@@ -776,31 +778,35 @@ class Database:
             FROM purchases p
             LEFT JOIN listings l ON p.id = l.purchase_id
             LEFT JOIN sales s ON l.id = s.listing_id
-        """).fetchone()
+            WHERE p.user_id = %s
+        """, (user_id,)).fetchone()
         return dict(row) if row else {}
 
-    def get_monthly_profit(self) -> List:
+    def get_monthly_profit(self, user_id: str = 'default') -> List:
         return self.conn.execute("""
             SELECT
-                to_char(sale_date, 'YYYY-MM') as month,
-                SUM(net_profit) as profit,
+                to_char(s.sale_date, 'YYYY-MM') as month,
+                SUM(s.net_profit) as profit,
                 COUNT(*) as sales_count
-            FROM sales
+            FROM sales s
+            JOIN listings l ON s.listing_id = l.id
+            JOIN purchases p ON l.purchase_id = p.id
+            WHERE p.user_id = %s
             GROUP BY month
             ORDER BY month DESC
             LIMIT 12
-        """).fetchall()
+        """, (user_id,)).fetchall()
 
-    def get_status_breakdown(self) -> List:
+    def get_status_breakdown(self, user_id: str = 'default') -> List:
         rows = self.conn.execute("""
-            SELECT status, COUNT(*) as count FROM purchases GROUP BY status
-        """).fetchall()
+            SELECT status, COUNT(*) as count FROM purchases WHERE user_id = %s GROUP BY status
+        """, (user_id,)).fetchall()
         return [(r['status'], r['count']) for r in rows]
 
-    def get_platform_breakdown(self) -> List:
+    def get_platform_breakdown(self, user_id: str = 'default') -> List:
         rows = self.conn.execute("""
-            SELECT platform, COUNT(*) as count FROM purchases GROUP BY platform
-        """).fetchall()
+            SELECT platform, COUNT(*) as count FROM purchases WHERE user_id = %s GROUP BY platform
+        """, (user_id,)).fetchall()
         return [(r['platform'], r['count']) for r in rows]
 
     # ===== SETTINGS =====

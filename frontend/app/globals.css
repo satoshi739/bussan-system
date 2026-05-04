@@ -1,13 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0a0a0b;
-  --surface: rgba(20, 20, 22, 0.97);
-  --border: rgba(212, 175, 55, 0.18);
-  --green: #D4AF37;
-  --green-dim: #9A7D25;
+  --bg: #0c0b0a;
+  --surface: rgba(22, 20, 18, 0.97);
+  --border: rgba(212, 175, 55, 0.16);
+  --gold: #D4AF37;
+  --gold-dim: #9A7D25;
   --text: #F5F0E8;
   --text-muted: #8A8278;
+
+  /* ── Radius scale ── */
+  --r-xs:   6px;
+  --r-sm:   10px;
+  --r-md:   14px;
+  --r-lg:   18px;
+  --r-xl:   24px;
+  --r-full: 9999px;
 }
 
 html,
@@ -20,13 +28,33 @@ body {
 
 body {
   background-image:
-    radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.04) 0%, transparent 55%);
-  background-size: 100% 100%;
+    radial-gradient(ellipse at 18% 0%,   rgba(212, 175, 55, 0.055) 0%, transparent 42%),
+    radial-gradient(ellipse at 82% 100%, rgba(212, 175, 55, 0.025) 0%, transparent 38%);
+  background-attachment: fixed;
 }
 
-::-webkit-scrollbar { width: 6px; }
+/* ── スクロールバー ── */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.25); border-radius: 3px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.22);
+  border-radius: var(--r-full);
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.4); }
+
+/* ── フォーム要素の基本スタイル ── */
+button {
+  border-radius: var(--r-md);
+  transition: opacity 0.15s, box-shadow 0.15s;
+}
+input, select, textarea {
+  border-radius: var(--r-sm);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.28);
+}
 
 /* ═══ レスポンシブ・グリッドユーティリティ ═══ */
 

@@ -1,17 +1,17 @@
 // Unified design tokens — single source of truth for all components
 export const T = {
-  // Backgrounds — 3-step lift from page base
-  bg0: "#0a0a0b",       // page base (deep black)
-  bg1: "#141414",       // card surface
-  bg2: "#1c1c1e",       // elevated / header tint
-  bg3: "#242424",       // tooltips, dropdowns
-  bgSidebar: "#0f0f10", // sidebar surface (slightly lighter than page)
+  // Backgrounds — 3-step lift from page base (warm-tinted dark)
+  bg0: "#0c0b0a",       // page base (warm deep black)
+  bg1: "#161412",       // card surface
+  bg2: "#1e1c19",       // elevated / header tint
+  bg3: "#272420",       // tooltips, dropdowns
+  bgSidebar: "#100f0d", // sidebar surface
 
   // Text — WCAG AA compliant contrast ratios vs bg0
-  t1: "#F5F0E8",  // primary warm white  (14.2:1) — headings, active items
-  t2: "#D4CCBC",  // secondary           (8.1:1)  — body text, labels
-  t3: "#A09488",  // muted               (4.6:1)  — icons, helper text
-  t4: "#5A5248",  // faint               (2.4:1)  — decorative only (timestamps)
+  t1: "#F5F0E8",  // primary warm white  — headings, active items
+  t2: "#D4CCBC",  // secondary           — body text, labels
+  t3: "#A09488",  // muted               — icons, helper text
+  t4: "#5A5248",  // faint               — decorative only (timestamps)
 
   // Gold accent
   gold:   "#D4AF37",
@@ -30,5 +30,13 @@ export const T = {
 
   // Interactive states
   bgHover:  "rgba(212,175,55,0.07)",
-  bgActive: "rgba(212,175,55,0.13)",
+  bgActive: "rgba(212,175,55,0.14)",
+
+  // Radius scale
+  rXs:   "6px",
+  rSm:   "10px",
+  rMd:   "14px",
+  rLg:   "18px",
+  rXl:   "24px",
+  rFull: "9999px",
 } as const;

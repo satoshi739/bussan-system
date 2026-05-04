@@ -188,11 +188,11 @@ class StatusUpdate(BaseModel):
 # ── ダッシュボード ───────────────────────────────────────
 
 @app.get("/api/dashboard")
-def get_dashboard():
-    stats = db.get_summary_stats()
-    monthly = [dict(r) for r in db.get_monthly_profit()]
-    status_breakdown = db.get_status_breakdown()
-    platform_breakdown = db.get_platform_breakdown()
+def get_dashboard(user_id: str = Depends(get_user_id)):
+    stats = db.get_summary_stats(user_id=user_id)
+    monthly = [dict(r) for r in db.get_monthly_profit(user_id=user_id)]
+    status_breakdown = db.get_status_breakdown(user_id=user_id)
+    platform_breakdown = db.get_platform_breakdown(user_id=user_id)
     return {
         "stats": stats,
         "monthly_profit": monthly,
@@ -387,8 +387,8 @@ def get_purchase_listing_links(purchase_id: int, user_id: str = Depends(get_user
 # ── 出品 ─────────────────────────────────────────────────
 
 @app.get("/api/listings")
-def get_listings(status: Optional[str] = None):
-    rows = db.get_listings(status=status)
+def get_listings(status: Optional[str] = None, user_id: str = Depends(get_user_id)):
+    rows = db.get_listings(status=status, user_id=user_id)
     return [dict(r) for r in rows]
 
 @app.post("/api/listings")
@@ -402,8 +402,8 @@ def create_listing(body: ListingCreate):
 # ── 売上 ─────────────────────────────────────────────────
 
 @app.get("/api/sales")
-def get_sales():
-    rows = db.get_all_sales()
+def get_sales(user_id: str = Depends(get_user_id)):
+    rows = db.get_all_sales(user_id=user_id)
     return [dict(r) for r in rows]
 
 @app.post("/api/sales")
@@ -506,7 +506,7 @@ def get_stale_purchases(days: int = 14):
 
 
 @app.get("/api/analytics/by-platform")
-def get_analytics_by_platform():
+def get_analytics_by_platform(user_id: str = Depends(get_user_id)):
     rows = db.conn.execute("""
         SELECT l.selling_platform,
                COUNT(*) as count,
@@ -515,14 +515,16 @@ def get_analytics_by_platform():
                AVG(s.net_profit / s.sale_price * 100) as avg_rate
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE p.user_id = ?
         GROUP BY l.selling_platform
         ORDER BY total_profit DESC
-    """).fetchall()
+    """, (user_id,)).fetchall()
     return [dict(r) for r in rows]
 
 
 @app.get("/api/analytics/by-buy-platform")
-def get_analytics_by_buy_platform():
+def get_analytics_by_buy_platform(user_id: str = Depends(get_user_id)):
     rows = db.conn.execute("""
         SELECT p.platform,
                COUNT(*) as count,
@@ -531,9 +533,10 @@ def get_analytics_by_buy_platform():
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
         JOIN purchases p ON l.purchase_id = p.id
+        WHERE p.user_id = ?
         GROUP BY p.platform
         ORDER BY total_profit DESC
-    """).fetchall()
+    """, (user_id,)).fetchall()
     return [dict(r) for r in rows]
 
 
@@ -577,7 +580,7 @@ def save_settings(body: SettingsUpdate, user_id: str = Depends(get_user_id)):
 # ── ベスト商品ランキング ──────────────────────────────────
 
 @app.get("/api/analytics/best-products")
-def get_best_products(limit: int = 10):
+def get_best_products(limit: int = 10, user_id: str = Depends(get_user_id)):
     rows = db.conn.execute("""
         SELECT p.product_name,
                p.platform as buy_platform,
@@ -590,26 +593,29 @@ def get_best_products(limit: int = 10):
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
         JOIN purchases p ON l.purchase_id = p.id
+        WHERE p.user_id = ?
         ORDER BY s.net_profit DESC
         LIMIT ?
-    """, (limit,)).fetchall()
+    """, (user_id, limit)).fetchall()
     return [dict(r) for r in rows]
 
 
 # ── 月次目標 ──────────────────────────────────────────────
 
 @app.get("/api/goal")
-def get_goal():
+def get_goal(user_id: str = Depends(get_user_id)):
     from datetime import datetime
     month = datetime.today().strftime("%Y-%m")
     row = db.conn.execute(
-        "SELECT value FROM settings WHERE key = ?", (f"goal_{month}",)
+        "SELECT value FROM settings WHERE user_id = ? AND key = ?", (user_id, f"goal_{month}")
     ).fetchone()
     profit_row = db.conn.execute("""
-        SELECT COALESCE(SUM(net_profit), 0) as profit
-        FROM sales
-        WHERE to_char(sale_date, 'YYYY-MM') = ?
-    """, (month,)).fetchone()
+        SELECT COALESCE(SUM(s.net_profit), 0) as profit
+        FROM sales s
+        JOIN listings l ON s.listing_id = l.id
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE p.user_id = ? AND to_char(s.sale_date, 'YYYY-MM') = ?
+    """, (user_id, month)).fetchone()
     return {
         "month": month,
         "goal": float(row["value"]) if row else 0,
@@ -620,13 +626,13 @@ class GoalSet(BaseModel):
     goal: float
 
 @app.post("/api/goal")
-def set_goal(body: GoalSet):
+def set_goal(body: GoalSet, user_id: str = Depends(get_user_id)):
     from datetime import datetime
     month = datetime.today().strftime("%Y-%m")
     db.conn.execute("""
-        INSERT INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
-    """, (f"goal_{month}", str(body.goal)))
+        INSERT INTO settings (user_id, key, value, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+    """, (user_id, f"goal_{month}", str(body.goal)))
     db.conn.commit()
     return {"ok": True}
 
@@ -2534,7 +2540,7 @@ def export_purchases_csv():
 
 
 @app.get("/api/sales/export/csv")
-def export_sales_csv():
+def export_sales_csv(user_id: str = Depends(get_user_id)):
     """売上データをCSVでダウンロード"""
     rows = db.conn.execute("""
         SELECT s.id, p.product_name, p.platform as buy_platform,
@@ -2544,8 +2550,9 @@ def export_sales_csv():
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
         JOIN purchases p ON l.purchase_id = p.id
+        WHERE p.user_id = ?
         ORDER BY s.sale_date DESC
-    """).fetchall()
+    """, (user_id,)).fetchall()
 
     output = io.StringIO()
     writer = csv.writer(output)
@@ -2666,7 +2673,7 @@ def get_price_change_alerts(days: int = 7, threshold: float = 5.0):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 @app.get("/api/analytics/trends")
-def get_sales_trends(months: int = 6):
+def get_sales_trends(months: int = 6, user_id: str = Depends(get_user_id)):
     """過去 N ヶ月の売れ筋トレンドを返す"""
     monthly_by_platform = db.conn.execute("""
         SELECT to_char(s.sale_date, 'YYYY-MM') as month,
@@ -2676,10 +2683,11 @@ def get_sales_trends(months: int = 6):
                ROUND(AVG(s.net_profit)) as avg_profit
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
-        WHERE s.sale_date >= CURRENT_DATE - CAST(? || ' months' AS INTERVAL)
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE p.user_id = ? AND s.sale_date >= CURRENT_DATE - CAST(? || ' months' AS INTERVAL)
         GROUP BY month, l.selling_platform
         ORDER BY month, total_profit DESC
-    """, (str(months),)).fetchall()
+    """, (user_id, str(months))).fetchall()
 
     trending_products = db.conn.execute("""
         SELECT p.product_name,
@@ -2690,21 +2698,23 @@ def get_sales_trends(months: int = 6):
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
         JOIN purchases p ON l.purchase_id = p.id
-        WHERE s.sale_date >= CURRENT_DATE - CAST(? || ' months' AS INTERVAL)
+        WHERE p.user_id = ? AND s.sale_date >= CURRENT_DATE - CAST(? || ' months' AS INTERVAL)
         GROUP BY p.product_name
         ORDER BY total_profit DESC
         LIMIT 10
-    """, (str(months),)).fetchall()
+    """, (user_id, str(months))).fetchall()
 
     monthly_totals = db.conn.execute("""
-        SELECT to_char(sale_date, 'YYYY-MM') as month,
+        SELECT to_char(s.sale_date, 'YYYY-MM') as month,
                COUNT(*) as count,
-               ROUND(SUM(net_profit)) as profit
-        FROM sales
-        WHERE sale_date >= CURRENT_DATE - CAST(? || ' months' AS INTERVAL)
+               ROUND(SUM(s.net_profit)) as profit
+        FROM sales s
+        JOIN listings l ON s.listing_id = l.id
+        JOIN purchases p ON l.purchase_id = p.id
+        WHERE p.user_id = ? AND s.sale_date >= CURRENT_DATE - CAST(? || ' months' AS INTERVAL)
         GROUP BY month
         ORDER BY month
-    """, (str(months),)).fetchall()
+    """, (user_id, str(months))).fetchall()
 
     return {
         'monthly_by_platform': [dict(r) for r in monthly_by_platform],
@@ -2718,7 +2728,7 @@ def get_sales_trends(months: int = 6):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 @app.get("/api/analytics/competition")
-def get_competition_analysis():
+def get_competition_analysis(user_id: str = Depends(get_user_id)):
     """出品中商品の市場相場と自分の価格を比較する"""
     import time as _t
     from scrapers import search_all_buy_sites
@@ -2728,10 +2738,10 @@ def get_competition_analysis():
                p.purchase_price, p.purchase_shipping
         FROM listings l
         JOIN purchases p ON l.purchase_id = p.id
-        WHERE l.status = 'active'
+        WHERE l.status = 'active' AND p.user_id = ?
         ORDER BY l.id DESC
         LIMIT 10
-    """).fetchall()
+    """, (user_id,)).fetchall()
 
     results = []
     for listing in listings:
