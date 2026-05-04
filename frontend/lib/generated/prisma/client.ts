@@ -72,6 +72,26 @@ export type Subscription = Prisma.SubscriptionModel
  */
 export type ActiveSession = Prisma.ActiveSessionModel
 /**
+ * Model PurchaseRecord
+ * 
+ */
+export type PurchaseRecord = Prisma.PurchaseRecordModel
+/**
+ * Model SaleRecord
+ * 
+ */
+export type SaleRecord = Prisma.SaleRecordModel
+/**
+ * Model ScanHistory
+ * 
+ */
+export type ScanHistory = Prisma.ScanHistoryModel
+/**
+ * Model ProfitCalcHistory
+ * 
+ */
+export type ProfitCalcHistory = Prisma.ProfitCalcHistoryModel
+/**
  * Model StripeEvent
  * 
  */

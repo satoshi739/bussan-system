@@ -14,7 +14,7 @@ export default function BarcodePage() {
   const [result, setResult] = useState<LookupResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const scannerRef = useRef<any>(null);
+  const scannerRef = useRef<{ clear: () => Promise<void> } | null>(null);
 
   const stopScan = () => {
     if (scannerRef.current) {

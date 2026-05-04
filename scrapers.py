@@ -330,8 +330,33 @@ def _search_keepa(keyword: str, api_key: str, limit: int) -> List[Dict]:
         return results
 
     except Exception as e:
-        print(f'[Keepa] エラー: {e}')
+        logger.warning(f'[Keepa] エラー: {e}')
         return []
+
+
+def _keepa_market_price(keyword: str, api_key: str, limit: int = 10) -> Dict:
+    """Keepa API で Amazon.co.jp の実売相場統計を返す。"""
+    items = _search_keepa(keyword, api_key, limit)
+    prices = [i['price'] for i in items if i.get('price', 0) > 0]
+    if not prices:
+        return {'found': False, 'keyword': keyword}
+
+    prices.sort()
+    n = len(prices)
+    median = prices[n // 2] if n % 2 == 1 else (prices[n // 2 - 1] + prices[n // 2]) // 2
+
+    return {
+        'found': True,
+        'keyword': keyword,
+        'median_price': median,
+        'avg_price': round(sum(prices) / n),
+        'min_price': prices[0],
+        'max_price': prices[-1],
+        'sample_count': n,
+        'items': [{'name': i['title'], 'price': i['price'], 'url': i['url'],
+                   'source': 'Amazon(Keepa)'} for i in items[:3]],
+        'source': 'Keepa',
+    }
 
 
 # ===== Yahoo!オークション =====
@@ -576,8 +601,20 @@ def search_amazon_jp(keyword: str, limit: int = 5) -> List[Dict]:
 def get_amazon_market_price(keyword: str) -> Dict:
     """
     Amazon.co.jpの実売価格を取得し、相場統計を返す。
-    利益スキャナーが「推定式」ではなく本物の市場価格で判断するために使う。
+    Keepa APIキーが設定されている場合はKeepa優先（CAPTCHAの影響なし）。
+    未設定の場合はスクレイピングにフォールバック。
     """
+    settings = _get_settings()
+    keepa_key = settings.get('keepa_api_key', '').strip()
+
+    if keepa_key:
+        try:
+            result = _keepa_market_price(keyword, keepa_key, limit=10)
+            if result.get('found'):
+                return result
+        except Exception as e:
+            logger.warning(f'[Keepa相場] エラー、スクレイピングにフォールバック: {e}')
+
     try:
         items = search_amazon_jp(keyword, limit=10)
         prices = [i['price'] for i in items if i.get('price', 0) > 0]
@@ -597,6 +634,7 @@ def get_amazon_market_price(keyword: str) -> Dict:
             'max_price': prices[-1],
             'sample_count': n,
             'items': items[:3],
+            'source': 'scraping',
         }
     except Exception as e:
         logger.warning(f'[Amazon相場] エラー: {e}')

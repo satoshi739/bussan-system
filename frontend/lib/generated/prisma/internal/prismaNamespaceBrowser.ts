@@ -57,6 +57,10 @@ export const ModelName = {
   VerificationToken: 'VerificationToken',
   Subscription: 'Subscription',
   ActiveSession: 'ActiveSession',
+  PurchaseRecord: 'PurchaseRecord',
+  SaleRecord: 'SaleRecord',
+  ScanHistory: 'ScanHistory',
+  ProfitCalcHistory: 'ProfitCalcHistory',
   StripeEvent: 'StripeEvent'
 } as const
 
@@ -154,6 +158,69 @@ export const ActiveSessionScalarFieldEnum = {
 } as const
 
 export type ActiveSessionScalarFieldEnum = (typeof ActiveSessionScalarFieldEnum)[keyof typeof ActiveSessionScalarFieldEnum]
+
+
+export const PurchaseRecordScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  itemName: 'itemName',
+  platform: 'platform',
+  buyPrice: 'buyPrice',
+  shippingCost: 'shippingCost',
+  otherFees: 'otherFees',
+  sellPrice: 'sellPrice',
+  profit: 'profit',
+  roi: 'roi',
+  memo: 'memo',
+  createdAt: 'createdAt'
+} as const
+
+export type PurchaseRecordScalarFieldEnum = (typeof PurchaseRecordScalarFieldEnum)[keyof typeof PurchaseRecordScalarFieldEnum]
+
+
+export const SaleRecordScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  itemName: 'itemName',
+  platform: 'platform',
+  sellPrice: 'sellPrice',
+  buyPrice: 'buyPrice',
+  profit: 'profit',
+  roi: 'roi',
+  memo: 'memo',
+  createdAt: 'createdAt'
+} as const
+
+export type SaleRecordScalarFieldEnum = (typeof SaleRecordScalarFieldEnum)[keyof typeof SaleRecordScalarFieldEnum]
+
+
+export const ScanHistoryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  keyword: 'keyword',
+  platform: 'platform',
+  resultsCount: 'resultsCount',
+  topRoi: 'topRoi',
+  topProfit: 'topProfit',
+  createdAt: 'createdAt'
+} as const
+
+export type ScanHistoryScalarFieldEnum = (typeof ScanHistoryScalarFieldEnum)[keyof typeof ScanHistoryScalarFieldEnum]
+
+
+export const ProfitCalcHistoryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  itemName: 'itemName',
+  buyPrice: 'buyPrice',
+  sellPrice: 'sellPrice',
+  profit: 'profit',
+  roi: 'roi',
+  platform: 'platform',
+  createdAt: 'createdAt'
+} as const
+
+export type ProfitCalcHistoryScalarFieldEnum = (typeof ProfitCalcHistoryScalarFieldEnum)[keyof typeof ProfitCalcHistoryScalarFieldEnum]
 
 
 export const StripeEventScalarFieldEnum = {

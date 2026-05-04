@@ -1,6 +1,12 @@
 {
   "framework": "nextjs",
-  "buildCommand": "next build",
+  "buildCommand": "prisma generate && node scripts/create-active-sessions.js && next build",
+  "crons": [
+    {
+      "path": "/api/cron/daily-report",
+      "schedule": "0 8 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/api/stripe/webhook",

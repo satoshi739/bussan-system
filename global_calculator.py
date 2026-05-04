@@ -17,9 +17,9 @@ GLOBAL_PLATFORMS = {
         'flag': '🌏',
         'currency': 'USD',
         'fee_rate': 0.1325,
-        'fixed_fee_jpy': 0,
+        'fixed_fee_jpy': 45,  # $0.30固定費（@150円/USD）
         'area': '米国・欧州・世界',
-        'note': '手数料13.25%・世界190カ国',
+        'note': '手数料13.25%＋$0.30固定費・世界190カ国',
         'shipping_note': 'EMS/FedEx推奨',
         'category': 'global',
     },

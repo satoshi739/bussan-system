@@ -19,7 +19,7 @@ export async function GET() {
   ]);
 
   // バックエンドのユーザー別アクティビティを取得
-  let backendStats: Record<string, { purchase_count: number; sold_count: number; listed_count: number; purchased_count: number; last_purchase_date: string | null; total_invested: number }> = {};
+  const backendStats: Record<string, { purchase_count: number; sold_count: number; listed_count: number; purchased_count: number; last_purchase_date: string | null; total_invested: number }> = {};
   try {
     const backendUrl = process.env.FASTAPI_URL ?? "http://localhost:8000";
     const apiKey = process.env.INTERNAL_API_KEY ?? "";

@@ -11,13 +11,16 @@ from typing import List, Dict, Optional
 from datetime import datetime
 from pathlib import Path
 
-from scrapers import search_mercari, search_yahoo_auction, search_rakuma, get_amazon_market_price
+from scrapers import (
+    search_mercari, search_yahoo_auction, search_rakuma,
+    get_amazon_market_price, search_ebay_sold,
+)
 from global_calculator import (
     GLOBAL_PLATFORMS, calculate_global_profit,
     suggest_selling_price, get_intl_shipping,
 )
 from calculators import calculate_profit as calc_domestic_profit, estimate_weight_by_category
-from currency import get_rates
+from currency import get_rates, jpy_to
 
 # ── スキャン対象キーワード管理 ──────────────────────────────────────
 SCAN_KEYWORDS_FILE = Path(__file__).parent / "data" / "scan_keywords.json"
@@ -135,7 +138,7 @@ def score_item(
 
     if price_is_real:
         sell_price_jpy = real_sell_price_jpy
-        sell_price_local = sell_price_jpy / (pf.get("rate", 1) or 1)
+        sell_price_local = jpy_to(sell_price_jpy, pf['currency'])
     else:
         sell_price_local = _estimate_sell_price(buy_price, target_platform)
         if not sell_price_local or sell_price_local <= 0:
@@ -335,30 +338,45 @@ def scan_keyword(
     for item in search_rakuma(keyword, limit):
         buy_items.append(item)
 
-    # Amazon実売価格を取得（販売プラットフォームがAmazon系の場合に使う）
-    amazon_market = None
-    if target_platform in ("Amazon", "Amazon.co.jp", "eBay"):
+    # 実売価格を取得（プラットフォームに応じて最適なソースを選択）
+    real_sell_price = None
+    sell_price_meta: dict = {}
+
+    if target_platform == "eBay":
+        # eBay落札済み価格（出品中より信頼性が高い）
+        try:
+            sold_items = search_ebay_sold(keyword, limit=10)
+            prices_jpy = [i['price_jpy'] for i in sold_items if i.get('price_jpy', 0) > 0]
+            if prices_jpy:
+                prices_jpy.sort()
+                n = len(prices_jpy)
+                median = prices_jpy[n // 2] if n % 2 == 1 else (prices_jpy[n // 2 - 1] + prices_jpy[n // 2]) // 2
+                real_sell_price = float(median)
+                sell_price_meta = {"source": "eBay落札", "median": median, "sample": n}
+        except Exception:
+            pass
+
+    if real_sell_price is None and target_platform in ("Amazon", "Amazon.co.jp", "eBay"):
+        # Amazon実売価格にフォールバック（Keepa優先）
         try:
             amazon_market = get_amazon_market_price(keyword)
+            if amazon_market and amazon_market.get("found"):
+                real_sell_price = float(amazon_market["median_price"])
+                sell_price_meta = {
+                    "source": f"Amazon({amazon_market.get('source', 'scraping')})",
+                    "median": amazon_market.get("median_price"),
+                    "sample": amazon_market.get("sample_count"),
+                }
         except Exception:
-            amazon_market = None
-
-    real_sell_price = (
-        amazon_market.get("median_price")
-        if amazon_market and amazon_market.get("found")
-        else None
-    )
+            pass
 
     # スコアリング
     scored = []
     for item in buy_items:
         result = score_item(item, target_platform, max_buy_price, real_sell_price)
         if result:
-            if real_sell_price:
-                result["amazon_market"] = {
-                    "median": amazon_market.get("median_price"),
-                    "sample": amazon_market.get("sample_count"),
-                }
+            if sell_price_meta:
+                result["sell_price_meta"] = sell_price_meta
             scored.append(result)
 
     scored.sort(key=lambda x: x["score"], reverse=True)

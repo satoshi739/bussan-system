@@ -23,10 +23,14 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  subscription   Subscription?
-  activeSessions ActiveSession[]
+  accounts          Account[]
+  sessions          Session[]
+  subscription      Subscription?
+  activeSessions    ActiveSession[]
+  purchaseRecords   PurchaseRecord[]
+  saleRecords       SaleRecord[]
+  scanHistories     ScanHistory[]
+  profitCalcHistories ProfitCalcHistory[]
 }
 
 model Account {
@@ -90,6 +94,66 @@ model ActiveSession {
   sessionKey String   @unique
   expiresAt  DateTime
   createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ユーザー活動記録
+model PurchaseRecord {
+  id            String   @id @default(cuid())
+  userId        String
+  itemName      String
+  platform      String
+  buyPrice      Float
+  shippingCost  Float    @default(0)
+  otherFees     Float    @default(0)
+  sellPrice     Float    @default(0)
+  profit        Float    @default(0)
+  roi           Float    @default(0)
+  memo          String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SaleRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  itemName    String
+  platform    String
+  sellPrice   Float
+  buyPrice    Float    @default(0)
+  profit      Float
+  roi         Float    @default(0)
+  memo        String?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScanHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  keyword      String
+  platform     String
+  resultsCount Int      @default(0)
+  topRoi       Float    @default(0)
+  topProfit    Float    @default(0)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProfitCalcHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  itemName     String
+  buyPrice     Float
+  sellPrice    Float
+  profit       Float
+  roi          Float
+  platform     String
+  createdAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
