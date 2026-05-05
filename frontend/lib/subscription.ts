@@ -51,8 +51,9 @@ export async function getUserSubscription() {
 
 const PLAN_HIERARCHY: Record<PlanKey, number> = {
   FREE: 0,
-  STANDARD: 1,
-  PRO: 2,
+  LITE: 1,
+  STANDARD: 2,
+  PRO: 3,
 };
 
 // プランが指定したプラン以上かチェック
