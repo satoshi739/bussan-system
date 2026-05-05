@@ -394,7 +394,8 @@ export const ModelName = {
   SaleRecord: 'SaleRecord',
   ScanHistory: 'ScanHistory',
   ProfitCalcHistory: 'ProfitCalcHistory',
-  StripeEvent: 'StripeEvent'
+  StripeEvent: 'StripeEvent',
+  ContentItem: 'ContentItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -410,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent" | "contentItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1228,6 +1229,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ContentItem: {
+      payload: Prisma.$ContentItemPayload<ExtArgs>
+      fields: Prisma.ContentItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ContentItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ContentItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload>
+        }
+        findFirst: {
+          args: Prisma.ContentItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ContentItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload>
+        }
+        findMany: {
+          args: Prisma.ContentItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload>[]
+        }
+        create: {
+          args: Prisma.ContentItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload>
+        }
+        createMany: {
+          args: Prisma.ContentItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ContentItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload>[]
+        }
+        delete: {
+          args: Prisma.ContentItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload>
+        }
+        update: {
+          args: Prisma.ContentItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.ContentItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ContentItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ContentItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.ContentItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentItemPayload>
+        }
+        aggregate: {
+          args: Prisma.ContentItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateContentItem>
+        }
+        groupBy: {
+          args: Prisma.ContentItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContentItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ContentItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContentItemCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1417,6 +1492,21 @@ export const StripeEventScalarFieldEnum = {
 } as const
 
 export type StripeEventScalarFieldEnum = (typeof StripeEventScalarFieldEnum)[keyof typeof StripeEventScalarFieldEnum]
+
+
+export const ContentItemScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  theme: 'theme',
+  title: 'title',
+  body: 'body',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContentItemScalarFieldEnum = (typeof ContentItemScalarFieldEnum)[keyof typeof ContentItemScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1652,6 +1742,7 @@ export type GlobalOmitConfig = {
   scanHistory?: Prisma.ScanHistoryOmit
   profitCalcHistory?: Prisma.ProfitCalcHistoryOmit
   stripeEvent?: Prisma.StripeEventOmit
+  contentItem?: Prisma.ContentItemOmit
 }
 
 /* Types for Logging */

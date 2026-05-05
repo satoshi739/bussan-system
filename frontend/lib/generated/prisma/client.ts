@@ -96,3 +96,8 @@ export type ProfitCalcHistory = Prisma.ProfitCalcHistoryModel
  * 
  */
 export type StripeEvent = Prisma.StripeEventModel
+/**
+ * Model ContentItem
+ * 
+ */
+export type ContentItem = Prisma.ContentItemModel

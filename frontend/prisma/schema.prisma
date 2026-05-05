@@ -164,6 +164,18 @@ model StripeEvent {
   createdAt DateTime @default(now())
 }
 
+model ContentItem {
+  id          String    @id @default(cuid())
+  platform    String    // tiktok | instagram | x | dm
+  theme       String    @default("")
+  title       String
+  body        String
+  status      String    @default("draft") // draft | published
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
 enum Plan {
   FREE
   STANDARD

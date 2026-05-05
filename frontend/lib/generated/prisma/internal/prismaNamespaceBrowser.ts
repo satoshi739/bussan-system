@@ -61,7 +61,8 @@ export const ModelName = {
   SaleRecord: 'SaleRecord',
   ScanHistory: 'ScanHistory',
   ProfitCalcHistory: 'ProfitCalcHistory',
-  StripeEvent: 'StripeEvent'
+  StripeEvent: 'StripeEvent',
+  ContentItem: 'ContentItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -230,6 +231,21 @@ export const StripeEventScalarFieldEnum = {
 } as const
 
 export type StripeEventScalarFieldEnum = (typeof StripeEventScalarFieldEnum)[keyof typeof StripeEventScalarFieldEnum]
+
+
+export const ContentItemScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  theme: 'theme',
+  title: 'title',
+  body: 'body',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContentItemScalarFieldEnum = (typeof ContentItemScalarFieldEnum)[keyof typeof ContentItemScalarFieldEnum]
 
 
 export const SortOrder = {
