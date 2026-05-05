@@ -1,42 +1,42 @@
-// Unified design tokens — single source of truth for all components
+// Unified design tokens — Light Mode: Clean White × iOS Blue (futuristic business)
 export const T = {
-  // Backgrounds — 3-step lift from page base (warm-tinted dark)
-  bg0: "#0c0b0a",       // page base (warm deep black)
-  bg1: "#161412",       // card surface
-  bg2: "#1e1c19",       // elevated / header tint
-  bg3: "#272420",       // tooltips, dropdowns
-  bgSidebar: "#100f0d", // sidebar surface
+  // Backgrounds — light, airy, cool-tinted
+  bg0: "#F0F4FA",        // page base (cool light gray-blue)
+  bg1: "#FFFFFF",        // card surface
+  bg2: "#F5F8FF",        // subtle elevated / input fill
+  bg3: "#E8EFFA",        // tooltips, dropdowns
+  bgSidebar: "#FFFFFF",  // sidebar
 
-  // Text — WCAG AA compliant contrast ratios vs bg0
-  t1: "#F5F0E8",  // primary warm white  — headings, active items
-  t2: "#D4CCBC",  // secondary           — body text, labels
-  t3: "#A09488",  // muted               — icons, helper text
-  t4: "#5A5248",  // faint               — decorative only (timestamps)
+  // Text — dark on light
+  t1: "#0A0F1E",                    // primary (near black)
+  t2: "rgba(10,15,30,0.60)",       // secondary
+  t3: "rgba(10,15,30,0.38)",       // tertiary / muted
+  t4: "rgba(10,15,30,0.20)",       // faint / decorative
 
-  // Gold accent
-  gold:   "#D4AF37",
-  goldLt: "#F0D060",
-  goldDm: "#9A7D25",
+  // iOS Blue (primary accent)
+  gold:   "#007AFF",  // iOS system blue
+  goldLt: "#409CFF",  // lighter blue
+  goldDm: "#0056CC",  // pressed / darker blue
 
-  // Signal colors
-  up:   "#4ade80",
-  dn:   "#f87171",
-  warn: "#fbbf24",
+  // Signal colors — iOS system palette
+  up:   "#28A745",   // green (positive / profit)
+  dn:   "#FF3B30",   // iOS red (loss / danger)
+  warn: "#FF9500",   // iOS orange (warning)
 
-  // Borders
-  bd:    "rgba(212,175,55,0.18)",
-  bdSt:  "rgba(212,175,55,0.38)",
-  bdSub: "rgba(212,175,55,0.09)",
+  // Borders — subtle on white
+  bd:    "rgba(0,0,0,0.08)",
+  bdSt:  "rgba(0,0,0,0.18)",
+  bdSub: "rgba(0,0,0,0.04)",
 
   // Interactive states
-  bgHover:  "rgba(212,175,55,0.07)",
-  bgActive: "rgba(212,175,55,0.14)",
+  bgHover:  "rgba(0,122,255,0.06)",
+  bgActive: "rgba(0,122,255,0.12)",
 
   // Radius scale
-  rXs:   "6px",
-  rSm:   "10px",
-  rMd:   "14px",
-  rLg:   "18px",
-  rXl:   "24px",
+  rXs:   "10px",
+  rSm:   "16px",
+  rMd:   "20px",
+  rLg:   "28px",
+  rXl:   "36px",
   rFull: "9999px",
 } as const;

@@ -1,24 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  /* UPJ LP 準拠カラーシステム — Deep Navy × Warm Gold × Azure */
-  --bg: #07101f;                       /* deep navy-black */
-  --surface: rgba(10, 21, 48, 0.97);  /* LP --ink */
-  --border: rgba(201, 169, 107, 0.16);
-  --gold: #c9a96b;                    /* LP --gold (warm muted) */
-  --gold-lt: #e6c87a;                 /* LP --gold-2 */
-  --gold-dim: #8a6d35;                /* LP --gold-deep */
-  --azure: #4a7fc1;                   /* LP --azure */
-  --azure-glow: #7eb0e8;
-  --text: #f5f1e8;                    /* LP --paper (cream) */
-  --text-muted: #8a9ab8;              /* navy-tinted muted */
+  /* Light Mode — Cool White × iOS Blue (futuristic business) */
+  --bg: #F0F4FA;
+  --surface: #FFFFFF;
+  --border: rgba(0, 0, 0, 0.08);
+  --blue: #007AFF;
+  --blue-lt: #409CFF;
+  --blue-dm: #0056CC;
+  --text: #0A0F1E;
+  --text-muted: rgba(10, 15, 30, 0.60);
 
   /* ── Radius scale ── */
-  --r-xs:   6px;
-  --r-sm:   10px;
-  --r-md:   14px;
-  --r-lg:   18px;
-  --r-xl:   24px;
+  --r-xs:   10px;
+  --r-sm:   16px;
+  --r-md:   20px;
+  --r-lg:   28px;
+  --r-xl:   36px;
   --r-full: 9999px;
 }
 
@@ -26,26 +24,26 @@ html,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
   min-height: 100vh;
 }
 
 body {
   background-image:
-    radial-gradient(ellipse at 18% 0%,   rgba(74, 127, 193, 0.06) 0%, transparent 48%),
-    radial-gradient(ellipse at 82% 100%, rgba(201, 169, 107, 0.04) 0%, transparent 40%);
+    radial-gradient(ellipse at 0% 0%,   rgba(0, 122, 255, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(0, 122, 255, 0.04) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
 /* ── スクロールバー ── */
-::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar       { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(201, 169, 107, 0.22);
+  background: rgba(0, 0, 0, 0.18);
   border-radius: var(--r-full);
   transition: background 0.2s;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(201, 169, 107, 0.4); }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.35); }
 
 /* ── フォーム要素の基本スタイル ── */
 button {
@@ -57,7 +55,7 @@ input, select, textarea {
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(201, 169, 107, 0.28);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.22);
 }
 
 /* ═══ レスポンシブ・グリッドユーティリティ ═══ */

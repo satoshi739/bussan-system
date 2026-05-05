@@ -1,59 +1,61 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type Dashboard, type Purchase } from "@/lib/api";
 import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Brain } from "lucide-react";
 import Link from "next/link";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 import OnboardingModal, { OnboardingChecklist, useOnboarding } from "@/components/OnboardingModal";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
+// recharts を遅延ロード — 初回 JS バンドルから除外（約300KB削減）
+const LazyChart = lazy(() => import("@/components/ProfitBarChart"));
+
 // ─────────────────────────────────────────────────────────
-//  Design System — UPJ LP準拠 Deep Navy × Warm Gold × Azure
-//  LP palette: --ink:#0a1530 / --gold:#c9a96b / --azure:#4a7fc1
+//  Design System — Light Mode: Cool White × iOS Blue
 // ─────────────────────────────────────────────────────────
 const C = {
-  // backgrounds — LP navy family
-  bg0:  "#07101f",   // deeper than LP --ink (page base)
-  bg1:  "#0a1530",   // LP --ink (card surface)
-  bg2:  "#111e44",   // LP --ink-2 (elevated)
-  bg3:  "#1a2956",   // LP --ink-3 (tooltips)
+  // backgrounds — light, airy
+  bg0:  "#F0F4FA",   // page base
+  bg1:  "#FFFFFF",   // card surface
+  bg2:  "#F5F8FF",   // elevated / input fill
+  bg3:  "#E8EFFA",   // tooltips, dropdowns
 
-  // text — LP paper family
-  t1:   "#f5f1e8",   // LP --paper (cream)
-  t2:   "#e5d9bc",   // warm cream secondary
-  t3:   "#8a9ab8",   // navy-tinted muted
-  t4:   "#4d6080",   // dark navy-gray faint
+  // text — dark on light
+  t1:   "#0A0F1E",
+  t2:   "rgba(10,15,30,0.60)",
+  t3:   "rgba(10,15,30,0.38)",
+  t4:   "rgba(10,15,30,0.20)",
 
-  // accent — LP warm gold
-  gold:   "#c9a96b",   // LP --gold
-  goldLt: "#e6c87a",   // LP --gold-2
-  goldDm: "#8a6d35",   // LP --gold-deep
+  // iOS Blue (primary accent)
+  gold:   "#007AFF",
+  goldLt: "#409CFF",
+  goldDm: "#0056CC",
 
-  // azure accent (LP --azure)
-  azure:     "#4a7fc1",
-  azureGlow: "#7eb0e8",
+  // secondary accent (sky blue)
+  azure:     "#5AC8FA",
+  azureGlow: "#7DD4FA",
 
   // signal colors
-  up:    "#4ade80",   // profit positive (keep)
-  dn:    "#c46060",   // loss (LP --rose-ish)
-  warn:  "#c9993a",   // amber (gold-toned)
-  info:  "#c9a96b",   // gold info
+  up:    "#28A745",   // green
+  dn:    "#FF3B30",   // iOS red
+  warn:  "#FF9500",   // iOS orange
+  info:  "#007AFF",   // blue
 
-  // borders — adjusted for LP gold
-  bd:    "rgba(201,169,107,0.18)",
-  bdSt:  "rgba(201,169,107,0.38)",
-  bdSub: "rgba(201,169,107,0.09)",
+  // borders — subtle on white
+  bd:    "rgba(0,0,0,0.08)",
+  bdSt:  "rgba(0,0,0,0.18)",
+  bdSub: "rgba(0,0,0,0.04)",
 };
 
-// Card style — clean solid, no grain noise
+// iOS Light card — white with soft shadow
 const card = (extra?: React.CSSProperties): React.CSSProperties => ({
   background: C.bg1,
   border: `1px solid ${C.bd}`,
-  borderRadius: 12,
-  padding: "22px 24px",
+  borderRadius: 28,
+  padding: "20px 20px",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
   ...extra,
 });
 
@@ -93,7 +95,7 @@ const SAMPLE_PROFIT_CANDIDATES = [
 
 // ── Skeleton ─────────────────────────────────────────────
 function Sk({ w = "100%", h = 16, r = 6 }: { w?: string | number; h?: number; r?: number }) {
-  return <div style={{ width: w, height: h, borderRadius: r, background: `rgba(217,169,60,0.07)`, animation: "sk 1.6s ease-in-out infinite" }} />;
+  return <div style={{ width: w, height: h, borderRadius: r, background: `rgba(0,0,0,0.07)`, animation: "sk 1.6s ease-in-out infinite" }} />;
 }
 
 // ── Diff Badge ───────────────────────────────────────────
@@ -121,20 +123,29 @@ function KpiCard({ label, value, diff, sub, icon: Icon, accent, href, loading }:
     <div style={{
       background: C.bg1,
       border: `1px solid ${C.bd}`,
-      borderTop: `3px solid ${accent}`,
-      borderRadius: 12,
-      padding: "16px 18px 18px",
+      borderRadius: 28,
+      padding: "18px 18px 20px",
       height: "100%",
       cursor: href ? "pointer" : "default",
       transition: "border-color 0.2s, box-shadow 0.2s",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: C.t3, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div style={{
+          background: `${accent}15`,
+          borderRadius: 14,
+          width: 38,
+          height: 38,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: `0 2px 8px ${accent}20`,
+        }}>
+          <Icon size={16} color={accent} />
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 600, color: C.t3, letterSpacing: "0.04em" }}>
           {label}
         </span>
-        <div style={{ background: `${accent}18`, border: `1px solid ${accent}30`, borderRadius: 7, padding: "5px 6px" }}>
-          <Icon size={13} color={accent} />
-        </div>
       </div>
       {loading ? (
         <><Sk h={32} w="65%" /><div style={{ marginTop: 10 }}><Sk h={12} w="48%" /></div></>
@@ -156,10 +167,10 @@ function KpiCard({ label, value, diff, sub, icon: Icon, accent, href, loading }:
 
 // ── Health grade ─────────────────────────────────────────
 function healthGrade(r: number) {
-  if (r >= 30) return { g: "S", color: C.goldLt, label: "超優良" };
-  if (r >= 20) return { g: "A", color: C.gold,   label: "優良"   };
-  if (r >= 10) return { g: "B", color: C.warn,   label: "標準"   };
-  return              { g: "C", color: C.dn,     label: "要改善" };
+  if (r >= 30) return { g: "S", color: C.up,   label: "超優良" };
+  if (r >= 20) return { g: "A", color: C.gold, label: "優良"   };
+  if (r >= 10) return { g: "B", color: C.warn, label: "標準"   };
+  return              { g: "C", color: C.dn,   label: "要改善" };
 }
 
 // ── Status config ────────────────────────────────────────
@@ -178,7 +189,7 @@ function Stars({ n }: { n: number }) {
 // ── Profit Candidate Card ─────────────────────────────────
 function ProfitCandidateCard({ name, buy, sell, profit, rate, stars }: typeof SAMPLE_PROFIT_CANDIDATES[0]) {
   return (
-    <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderTop: `3px solid ${C.gold}`, borderRadius: 12, padding: "16px 18px" }}>
+    <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24, padding: "16px 18px" }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, marginBottom: 14, lineHeight: 1.5, minHeight: 36 }}>{name}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {([
@@ -222,15 +233,14 @@ function QuickProfitCheck() {
 
   return (
     <div style={{
-      background: `linear-gradient(135deg, #0e0c04, #181408)`,
-      border: `2px solid ${C.gold}60`,
-      borderRadius: 16,
-      padding: "24px 28px",
+      background: C.bg1,
+      border: `1px solid ${C.bd}`,
+      borderRadius: 28,
+      padding: "24px 24px",
       marginBottom: 16,
-      boxShadow: `0 0 40px ${C.gold}12`,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-        <div style={{ background: `${C.gold}20`, border: `1px solid ${C.gold}40`, borderRadius: 10, padding: "8px 10px" }}>
+        <div style={{ background: `${C.gold}15`, borderRadius: 14, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 2px 8px ${C.gold}20` }}>
           <Zap size={20} color={C.gold} />
         </div>
         <div>
@@ -243,33 +253,33 @@ function QuickProfitCheck() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
         <div>
-          <label style={{ fontSize: 11, color: C.t3, fontWeight: 700, display: "block", marginBottom: 6, letterSpacing: "0.06em", textTransform: "uppercase" }}>仕入れ値（円）</label>
+          <label style={{ fontSize: 12, color: C.t3, fontWeight: 600, display: "block", marginBottom: 6 }}>仕入れ値（円）</label>
           <input
             type="number" placeholder="例: 3,000" value={buy}
             onChange={e => setBuy(e.target.value)}
-            style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 9, color: C.t1, padding: "12px 14px", fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "ui-monospace, monospace" }}
+            style={{ width: "100%", background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 18, color: C.t1, padding: "13px 14px", fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "ui-monospace, monospace" }}
           />
         </div>
         <div>
-          <label style={{ fontSize: 11, color: C.t3, fontWeight: 700, display: "block", marginBottom: 6, letterSpacing: "0.06em", textTransform: "uppercase" }}>販売価格（円）</label>
+          <label style={{ fontSize: 12, color: C.t3, fontWeight: 600, display: "block", marginBottom: 6 }}>販売価格（円）</label>
           <input
             type="number" placeholder="例: 8,000" value={sell}
             onChange={e => setSell(e.target.value)}
-            style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bd}`, borderRadius: 9, color: C.t1, padding: "12px 14px", fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "ui-monospace, monospace" }}
+            style={{ width: "100%", background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 18, color: C.t1, padding: "13px 14px", fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "ui-monospace, monospace" }}
           />
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
-          <label style={{ fontSize: 11, color: C.t3, fontWeight: 700, display: "block", marginBottom: 6, letterSpacing: "0.06em", textTransform: "uppercase" }}>商品名（任意）</label>
+          <label style={{ fontSize: 12, color: C.t3, fontWeight: 600, display: "block", marginBottom: 6 }}>商品名（任意）</label>
           <input
             type="text" placeholder="例: セイコー 腕時計 中古" value={name}
             onChange={e => setName(e.target.value)}
-            style={{ width: "100%", background: C.bg0, border: `1px solid ${C.bdSub}`, borderRadius: 9, color: C.t1, padding: "10px 14px", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+            style={{ width: "100%", background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 18, color: C.t1, padding: "11px 14px", fontSize: 14, outline: "none", boxSizing: "border-box" }}
           />
         </div>
       </div>
 
       {hasResult && (
-        <div style={{ background: verdict.bg, border: `1px solid ${verdict.color}40`, borderRadius: 12, padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(3,1fr) auto", gap: 16, alignItems: "center", animation: "none" }}>
+        <div style={{ background: verdict.bg, border: `1px solid ${verdict.color}40`, borderRadius: 18, padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(3,1fr) auto", gap: 16, alignItems: "center", animation: "none" }}>
           {[
             { label: "利益額",  val: `${profit >= 0 ? "+" : ""}¥${Math.round(profit).toLocaleString()}`, col: profit >= 0 ? C.up : C.dn },
             { label: "利益率",  val: `${rate.toFixed(1)}%`,                                              col: rate >= 30 ? C.gold : rate >= 15 ? C.warn : C.dn },
@@ -280,7 +290,7 @@ function QuickProfitCheck() {
               <div style={{ fontSize: 18, fontWeight: 900, color: col, fontFamily: "ui-monospace, monospace", letterSpacing: "-0.02em" }}>{val}</div>
             </div>
           ))}
-          <div style={{ background: verdict.bg, border: `1px solid ${verdict.color}50`, borderRadius: 10, padding: "10px 18px", textAlign: "center" }}>
+          <div style={{ background: verdict.bg, border: `1px solid ${verdict.color}50`, borderRadius: 16, padding: "10px 18px", textAlign: "center" }}>
             <div style={{ fontSize: 20, marginBottom: 4 }}>{verdict.icon}</div>
             <div style={{ fontSize: 12, fontWeight: 800, color: verdict.color, whiteSpace: "nowrap" }}>{verdict.label}</div>
           </div>
@@ -309,32 +319,34 @@ function QuickProfitCheck() {
 function AICEOHero() {
   return (
     <div style={{
-      background: `linear-gradient(135deg, #0c0a04, #1c1408, #0c0a04)`,
-      border: `1px solid ${C.gold}55`,
-      borderTop: `3px solid ${C.gold}`,
-      borderRadius: 14,
-      padding: "22px 28px",
+      background: C.bg1,
+      border: `1px solid ${C.bd}`,
+      borderRadius: 28,
+      padding: "22px 24px",
       marginBottom: 16,
       display: "flex",
       alignItems: "center",
       gap: 20,
       flexWrap: "wrap",
-      boxShadow: `0 0 40px ${C.gold}10`,
     }}>
       <div style={{
-        background: `${C.gold}20`,
-        border: `1px solid ${C.gold}40`,
-        borderRadius: 12,
-        padding: "14px 16px",
+        background: `${C.gold}15`,
+        borderRadius: 20,
+        width: 64,
+        height: 64,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         flexShrink: 0,
+        boxShadow: `0 2px 12px ${C.gold}25`,
       }}>
-        <Brain size={32} color={C.gold} />
+        <Brain size={30} color={C.gold} />
       </div>
       <div style={{ flex: 1, minWidth: 160 }}>
-        <div style={{ fontSize: 18, fontWeight: 900, color: C.t1, marginBottom: 6, letterSpacing: "-0.02em" }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: C.t1, marginBottom: 6, letterSpacing: "-0.01em" }}>
           AI CEO が仕入れ戦略を全自動で立案します
         </div>
-        <div style={{ fontSize: 12, color: C.t3, lineHeight: 1.7 }}>
+        <div style={{ fontSize: 13, color: C.t3, lineHeight: 1.6 }}>
           ゴールを入力するだけ。スキャン・分析・候補リストアップを自動実行。初心者でも即日スタート。
         </div>
       </div>
@@ -342,20 +354,17 @@ function AICEOHero() {
         display: "flex",
         alignItems: "center",
         gap: 8,
-        background: `linear-gradient(135deg, #1E1608, #2A1E08)`,
-        border: `1px solid ${C.gold}80`,
-        borderRadius: 10,
-        color: C.gold,
-        padding: "15px 32px",
+        background: C.gold,
+        borderRadius: 18,
+        color: "#FFFFFF",
+        padding: "14px 28px",
         fontSize: 15,
-        fontWeight: 800,
+        fontWeight: 700,
         textDecoration: "none",
-        letterSpacing: "0.04em",
-        boxShadow: `0 0 28px ${C.gold}28`,
         whiteSpace: "nowrap",
         flexShrink: 0,
       }}>
-        <Brain size={16} /> AI CEO を起動する →
+        <Brain size={16} /> AI CEO を起動する
       </Link>
     </div>
   );
@@ -385,11 +394,17 @@ export default function DashboardPage() {
     const doLoad = async () => {
       setLoading(true);
       try {
-        const d = await getDashboard();
+        // 全APIを並列実行 — 直列より高速
+        const [d, stale, recent, goal] = await Promise.all([
+          getDashboard(),
+          getStalePurchases(14).catch((): Purchase[] => []),
+          getPurchases({ limit: 5 }).catch((): Purchase[] => []),
+          getGoal().catch(() => null),
+        ]);
         setData(d); setError(false); setUpdated(new Date());
-        getStalePurchases(14).then(setStale).catch(() => {});
-        getPurchases({ limit: 5 }).then(setRecent).catch(() => {});
-        getGoal().then(setGoalData).catch(() => {});
+        setStale(stale ?? []);
+        setRecent(recent ?? []);
+        if (goal) setGoalData(goal);
       } catch {
         setError(true);
         setData(p => p ?? { stats: { total_purchases: 0, total_invested: 0, total_sold: 0, total_profit: 0 }, monthly_profit: [], status_breakdown: [], platform_breakdown: [] });
@@ -476,14 +491,14 @@ export default function DashboardPage() {
           .side-secondary{display:none!important}
         }
         .action-expand{display:none}
-        .kcard:hover { border-color: ${C.bdSt} !important; box-shadow: 0 4px 24px rgba(0,0,0,.4) !important; }
+        .kcard:hover { border-color: ${C.gold}50 !important; box-shadow: 0 4px 20px rgba(0,0,0,0.10) !important; }
         .kcard { min-height: 44px; }
-        .arow:hover  { border-color: ${C.bdSt} !important; background: rgba(217,169,60,0.04) !important; }
-        .abtn:hover  { background: rgba(217,169,60,0.22) !important; }
+        .arow:hover  { border-color: ${C.bdSt} !important; background: rgba(0,122,255,0.04) !important; }
+        .abtn:hover  { opacity: 0.82 !important; }
         .abtn { min-height: 36px; }
-        .slink:hover { background: rgba(217,169,60,0.07) !important; }
-        .btn-primary:hover { background: linear-gradient(135deg,#2A1E08,#3A2A0A) !important; border-color: ${C.gold}88 !important; }
-        .btn-secondary:hover { background: rgba(212,175,55,0.08) !important; }
+        .slink:hover { background: rgba(0,122,255,0.06) !important; }
+        .btn-primary:hover { opacity: 0.85 !important; }
+        .btn-secondary:hover { background: rgba(0,0,0,0.06) !important; }
       `}</style>
 
       {/* Quick Profit Check — ログイン済み・データなし時に最上部表示 */}
@@ -494,23 +509,23 @@ export default function DashboardPage() {
 
       {/* Guest banner — 未ログイン訪問者向け */}
       {showGuestBanner && (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: `linear-gradient(135deg,#1A1408,#201808)`, border: `1px solid ${C.gold}40`, borderLeft: `3px solid ${C.gold}`, borderRadius: 8, padding: "12px 18px", marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24, padding: "14px 18px", marginBottom: 16 }}>
           <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
           <span style={{ fontSize: 13, color: C.t2, flex: 1 }}>
             これは<span style={{ color: C.gold, fontWeight: 700 }}>サンプルデータ</span>です。実際の物販データで管理を始めるには無料で登録してください。
           </span>
           <Link
             href="/scanner"
-            style={{ display: "flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 8, color: C.gold, padding: "9px 18px", fontSize: 13, fontWeight: 800, textDecoration: "none", whiteSpace: "nowrap", letterSpacing: "0.03em", boxShadow: `0 0 16px ${C.gold}20` }}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: C.gold, borderRadius: 16, color: "#FFFFFF", padding: "9px 18px", fontSize: 13, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
           >
-            今すぐ利益を調べる →
+            今すぐ利益を調べる
           </Link>
         </div>
       )}
 
       {/* Empty-data banner — ログイン済み・データ0件 or バックエンドエラー */}
       {showEmptyBanner && (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: error ? "rgba(80,20,20,0.4)" : `linear-gradient(135deg, #0f0d05, #181408)`, border: `1px dashed ${error ? "rgba(255,80,80,0.4)" : C.gold + "35"}`, borderRadius: 10, padding: "14px 20px", marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: error ? "rgba(255,69,58,0.08)" : C.bg1, border: `1px solid ${error ? "rgba(255,69,58,0.35)" : C.bd}`, borderRadius: 24, padding: "14px 20px", marginBottom: 16 }}>
           <span style={{ fontSize: 18, flexShrink: 0 }}>{error ? "⚠️" : "🚀"}</span>
           <div style={{ flex: 1 }}>
             {error ? (
@@ -528,9 +543,9 @@ export default function DashboardPage() {
           {!error && (
           <Link
             href="/purchases"
-            style={{ display: "flex", alignItems: "center", gap: 5, background: `linear-gradient(135deg, #1E1608, #2A1E08)`, border: `1px solid ${C.gold}60`, borderRadius: 8, color: C.gold, padding: "9px 18px", fontSize: 12, fontWeight: 800, textDecoration: "none", whiteSpace: "nowrap", boxShadow: `0 0 12px ${C.gold}15` }}
+            style={{ display: "flex", alignItems: "center", gap: 5, background: C.gold, borderRadius: 16, color: "#FFFFFF", padding: "9px 18px", fontSize: 12, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
           >
-            仕入れを登録する →
+            仕入れを登録する
           </Link>
           )}
         </div>
@@ -585,8 +600,7 @@ export default function DashboardPage() {
                   <div style={{
                     background: C.bg1,
                     border: `1px solid ${C.bd}`,
-                    borderTop: `3px solid ${accent}`,
-                    borderRadius: 12,
+                    borderRadius: 24,
                     padding: "18px 18px 16px",
                     display: "flex",
                     flexDirection: "column",
@@ -616,7 +630,7 @@ export default function DashboardPage() {
               </div>
               <div style={{ fontSize: 11, color: C.t3 }}>利益率・想定利益・仕入れ判断をAIがまとめて表示します。初心者でも即判断できます</div>
             </div>
-            <span style={{ fontSize: 10, color: C.t4, background: `${C.gold}12`, border: `1px solid ${C.gold}22`, borderRadius: 5, padding: "2px 8px", letterSpacing: "0.06em" }}>SAMPLE</span>
+            <span style={{ fontSize: 10, color: C.t4, background: `${C.gold}12`, border: `1px solid ${C.gold}22`, borderRadius: 8, padding: "2px 8px", letterSpacing: "0.06em" }}>SAMPLE</span>
           </div>
           <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
             {SAMPLE_PROFIT_CANDIDATES.map((c, idx) => (
@@ -631,7 +645,7 @@ export default function DashboardPage() {
                     fontSize: 10,
                     fontWeight: 900,
                     padding: "2px 10px",
-                    borderRadius: 20,
+                    borderRadius: 28,
                     letterSpacing: "0.06em",
                     zIndex: 1,
                   }}>
@@ -644,16 +658,16 @@ export default function DashboardPage() {
           </div>
 
           {/* /pricing CTA — デモ閲覧後の導線 */}
-          <div style={{ marginTop: 16, background: `linear-gradient(135deg,#141208,#1A1608)`, border: `1px solid ${C.gold}35`, borderRadius: 12, padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ marginTop: 16, background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24, padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: C.t1, marginBottom: 4 }}>気になる商品が見つかりましたか？</div>
-              <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.6 }}>Standardプラン（月額¥9,800）でリアルタイムスキャン・全商品の詳細分析が使えます。7日間無料トライアル付き。</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 }}>気になる商品が見つかりましたか？</div>
+              <div style={{ fontSize: 12, color: C.t3, lineHeight: 1.6 }}>Standardプラン（月額¥9,800）でリアルタイムスキャン・全商品の詳細分析が使えます。7日間無料トライアル付き。</div>
             </div>
             <Link
               href="/pricing"
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 9, color: C.gold, padding: "11px 22px", fontSize: 13, fontWeight: 800, textDecoration: "none", whiteSpace: "nowrap", letterSpacing: "0.03em", boxShadow: `0 0 16px ${C.gold}18`, flexShrink: 0 }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.gold, borderRadius: 18, color: "#FFFFFF", padding: "12px 24px", fontSize: 13, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
             >
-              料金プランを見る →
+              料金プランを見る
             </Link>
           </div>
         </div>
@@ -665,7 +679,7 @@ export default function DashboardPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <h1 style={{ fontSize: 22, fontWeight: 900, color: C.t1, margin: 0, letterSpacing: "-0.02em" }}>収益ダッシュボード</h1>
             {useSample && (
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.10em", color: C.gold, background: `${C.gold}18`, border: `1px solid ${C.gold}35`, borderRadius: 5, padding: "2px 8px" }}>DEMO</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.10em", color: C.gold, background: `${C.gold}18`, border: `1px solid ${C.gold}35`, borderRadius: 8, padding: "2px 8px" }}>DEMO</span>
             )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
@@ -680,12 +694,12 @@ export default function DashboardPage() {
         </div>
         <div className="dash-actions" style={{ display: "flex", gap: 8 }}>
           {useSample && sample && (
-            <button onClick={() => setSample(false)} className="btn-secondary" style={{ fontSize: 12, background: "none", border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t3, padding: "10px 14px", cursor: "pointer", minHeight: 40 }}>実データを表示</button>
+            <button onClick={() => setSample(false)} className="btn-secondary" style={{ fontSize: 12, background: "none", border: `1px solid ${C.bd}`, borderRadius: 12, color: C.t3, padding: "10px 14px", cursor: "pointer", minHeight: 40 }}>実データを表示</button>
           )}
-          <Link href="/calculator" className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: 5, background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t2, padding: "10px 16px", fontSize: 13, textDecoration: "none", fontWeight: 600, minHeight: 40 }}>
+          <Link href="/calculator" className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: 5, background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 18, color: C.t2, padding: "10px 16px", fontSize: 13, textDecoration: "none", fontWeight: 600, minHeight: 40 }}>
             利益計算
           </Link>
-          <Link href="/scanner" className="btn-primary" style={{ display: "flex", alignItems: "center", gap: 6, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 8, color: C.gold, padding: "10px 22px", fontSize: 14, textDecoration: "none", fontWeight: 800, letterSpacing: "0.04em", minHeight: 40, boxShadow: `0 0 20px ${C.gold}18` }}>
+          <Link href="/scanner" className="btn-primary" style={{ display: "flex", alignItems: "center", gap: 6, background: C.gold, borderRadius: 18, color: "#FFFFFF", padding: "10px 22px", fontSize: 14, textDecoration: "none", fontWeight: 700, minHeight: 40 }}>
             今すぐ利益を調べる
           </Link>
         </div>
@@ -693,9 +707,9 @@ export default function DashboardPage() {
 
       {/* Onboarding */}
       {isEmpty && (
-        <div style={{ background: `linear-gradient(135deg,${C.bg1},#161208)`, border: `1px solid ${C.gold}30`, borderTop: `3px solid ${C.gold}`, borderRadius: 14, padding: "32px 32px 28px", marginBottom: 24 }}>
+        <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 28, padding: "28px 28px 24px", marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <div style={{ background: `${C.gold}18`, border: `1px solid ${C.gold}35`, borderRadius: 10, padding: "8px 10px" }}>
+            <div style={{ background: `${C.gold}15`, borderRadius: 14, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 2px 8px ${C.gold}20` }}>
               <Star size={18} color={C.gold} />
             </div>
             <div>
@@ -709,7 +723,7 @@ export default function DashboardPage() {
               ["02","出品・価格設定","販売価格を記録して利益を確認","出品管理へ","/listings"],
               ["03","収益を確認","ダッシュボードで利益が自動算出","このページ","#"],
             ] as [string,string,string,string,string][]).map(([s,l,d,btn,href]) => (
-              <div key={s} style={{ background: C.bg0, borderRadius: 10, padding: "16px 18px", border: `1px solid ${C.bdSub}`, display: "flex", flexDirection: "column", gap: 6 }}>
+              <div key={s} style={{ background: C.bg0, borderRadius: 16, padding: "16px 18px", border: `1px solid ${C.bdSub}`, display: "flex", flexDirection: "column", gap: 6 }}>
                 <div style={{ fontSize: 10, color: C.gold, fontWeight: 800, letterSpacing: "0.14em" }}>STEP {s}</div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: C.t1 }}>{l}</div>
                 <div style={{ fontSize: 12, color: C.t3, lineHeight: 1.6, flex: 1 }}>{d}</div>
@@ -720,10 +734,10 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className="onboard-cta" style={{ display: "flex", gap: 10 }}>
-            <Link href="/purchases" className="btn-primary" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: `linear-gradient(135deg,#1E1608,#2A1E08)`, border: `1px solid ${C.gold}70`, borderRadius: 10, color: C.gold, padding: "13px 28px", fontWeight: 800, fontSize: 14, textDecoration: "none", letterSpacing: "0.03em", boxShadow: `0 0 24px ${C.gold}20` }}>
-              仕入れを登録する →
+            <Link href="/purchases" className="btn-primary" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: C.gold, borderRadius: 20, color: "#FFFFFF", padding: "14px 28px", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
+              仕入れを登録する
             </Link>
-            <button onClick={() => setSample(true)} className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, background: "none", border: `1px solid ${C.bd}`, borderRadius: 10, color: C.t2, padding: "13px 20px", fontSize: 13, cursor: "pointer" }}>
+            <button onClick={() => setSample(true)} className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 20, color: C.t2, padding: "14px 20px", fontSize: 13, cursor: "pointer" }}>
               <Play size={13} /> デモデータで確認
             </button>
           </div>
@@ -735,7 +749,7 @@ export default function DashboardPage() {
 
       {/* Mobile Hero — スマホのみ表示 */}
       <div className="mobile-hero" style={{ display: "none", marginBottom: 16 }}>
-        <div style={{ background: `linear-gradient(135deg,${C.bg1},#161208)`, border: `1px solid ${C.gold}30`, borderTop: `3px solid ${C.gold}`, borderRadius: 14, padding: "20px 20px 16px" }}>
+        <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 28, padding: "20px 20px 16px" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, letterSpacing: "0.10em", textTransform: "uppercase", marginBottom: 6 }}>今月の純利益</div>
           {loading ? <Sk h={40} w="55%" /> : (
             <div style={{ fontSize: 38, fontWeight: 900, color: thisM >= 0 ? C.gold : C.dn, fontFamily: "ui-monospace,'SF Mono',Menlo,monospace", letterSpacing: "-0.04em", lineHeight: 1 }}>
@@ -802,7 +816,7 @@ export default function DashboardPage() {
           <div key={label} style={{
             background: C.bg1,
             border: `1px solid ${C.bd}`,
-            borderRadius: 10,
+            borderRadius: 16,
             padding: "12px 16px",
             display: "flex",
             justifyContent: "space-between",
@@ -832,12 +846,12 @@ export default function DashboardPage() {
               </div>
               {editGoal ? (
                 <div style={{ display: "flex", gap: 6 }}>
-                  <input type="number" value={goalInput} onChange={e => setGoalInput(e.target.value)} onKeyDown={e => e.key === "Enter" && saveGoal()} style={{ background: C.bg0, border: `1px solid ${C.gold}50`, borderRadius: 6, color: C.gold, padding: "3px 10px", fontSize: 13, width: 130, fontFamily: "monospace", outline: "none" }} autoFocus />
-                  <button onClick={saveGoal} style={{ background: `${C.gold}18`, border: `1px solid ${C.gold}40`, borderRadius: 6, color: C.gold, padding: "3px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}><Check size={11} /> 保存</button>
-                  <button onClick={() => setEditGoal(false)} style={{ background: "none", border: `1px solid ${C.bdSub}`, borderRadius: 6, color: C.t3, padding: "3px 8px", cursor: "pointer", fontSize: 11 }}>×</button>
+                  <input type="number" value={goalInput} onChange={e => setGoalInput(e.target.value)} onKeyDown={e => e.key === "Enter" && saveGoal()} style={{ background: C.bg0, border: `1px solid ${C.gold}50`, borderRadius: 10, color: C.gold, padding: "3px 10px", fontSize: 13, width: 130, fontFamily: "monospace", outline: "none" }} autoFocus />
+                  <button onClick={saveGoal} style={{ background: `${C.gold}18`, border: `1px solid ${C.gold}40`, borderRadius: 10, color: C.gold, padding: "3px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}><Check size={11} /> 保存</button>
+                  <button onClick={() => setEditGoal(false)} style={{ background: "none", border: `1px solid ${C.bdSub}`, borderRadius: 10, color: C.t3, padding: "3px 8px", cursor: "pointer", fontSize: 11 }}>×</button>
                 </div>
               ) : (
-                <button onClick={() => { setEditGoal(true); setGoalInput(String(goal.goal)); }} style={{ background: "none", border: `1px solid ${C.bdSub}`, borderRadius: 6, color: C.t3, padding: "3px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
+                <button onClick={() => { setEditGoal(true); setGoalInput(String(goal.goal)); }} style={{ background: "none", border: `1px solid ${C.bdSub}`, borderRadius: 10, color: C.t3, padding: "3px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
                   <Pencil size={10} /> 変更
                 </button>
               )}
@@ -846,15 +860,15 @@ export default function DashboardPage() {
               <span style={{ color: C.t3 }}>現在 <span style={{ color: col, fontFamily: "monospace", fontWeight: 700 }}>¥{Math.round(goal.current_profit).toLocaleString()}</span></span>
               <span style={{ color: C.t3 }}>目標 <span style={{ color: C.t2, fontFamily: "monospace", fontWeight: 700 }}>¥{goal.goal.toLocaleString()}</span></span>
             </div>
-            <div style={{ background: C.bg0, borderRadius: 4, height: 6, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${pct}%`, background: `linear-gradient(90deg,${col}80,${col})`, borderRadius: 4, transition: "width 0.6s ease" }} />
+            <div style={{ background: C.bg0, borderRadius: 6, height: 6, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${pct}%`, background: `linear-gradient(90deg,${col}80,${col})`, borderRadius: 6, transition: "width 0.6s ease" }} />
             </div>
             <div style={{ textAlign: "right", fontSize: 11, color: col, marginTop: 4, fontWeight: 700 }}>{pct >= 100 ? "目標達成" : `${pct.toFixed(1)}%`}</div>
           </div>
         );
       })()}
       {goal && goal.goal === 0 && (
-        <button onClick={() => { setEditGoal(true); setGoalInput(""); }} style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: `1px dashed ${C.bd}`, borderRadius: 9, color: C.t3, padding: "11px 20px", fontSize: 12, cursor: "pointer", marginBottom: 14, width: "100%" }}>
+        <button onClick={() => { setEditGoal(true); setGoalInput(""); }} style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: `1px dashed ${C.bd}`, borderRadius: 14, color: C.t3, padding: "11px 20px", fontSize: 12, cursor: "pointer", marginBottom: 14, width: "100%" }}>
           <Target size={12} /> 今月の目標利益を設定する
         </button>
       )}
@@ -866,7 +880,7 @@ export default function DashboardPage() {
             <AlertTriangle size={13} color={actions.length > 0 ? C.warn : C.t3} />
             <span style={{ fontSize: 13, fontWeight: 700, color: C.t2, letterSpacing: "0.03em" }}>今日の要対応</span>
             {actions.length > 0 && (
-              <span style={{ background: `${C.dn}18`, border: `1px solid ${C.dn}30`, borderRadius: 20, padding: "1px 9px", fontSize: 10, color: C.dn, fontWeight: 800 }}>{actions.length}</span>
+              <span style={{ background: `${C.dn}18`, border: `1px solid ${C.dn}30`, borderRadius: 28, padding: "1px 9px", fontSize: 10, color: C.dn, fontWeight: 800 }}>{actions.length}</span>
             )}
           </div>
           {actions.length > 0 && (
@@ -883,23 +897,23 @@ export default function DashboardPage() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {actions.map((a, i) => (
-              <div key={a.id} className={`arow${i >= 2 && !showAllActions ? " action-overflow" : ""}`} style={{ display: "flex", alignItems: "center", gap: 14, background: `${AL[a.type]}07`, border: `1px solid ${AL[a.type]}20`, borderRadius: 9, padding: "11px 16px", transition: "all .15s" }}>
+              <div key={a.id} className={`arow${i >= 2 && !showAllActions ? " action-overflow" : ""}`} style={{ display: "flex", alignItems: "center", gap: 14, background: `${AL[a.type]}07`, border: `1px solid ${AL[a.type]}20`, borderRadius: 14, padding: "11px 16px", transition: "all .15s" }}>
                 <div style={{ width: 2, height: 36, borderRadius: 2, background: AL[a.type], flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: C.t1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</span>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: SC[a.status] ?? C.t3, background: `${SC[a.status] ?? C.t3}15`, border: `1px solid ${SC[a.status] ?? C.t3}22`, borderRadius: 4, padding: "1px 6px", flexShrink: 0, letterSpacing: "0.06em" }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: SC[a.status] ?? C.t3, background: `${SC[a.status] ?? C.t3}15`, border: `1px solid ${SC[a.status] ?? C.t3}22`, borderRadius: 6, padding: "1px 6px", flexShrink: 0, letterSpacing: "0.06em" }}>
                       {SL[a.status] ?? a.status}
                     </span>
                   </div>
                   <div style={{ fontSize: 11, color: C.t3 }}>{a.sub}</div>
                 </div>
                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                  <Link href={a.link} className="abtn" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: C.gold, background: `${C.gold}15`, border: `1px solid ${C.gold}30`, borderRadius: 6, padding: "5px 12px", textDecoration: "none", transition: "background .15s" }}>
+                  <Link href={a.link} className="abtn" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#FFFFFF", background: C.gold, borderRadius: 12, padding: "5px 12px", textDecoration: "none", transition: "opacity .15s" }}>
                     <Tag size={9} /> {a.action}
                   </Link>
                   {a.pid !== null && (
-                    <Link href="/purchases" className="abtn" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: C.t3, background: "none", border: `1px solid ${C.bdSub}`, borderRadius: 6, padding: "5px 10px", textDecoration: "none", transition: "background .15s" }}>
+                    <Link href="/purchases" className="abtn" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: C.t3, background: "none", border: `1px solid ${C.bdSub}`, borderRadius: 10, padding: "5px 10px", textDecoration: "none", transition: "background .15s" }}>
                       <ExternalLink size={9} /> 詳細
                     </Link>
                   )}
@@ -910,7 +924,7 @@ export default function DashboardPage() {
               <button
                 className="action-expand"
                 onClick={() => setShowAllActions(v => !v)}
-                style={{ alignItems: "center", justifyContent: "center", gap: 6, background: "none", border: `1px solid ${C.bd}`, borderRadius: 8, color: C.t3, padding: "10px 16px", fontSize: 12, cursor: "pointer", width: "100%", minHeight: 40 }}
+                style={{ alignItems: "center", justifyContent: "center", gap: 6, background: "none", border: `1px solid ${C.bd}`, borderRadius: 12, color: C.t3, padding: "10px 16px", fontSize: 12, cursor: "pointer", width: "100%", minHeight: 40 }}
               >
                 {showAllActions ? "折りたたむ" : `残り ${actions.length - 2} 件を表示`}
               </button>
@@ -949,17 +963,13 @@ export default function DashboardPage() {
             {loading ? <Sk h={180} /> : monthly.length === 0 ? (
               <div style={{ color: C.t3, textAlign: "center", padding: "36px 0", fontSize: 13 }}>売上データがありません</div>
             ) : (
-              <ResponsiveContainer width="100%" height={190}>
-                <BarChart data={chart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                  <XAxis dataKey="month" tick={{ fill: C.t3, fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: C.t3, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `¥${(v/1000).toFixed(0)}k`} width={44} />
-                  <ReferenceLine y={0} stroke={C.bdSub} />
-                  <Tooltip contentStyle={{ background: C.bg3, border: `1px solid ${C.bdSt}`, borderRadius: 8, color: C.t1, fontSize: 12, boxShadow: "0 8px 32px rgba(0,0,0,.7)" }} formatter={v => [`¥${Number(v).toLocaleString()}`, "純利益"]} />
-                  <Bar dataKey="profit" radius={[4,4,0,0]}>
-                    {chart.map((e) => <Cell key={e.month} fill={e.profit >= 0 ? C.gold : C.dn} fillOpacity={0.85} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <Suspense fallback={<Sk h={190} />}>
+                <LazyChart
+                  data={chart}
+                  t1={C.t1} t3={C.t3} bdSub={C.bdSub}
+                  up={C.gold} dn={C.dn} bg1={C.bg1} bd={C.bd}
+                />
+              </Suspense>
             )}
           </div>
 
@@ -995,7 +1005,7 @@ export default function DashboardPage() {
                 <div style={{ fontSize: 10, color: C.t3, marginTop: 2 }}>累計 収益パフォーマンス</div>
               </div>
               {!loading && (
-                <div style={{ display: "flex", alignItems: "center", gap: 5, background: `${health.color}14`, border: `1px solid ${health.color}28`, borderRadius: 8, padding: "5px 10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, background: `${health.color}14`, border: `1px solid ${health.color}28`, borderRadius: 12, padding: "5px 10px" }}>
                   <Award size={11} color={health.color} />
                   <span style={{ fontSize: 15, fontWeight: 800, color: health.color, fontFamily: "monospace" }}>{health.g}</span>
                   <span style={{ fontSize: 9, color: health.color, letterSpacing: "0.06em" }}>{health.label}</span>
@@ -1037,7 +1047,7 @@ export default function DashboardPage() {
                         <div style={{ width: 5, height: 5, borderRadius: "50%", background: SC[status] ?? C.t3, flexShrink: 0 }} />
                         <span style={{ fontSize: 12, color: C.t3 }}>{SL[status] ?? status}</span>
                       </div>
-                      <span style={{ background: `${SC[status] ?? C.gold}12`, border: `1px solid ${SC[status] ?? C.gold}22`, borderRadius: 20, padding: "2px 12px", fontWeight: 700, fontSize: 12, color: SC[status] ?? C.gold, fontFamily: "monospace" }}>
+                      <span style={{ background: `${SC[status] ?? C.gold}12`, border: `1px solid ${SC[status] ?? C.gold}22`, borderRadius: 28, padding: "2px 12px", fontWeight: 700, fontSize: 12, color: SC[status] ?? C.gold, fontFamily: "monospace" }}>
                         {count}
                       </span>
                     </div>

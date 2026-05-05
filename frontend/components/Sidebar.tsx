@@ -3,68 +3,67 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
 
-const GROUP_LABEL = "#4d6080";
+const GROUP_LABEL = "rgba(10,15,30,0.35)";
 
 const PLAN_LABELS: Record<string, string> = { FREE: "フリー", LITE: "Lite", STANDARD: "Standard", PRO: "Pro" };
 const PLAN_COLORS: Record<string, string> = { FREE: T.t3, LITE: "#7eb0e8", STANDARD: T.gold, PRO: T.goldLt };
 
 const navGroups = [
   {
-    label: "概要",
+    label: "メイン",
+    defaultCollapsed: false,
     items: [
-      { href: "/",       label: "ダッシュボード",    icon: LayoutDashboard },
-      { href: "/report", label: "レポート",          icon: BarChart2 },
-      { href: "/ai",     label: "AI アシスタント",   icon: Bot },
-    ],
-  },
-  {
-    label: "AI エージェント",
-    items: [
-      { href: "/agents",           label: "AI CEO ダッシュボード", icon: Brain },
-      { href: "/agents/approvals", label: "仕入れ承認キュー",      icon: CheckCircle },
-      { href: "/agents/sns",       label: "SNS コンテンツ",        icon: Share2 },
-      { href: "/agents/monitor",   label: "自動監視・スケジュール", icon: Activity },
-      { href: "/agents/memory",    label: "エージェント記憶",      icon: Database },
+      { href: "/",       label: "ダッシュボード", icon: LayoutDashboard },
+      { href: "/report", label: "レポート",       icon: BarChart2 },
+      { href: "/ai",     label: "AI アシスタント", icon: Bot },
+      { href: "/alerts", label: "価格アラート",   icon: Bell },
     ],
   },
   {
     label: "商品リサーチ",
+    defaultCollapsed: false,
     items: [
-      { href: "/scanner",     label: "利益スキャナー",  icon: Radar },
+      { href: "/scanner",     label: "利益スキャナー",    icon: Radar },
       { href: "/barcode",     label: "バーコードスキャン", icon: ScanLine },
-      { href: "/search",      label: "相場検索",        icon: Search },
-      { href: "/competition", label: "競合分析",        icon: Target },
-      { href: "/watchlist",   label: "ウォッチリスト",  icon: Eye },
+      { href: "/search",      label: "相場検索",          icon: Search },
+      { href: "/competition", label: "競合分析",          icon: Target },
+      { href: "/watchlist",   label: "ウォッチリスト",    icon: Eye },
     ],
   },
   {
-    label: "FBA業務",
+    label: "FBA 業務",
+    defaultCollapsed: false,
     items: [
-      { href: "/purchases",  label: "仕入れ管理",      icon: ShoppingCart },
-      { href: "/listings",   label: "出品管理（Amazon）", icon: Tag },
-      { href: "/fba",        label: "FBA納品管理",     icon: Package },
-      { href: "/inventory",  label: "在庫管理",        icon: Warehouse },
+      { href: "/purchases", label: "仕入れ管理",   icon: ShoppingCart },
+      { href: "/listings",  label: "出品管理",     icon: Tag },
+      { href: "/fba",       label: "FBA 納品",     icon: Package },
+      { href: "/inventory", label: "在庫管理",     icon: Warehouse },
+    ],
+  },
+  {
+    label: "AI エージェント",
+    defaultCollapsed: true,
+    items: [
+      { href: "/agents",           label: "AI CEO",          icon: Brain },
+      { href: "/agents/approvals", label: "仕入れ承認",      icon: CheckCircle },
+      { href: "/agents/sns",       label: "SNS コンテンツ",  icon: Share2 },
+      { href: "/agents/monitor",   label: "自動監視",        icon: Activity },
+      { href: "/agents/memory",    label: "エージェント記憶", icon: Database },
     ],
   },
   {
     label: "分析・管理",
+    defaultCollapsed: true,
     items: [
-      { href: "/sales",               label: "売上履歴",            icon: TrendingUp },
-      { href: "/platform-analysis",   label: "プラットフォーム分析", icon: PieChart   },
-      { href: "/calculator",          label: "利益計算",            icon: Calculator },
-      { href: "/fulfillment",         label: "外注管理",            icon: Truck      },
-    ],
-  },
-  {
-    label: "通知・設定",
-    items: [
-      { href: "/alerts",   label: "価格アラート",     icon: Bell },
-      { href: "/settings", label: "設定",             icon: Settings },
+      { href: "/sales",             label: "売上履歴",    icon: TrendingUp },
+      { href: "/platform-analysis", label: "PF 分析",    icon: PieChart   },
+      { href: "/calculator",        label: "利益計算",   icon: Calculator },
+      { href: "/fulfillment",       label: "外注管理",   icon: Truck      },
     ],
   },
 ];
@@ -83,6 +82,14 @@ export default function Sidebar() {
   const { data: session } = useSession();
   const { plan, error: planError } = usePlan();
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [collapsed, setCollapsed] = useState<Set<string>>(
+    () => new Set(navGroups.filter(g => g.defaultCollapsed).map(g => g.label))
+  );
+  const toggleCollapse = (label: string) => setCollapsed(prev => {
+    const next = new Set(prev);
+    next.has(label) ? next.delete(label) : next.add(label);
+    return next;
+  });
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMobileMenu(false); }, [pathname]);
@@ -93,6 +100,7 @@ export default function Sidebar() {
       minHeight: "100vh",
       background: T.bgSidebar,
       borderRight: `1px solid ${T.bd}`,
+      boxShadow: "2px 0 12px rgba(0,0,0,0.05)",
       display: "flex",
       flexDirection: "column",
       padding: "0 0 20px",
@@ -112,32 +120,22 @@ export default function Sidebar() {
           alignItems: "center",
           gap: 8,
         }}>
-          <div style={{
-            width: 28,
-            height: 28,
-            borderRadius: 8,
-            background: `linear-gradient(135deg, ${T.gold}22, ${T.gold}0a)`,
-            border: `1px solid ${T.gold}40`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}>
-            <span style={{ fontSize: 13 }}>📦</span>
-          </div>
-          <div style={{
-            fontSize: 14,
-            fontWeight: 800,
-            color: T.t1,
-            letterSpacing: "0.01em",
-          }}>
-            物販チェッカー
-          </div>
+          <img
+            src="/upj-logo.jpg"
+            alt="UPJ"
+            style={{
+              width: 80,
+              height: 32,
+              objectFit: "contain",
+              objectPosition: "left center",
+              flexShrink: 0,
+            }}
+          />
         </div>
         <button
           onClick={() => setMobileMenu(false)}
           className="sidebar-close-btn"
-          style={{ display: "none", background: "none", border: "none", color: T.t3, cursor: "pointer", padding: 4, borderRadius: 6 }}
+          style={{ display: "none", background: "none", border: "none", color: T.t3, cursor: "pointer", padding: 4, borderRadius: 10 }}
         >
           <X size={16} />
         </button>
@@ -145,59 +143,82 @@ export default function Sidebar() {
 
       {/* ── ナビゲーション ── */}
       <div style={{ flex: 1, overflowY: "auto", padding: "4px 8px" }}>
-        {navGroups.map((group, gi) => (
-          <div key={group.label} style={{ marginBottom: gi < navGroups.length - 1 ? 4 : 0 }}>
-            {/* グループラベル */}
-            <div style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: GROUP_LABEL,
-              letterSpacing: "0.14em",
-              padding: "10px 10px 5px",
-              textTransform: "uppercase",
-            }}>
-              {group.label}
+        {navGroups.map((group, gi) => {
+          const isCollapsed = collapsed.has(group.label);
+          const hasActive = group.items.some(i => i.href === pathname);
+          return (
+            <div key={group.label} style={{ marginBottom: gi < navGroups.length - 1 ? 2 : 0 }}>
+              {/* グループラベル — クリックで折りたたみ */}
+              <button
+                onClick={() => toggleCollapse(group.label)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "6px 10px 4px",
+                  borderRadius: 8,
+                  minHeight: "unset",
+                }}
+              >
+                <span style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: hasActive ? T.gold : GROUP_LABEL,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                }}>
+                  {group.label}
+                </span>
+                <ChevronDown
+                  size={11}
+                  color={hasActive ? T.gold : GROUP_LABEL}
+                  style={{ transform: isCollapsed ? "rotate(-90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                />
+              </button>
+
+              {!isCollapsed && group.items.map(({ href, label, icon: Icon }) => {
+                const active = pathname === href;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    title={label}
+                    className={active ? "" : "nav-link"}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 9,
+                      padding: "6px 10px",
+                      borderRadius: 12,
+                      fontWeight: active ? 700 : 500,
+                      fontSize: 12,
+                      color:      active ? T.t1 : T.t2,
+                      background: active ? T.bgActive : "transparent",
+                      border:     active ? `1px solid ${T.bdSt}` : "1px solid transparent",
+                      textDecoration: "none",
+                      transition: "all 0.15s",
+                      marginBottom: 1,
+                    }}
+                  >
+                    <Icon size={13} style={{ flexShrink: 0 }} color={active ? T.gold : T.t3} />
+                    <span>{label}</span>
+                    {active && (
+                      <div style={{ marginLeft: "auto", width: 5, height: 5, borderRadius: "50%", background: T.gold, flexShrink: 0 }} />
+                    )}
+                  </Link>
+                );
+              })}
+
+              {gi < navGroups.length - 1 && (
+                <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.bd}, transparent)`, margin: "4px 4px" }} />
+              )}
             </div>
-
-            {group.items.map(({ href, label, icon: Icon }) => {
-              const active = pathname === href;
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  title={label}
-                  className={active ? "" : "nav-link"}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 9,
-                    padding: "8px 10px",
-                    borderRadius: 10,
-                    fontWeight: active ? 700 : 500,
-                    fontSize: 12,
-                    color:      active ? T.t1 : T.t2,
-                    background: active ? T.bgActive : "transparent",
-                    border:     active ? `1px solid ${T.bdSt}` : "1px solid transparent",
-                    textDecoration: "none",
-                    transition: "all 0.15s",
-                    marginBottom: 1,
-                    letterSpacing: "0.02em",
-                  }}
-                >
-                  <Icon size={13} style={{ flexShrink: 0 }} color={active ? T.gold : T.t3} />
-                  <span>{label}</span>
-                  {active && (
-                    <div style={{ marginLeft: "auto", width: 5, height: 5, borderRadius: "50%", background: T.gold, flexShrink: 0 }} />
-                  )}
-                </Link>
-              );
-            })}
-
-            {gi < navGroups.length - 1 && (
-              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.bd}, transparent)`, margin: "6px 4px" }} />
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ── フッター ── */}
@@ -211,7 +232,7 @@ export default function Sidebar() {
               gap: 8,
               textDecoration: "none",
               padding: "9px 12px",
-              borderRadius: 12,
+              borderRadius: 18,
               border: `1px solid ${planError ? "rgba(255,100,50,0.3)" : T.bd}`,
               background: planError ? "rgba(255,100,50,0.05)" : `${T.gold}06`,
               marginBottom: 8,
@@ -228,30 +249,21 @@ export default function Sidebar() {
         {session?.user && (session.user as { role?: string }).role === "ADMIN" && (
           <Link
             href="/admin"
-            style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", padding: "9px 12px", borderRadius: 12, border: "1px solid rgba(201,169,107,0.30)", background: "rgba(212,175,55,0.06)", marginBottom: 8 }}
+            style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", padding: "9px 12px", borderRadius: 18, border: "1px solid rgba(201,169,107,0.30)", background: "rgba(212,175,55,0.06)", marginBottom: 8 }}
           >
             <span style={{ fontSize: 11 }}>👑</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: "#c9a96b", letterSpacing: "0.05em" }}>管理者ダッシュボード</span>
           </Link>
         )}
 
-        <Link
-          href="/support"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            textDecoration: "none",
-            padding: "8px 6px",
-            borderRadius: 10,
-            color: T.t3,
-            fontSize: 12,
-            transition: "color 0.15s",
-            marginBottom: 2,
-          }}
-        >
-          <HelpCircle size={11} /> ヘルプ・サポート
-        </Link>
+        <div style={{ display: "flex", gap: 2, marginBottom: 2 }}>
+          <Link href="/settings" style={{ flex: 1, display: "flex", alignItems: "center", gap: 6, textDecoration: "none", padding: "7px 8px", borderRadius: 12, color: T.t3, fontSize: 12, transition: "color 0.15s" }}>
+            <Settings size={11} /> 設定
+          </Link>
+          <Link href="/support" style={{ flex: 1, display: "flex", alignItems: "center", gap: 6, textDecoration: "none", padding: "7px 8px", borderRadius: 12, color: T.t3, fontSize: 12, transition: "color 0.15s" }}>
+            <HelpCircle size={11} /> サポート
+          </Link>
+        </div>
 
         {session?.user && (
           <button
@@ -270,7 +282,7 @@ export default function Sidebar() {
               letterSpacing: "0.04em",
               transition: "color 0.15s",
               minHeight: 36,
-              borderRadius: 10,
+              borderRadius: 14,
             }}
           >
             <LogOut size={11} /> ログアウト
@@ -322,7 +334,7 @@ export default function Sidebar() {
                           alignItems: "center",
                           gap: 8,
                           padding: "12px 14px",
-                          borderRadius: 9,
+                          borderRadius: 14,
                           fontSize: 13,
                           fontWeight: active ? 700 : 500,
                           color: active ? T.t1 : T.t2,
@@ -343,7 +355,7 @@ export default function Sidebar() {
             {session?.user && (
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 9, color: "#ef4444", padding: "10px 16px", fontSize: 12, cursor: "pointer", width: "100%", marginTop: 8 }}
+                style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 14, color: "#ef4444", padding: "10px 16px", fontSize: 12, cursor: "pointer", width: "100%", marginTop: 8 }}
               >
                 <LogOut size={13} /> ログアウト
               </button>
