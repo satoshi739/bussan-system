@@ -53,7 +53,7 @@ def get_user_id(x_user_id: str = Header(default="default")) -> str:
     return x_user_id
 
 
-_PUBLIC_PATHS = {"/health", "/healthz", "/ping", "/docs", "/openapi.json", "/redoc"}
+_PUBLIC_PATHS = {"/health", "/healthz", "/ping"}
 
 async def _verify_key(request: Request, key: Optional[str] = Security(_api_key_header)):
     if request.url.path in _PUBLIC_PATHS:
@@ -101,6 +101,7 @@ _ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3002",
+    "https://app.upjapan.co.jp",
     "https://frontend-one-steel-loaau9zmao.vercel.app",
     # 追加ドメインは環境変数 ALLOWED_ORIGINS で "," 区切りで渡す
 ]

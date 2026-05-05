@@ -26,8 +26,8 @@ function agentReq<T>(path: string, options?: RequestInit): Promise<T> {
   return req<T>(path, options, 120_000);
 }
 
-// Dashboard
-export const getDashboard = () => req<Dashboard>("/api/dashboard");
+// Dashboard（Railway cold start 対策: 15秒タイムアウト）
+export const getDashboard = () => req<Dashboard>("/api/dashboard", undefined, 15_000);
 
 // Purchases
 export const getPurchases = (params?: { status?: string; platform?: string; limit?: number }) => {
