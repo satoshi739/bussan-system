@@ -383,7 +383,10 @@ export default function LoginPage() {
           )}
 
           <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(212,175,55,0.1)", textAlign: "center" }}>
-            <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 14 }}>
+            <div style={{ background: "rgba(201,169,107,0.06)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "#c9a96b", lineHeight: 1.6 }}>
+              🎁 初めての方も<strong>メールアドレスを入力するだけ</strong>で無料登録できます
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: 24 }}>
               <Link href="/login/forgot" style={{ fontSize: 13, color: "#4d6080", textDecoration: "none" }}>
                 ログインできない方
               </Link>
@@ -391,9 +394,6 @@ export default function LoginPage() {
                 プランを確認する →
               </Link>
             </div>
-            <Link href="/pricing" style={{ display: "inline-block", background: "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.40)", borderRadius: 10, color: "#c9a96b", padding: "11px 28px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
-              アカウントをお持ちでない方 — 無料で始める →
-            </Link>
           </div>
         </div>
 
