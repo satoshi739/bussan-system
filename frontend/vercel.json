@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "prisma generate && node scripts/create-active-sessions.js && next build",
+  "buildCommand": "prisma migrate deploy && prisma generate && node scripts/create-active-sessions.js && next build",
   "crons": [
     {
       "path": "/api/cron/daily-report",
