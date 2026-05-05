@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Resend from "next-auth/providers/resend";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
+import { prismaAuth } from "@/lib/prisma-auth";
 import { authConfig } from "./auth.config";
 
 const MAX_SESSIONS = 2;
@@ -37,7 +38,7 @@ async function createSession(userId: string): Promise<string> {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prismaAuth),
   session: { strategy: "jwt" },
   providers: [
     Resend({
