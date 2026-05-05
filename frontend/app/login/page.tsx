@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { Mail, Loader, Lock, Play, Heart, MessageCircle, Music2 } from "lucide-react";
 import Link from "next/link";
@@ -186,13 +186,11 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [callbackUrl, setCallbackUrl] = useState("/");
+  const [callbackUrl] = useState(() => {
+    if (typeof window === "undefined") return "/";
+    return new URLSearchParams(window.location.search).get("callbackUrl") ?? "/";
+  });
   const [mode, setMode] = useState<"magic" | "password">("magic");
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setCallbackUrl(params.get("callbackUrl") ?? "/");
-  }, []);
 
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
