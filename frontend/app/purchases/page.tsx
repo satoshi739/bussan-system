@@ -165,7 +165,7 @@ export default function PurchasesPage() {
       });
       localStorage.setItem(LS_PLATFORM, form.platform);
       localStorage.setItem(LS_SHIPPING, form.purchase_shipping);
-      toast("仕入れを追加しました ✅");
+      toast("仕入れを追加しました");
       setForm(makeEmpty()); setShowForm(false); load();
     } catch (e) { toast(errMsg(e), "error"); }
     finally { setLoading(false); }
@@ -199,7 +199,7 @@ export default function PurchasesPage() {
         purchase_date:     editForm.purchase_date,
         notes:             editForm.notes || undefined,
       });
-      toast("更新しました ✅");
+      toast("更新しました");
       setEditId(null); setEditForm({}); load();
     } catch (e) { toast(errMsg(e), "error"); }
   };
@@ -238,7 +238,7 @@ export default function PurchasesPage() {
         purchase_id: item.id, status: "waiting",
         shipping_company: "ヤマト運輸",
       });
-      toast(`「${item.product_name}」の発送タスクを作成しました 📦`);
+      toast(`「${item.product_name}」の発送タスクを作成しました`);
     } catch (e) { toast(errMsg(e), "error"); }
     finally {
       setFulfillmentLoading(prev => { const n = new Set(prev); n.delete(item.id); return n; });
@@ -267,7 +267,7 @@ export default function PurchasesPage() {
     setBulkLoading(true);
     try {
       await bulkUpdatePurchases(Array.from(selectedIds), bulkStatus);
-      toast(`${selectedIds.size}件のステータスを変更しました ✅`);
+      toast(`${selectedIds.size}件のステータスを変更しました`);
       setSelectedIds(new Set());
       load();
     } catch (e) { toast(errMsg(e), "error"); }
@@ -303,7 +303,7 @@ export default function PurchasesPage() {
 
   const markAsListed = async (id: number) => {
     await updatePurchaseStatus(id, "listed");
-    toast("出品中に変更しました ✅");
+    toast("出品中に変更しました");
     setListingModal(null);
     load();
   };
@@ -647,7 +647,7 @@ export default function PurchasesPage() {
                 onClick={() => listingModal && markAsListed(listingModal.purchase_id)}
                 style={{ width: "100%", background: "linear-gradient(135deg,#003060,#004080)", border: "1px solid rgba(102,204,255,0.4)", borderRadius: 10, color: "#66ccff", padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}
               >
-                ✅ 出品済みにする（ステータスを「出品中」に変更）
+                出品済みにする（ステータスを「出品中」に変更）
               </button>
             </div>
           </div>

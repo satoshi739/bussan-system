@@ -46,7 +46,7 @@ function WatchlistPageContent() {
     if (!form.keyword) { toast("キーワードを入力してください", "error"); return; }
     try {
       await addWatchlist({ keyword: form.keyword, sell_platform: form.sell_platform, target_rate: Number(form.target_rate) || 20, memo: form.memo });
-      toast("ウォッチリストに追加しました ✅");
+      toast("ウォッチリストに追加しました");
       setForm({ keyword: "", sell_platform: "メルカリ", target_rate: "20", memo: "" });
       setShowForm(false);
       load();

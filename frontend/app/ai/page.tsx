@@ -59,7 +59,7 @@ export default function AIPage() {
       <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
         {messages.length === 0 ? (
           <div style={card}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 14 }}>💡 よくある質問</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 14 }}>よくある質問</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {SUGGESTIONS.map((s, i) => (
                 <button
@@ -87,7 +87,7 @@ export default function AIPage() {
                 whiteSpace: "pre-wrap",
               }}>
                 {m.role === "assistant" && (
-                  <div style={{ fontSize: 11, color: "#D4AF37", marginBottom: 6, fontWeight: 700 }}>🤖 AI アシスタント</div>
+                  <div style={{ fontSize: 11, color: "#D4AF37", marginBottom: 6, fontWeight: 700 }}>AI アシスタント</div>
                 )}
                 {m.text}
               </div>

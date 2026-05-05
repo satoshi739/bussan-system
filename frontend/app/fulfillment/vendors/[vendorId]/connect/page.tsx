@@ -149,7 +149,7 @@ export default function VendorConnectPage() {
     try {
       const r = await testFulfillmentVendor(existingVendor.id);
       setTestResult(r);
-      if (r.ok) toast("接続テスト成功 ✅");
+      if (r.ok) toast("接続テスト成功");
       else toast("接続テスト失敗: " + r.message, "error");
     } catch { toast("テストに失敗しました", "error"); }
     finally { setTesting(false); }
@@ -175,7 +175,7 @@ export default function VendorConnectPage() {
           notes: form.notes || undefined,
         };
         const { id } = await createFulfillmentVendor(body);
-        toast("業者を追加しました ✅");
+        toast("業者を追加しました");
         router.push(`/fulfillment/vendors/${id}/connect`);
       } else if (existingVendor) {
         await updateFulfillmentVendor(existingVendor.id, {
@@ -188,7 +188,7 @@ export default function VendorConnectPage() {
           per_item_fee: Number(form.per_item_fee) || 0,
           notes: form.notes || undefined,
         });
-        toast("設定を保存しました ✅");
+        toast("設定を保存しました");
         setStep(3);
       }
     } catch { toast("保存に失敗しました", "error"); }
@@ -198,7 +198,7 @@ export default function VendorConnectPage() {
   const handleActivate = async () => {
     if (!existingVendor) return;
     await updateFulfillmentVendor(existingVendor.id, { status: "active" });
-    toast(`${existingVendor.name} を有効化しました ✅`);
+    toast(`${existingVendor.name} を有効化しました`);
     router.push("/fulfillment/vendors");
   };
 

@@ -121,7 +121,7 @@ export default function FulfillmentPage() {
         request_options: options.length > 0 ? JSON.stringify(options) : undefined,
         notes: reqForm.notes || undefined,
       });
-      toast(`${selectedVendor?.name ?? "業者"} に依頼を送信しました ✅`);
+      toast(`${selectedVendor?.name ?? "業者"} に依頼を送信しました`);
       setRequestTask(null);
       load();
     } catch { toast("依頼の送信に失敗しました", "error"); }
@@ -170,10 +170,10 @@ export default function FulfillmentPage() {
           shipping_company: form.shipping_company || undefined,
           notes: form.notes || undefined,
         });
-        toast("更新しました ✅");
+        toast("更新しました");
       } else {
         await createFulfillment({ ...form, purchase_id: Number(form.purchase_id) });
-        toast("発送タスクを追加しました ✅");
+        toast("発送タスクを追加しました");
       }
       setShowForm(false);
       setForm(emptyForm);

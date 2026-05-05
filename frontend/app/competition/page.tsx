@@ -64,7 +64,7 @@ export default function CompetitionPage() {
             cursor: loading ? "not-allowed" : "pointer",
           }}
         >
-          {loading ? "相場を取得中... しばらくお待ちください" : "🎯 競合分析を開始"}
+          {loading ? "相場を取得中... しばらくお待ちください" : "競合分析を開始"}
         </button>
       </div>
 
@@ -134,12 +134,12 @@ export default function CompetitionPage() {
 
                   {r.status === "high" && (
                     <div style={{ marginTop: 10, fontSize: 12, color: "#ff9966", background: "rgba(255,80,0,0.06)", borderRadius: 8, padding: "6px 12px" }}>
-                      💡 市場平均より {r.diff_pct}% 高め。¥{r.market_avg.toLocaleString()} 前後への値下げを検討してみましょう
+                      市場平均より {r.diff_pct}% 高め。¥{r.market_avg.toLocaleString()} 前後への値下げを検討してみましょう
                     </div>
                   )}
                   {r.status === "low" && (
                     <div style={{ marginTop: 10, fontSize: 12, color: "#66ccff", background: "rgba(100,180,255,0.06)", borderRadius: 8, padding: "6px 12px" }}>
-                      💡 市場平均より {Math.abs(r.diff_pct)}% 安め。利益マージン: ¥{margin.toLocaleString()} ／ 値上げ余地があります
+                      市場平均より {Math.abs(r.diff_pct)}% 安め。利益マージン: ¥{margin.toLocaleString()} ／ 値上げ余地があります
                     </div>
                   )}
                 </div>

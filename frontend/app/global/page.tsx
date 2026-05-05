@@ -439,7 +439,7 @@ function GlobalPageContent() {
             {bestPlatform && (
               <div style={{ ...card, flex: 2, minWidth: 260, padding: "14px 20px", borderColor: "rgba(212,175,55,0.4)" }}>
                 <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>
-                  {hasBuyPrice ? "🥇 最も利益が出るプラットフォーム" : "💰 最も高く売れるプラットフォーム"}
+                  {hasBuyPrice ? "🥇 最も利益が出るプラットフォーム" : "最も高く売れるプラットフォーム"}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 24 }}>{bestPlatform.flag}</span>

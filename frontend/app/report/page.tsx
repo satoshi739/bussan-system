@@ -38,9 +38,9 @@ function ReportPageContent() {
       {/* タブ */}
       <div className="report-tab-group" style={{ display: "flex", gap: 6, marginBottom: 24, background: "rgba(0,10,3,0.8)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12, padding: 5, width: "fit-content", flexWrap: "wrap" }}>
         {([
-          { id: "analytics", label: "📊 売上分析" },
-          { id: "trends",    label: "📈 トレンド予測" },
-          { id: "monthly",   label: "📋 月次レポート" },
+          { id: "analytics", label: "売上分析" },
+          { id: "trends",    label: "トレンド予測" },
+          { id: "monthly",   label: "月次レポート" },
           { id: "route",     label: "🗺 ルート分析" },
         ] as { id: Tab; label: string }[]).map(({ id, label }) => (
           <button key={id} onClick={() => setTab(id)} style={{ padding: "9px 18px", borderRadius: 9, border: "none", background: tab === id ? "linear-gradient(135deg,#1e1608,#2a1e08)" : "transparent", color: tab === id ? "#D4AF37" : "#7aaa8a", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
@@ -119,7 +119,7 @@ function AnalyticsTab() {
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {bestProducts.length > 0 && (
         <div style={card}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>🏆 ベスト商品ランキング（利益額順）</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>ベスト商品ランキング（利益額順）</div>
           <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>また仕入れるべき商品がわかります</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {bestProducts.map((p, i) => (
@@ -248,7 +248,7 @@ function TrendsTab() {
       {/* 売れ筋商品ランキング */}
       {data.trending_products.length > 0 && (
         <div style={card}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>🔥 売れ筋商品ランキング（過去6ヶ月）</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>売れ筋商品ランキング（過去6ヶ月）</div>
           <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>繰り返し仕入れるべき商品がわかります</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {data.trending_products.map((p, i) => (
@@ -405,7 +405,7 @@ function MonthlyTab() {
           {report.goal > 0 && (
             <div style={card}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0" }}>🎯 月次目標達成率</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0" }}>月次目標達成率</div>
                 <div style={{ fontSize: 18, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>
                   {report.goal_achievement ?? 0}%
                 </div>
@@ -445,7 +445,7 @@ function MonthlyTab() {
           {/* ベスト商品 */}
           {report.best_products.length > 0 && (
             <div style={card}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 16 }}>🏆 今月のベスト商品</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 16 }}>今月のベスト商品</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {report.best_products.map((p, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: i === 0 ? "rgba(212,175,55,0.05)" : "transparent", borderRadius: 10, border: "1px solid rgba(212,175,55,0.08)" }}>

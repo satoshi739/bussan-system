@@ -13,6 +13,12 @@ async function createSession(userId: string): Promise<string> {
   const sessionKey = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
 
+  // prisma.activeSession が未初期化の場合は session key だけ返す（DBエラー時のフォールバック）
+  if (!prisma.activeSession) {
+    console.warn("[auth] activeSession model unavailable — skipping session tracking");
+    return sessionKey;
+  }
+
   await prisma.activeSession.deleteMany({
     where: { userId, expiresAt: { lt: new Date() } },
   });
@@ -96,7 +102,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.sessionKey = await createSession(user.id as string);
         } catch (error) {
           console.error("[auth] createSession error:", error);
-          return null; // セッション追跡失敗時は再ログインを強制
+          // セッション追跡失敗でもログインは許可（DBエラー時フォールバック）
         }
       }
 

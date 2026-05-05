@@ -133,7 +133,7 @@ export default function FbaPage() {
         plan_name: form.plan_name, destination: form.destination,
         box_count: form.box_count, notes: form.notes || undefined,
       });
-      toast("納品プランを作成しました ✅");
+      toast("納品プランを作成しました");
       setShowForm(false);
       setForm({ plan_name: "", destination: FBA_DESTINATIONS[0], box_count: 1, notes: "" });
       load();
@@ -175,7 +175,7 @@ export default function FbaPage() {
         quantity: itemForm.quantity, box_number: itemForm.box_number,
         condition_type: itemForm.condition_type, notes: itemForm.notes || undefined,
       });
-      toast("商品を追加しました ✅");
+      toast("商品を追加しました");
       setAddItemId(null);
       resetItemForm();
       load();
@@ -211,7 +211,7 @@ export default function FbaPage() {
     });
     setEditItemId(null);
     load();
-    toast("更新しました ✅");
+    toast("更新しました");
   };
 
   // ── サマリー ──────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown, Crown } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
@@ -251,7 +251,7 @@ export default function Sidebar() {
             href="/admin"
             style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", padding: "9px 12px", borderRadius: 18, border: "1px solid rgba(201,169,107,0.30)", background: "rgba(212,175,55,0.06)", marginBottom: 8 }}
           >
-            <span style={{ fontSize: 11 }}>👑</span>
+            <Crown size={11} color="#c9a96b" />
             <span style={{ fontSize: 11, fontWeight: 700, color: "#c9a96b", letterSpacing: "0.05em" }}>管理者ダッシュボード</span>
           </Link>
         )}

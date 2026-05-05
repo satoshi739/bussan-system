@@ -304,7 +304,7 @@ export default function PricingPage() {
           <div style={featuredCard}>
             {/* おすすめバッジ */}
             <div style={{ position: "absolute", top: isMobile ? undefined : -14, left: isMobile ? undefined : "50%", transform: isMobile ? undefined : "translateX(-50%)", ...(isMobile ? { marginBottom: 12 } : {}), display: isMobile ? "inline-block" : undefined, background: `linear-gradient(135deg,${P.bg1},${P.bg2})`, border: `1px solid ${P.bdSt}`, borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 800, color: P.gold, whiteSpace: "nowrap" }}>
-              ⭐ 一番人気
+              一番人気
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, marginTop: isMobile ? 0 : 10 }}>
               <div style={{ background: "rgba(201,169,107,0.10)", border: `1px solid rgba(201,169,107,0.30)`, borderRadius: 8, padding: 7 }}>
@@ -454,7 +454,7 @@ export default function PricingPage() {
                   { name: "Pro",      color: "#7eb0e8", highlight: false },
                 ].map(({ name, color, highlight }) => (
                   <div key={name} style={{ padding: isMobile ? "11px 6px" : "13px 12px", textAlign: "center", fontSize: isMobile ? 11 : 12, color, fontWeight: 800, background: highlight ? "rgba(201,169,107,0.08)" : undefined }}>
-                    {highlight ? <span>⭐ {name}</span> : name}
+                    {highlight ? <span>{name}</span> : name}
                   </div>
                 ))}
               </div>

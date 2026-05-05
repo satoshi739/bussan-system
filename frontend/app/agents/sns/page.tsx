@@ -26,9 +26,9 @@ const PLATFORM_META: Record<string, { color: string; label: string; icon: string
 };
 
 const POST_TYPE_LABELS: Record<string, string> = {
-  haul: "🛒 仕入れ報告",
-  listing: "📦 出品告知",
-  sold: "✅ 売れた報告",
+  haul: "仕入れ報告",
+  listing: "出品告知",
+  sold: "売れた報告",
 };
 
 const DEFAULT_FORM = {
@@ -218,7 +218,7 @@ export default function SNSPage() {
             <div>
               <label style={{ fontSize: 12, color: C.t3, display: "block", marginBottom: 8, fontWeight: 600 }}>投稿タイプ</label>
               <div style={{ display: "flex", gap: 8 }}>
-                {([["haul", "🛒 仕入れ報告"], ["listing", "📦 出品告知"], ["sold", "✅ 売れた報告"]] as const).map(([v, l]) => (
+                {([["haul", "仕入れ報告"], ["listing", "出品告知"], ["sold", "売れた報告"]] as const).map(([v, l]) => (
                   <button
                     key={v} type="button"
                     onClick={() => setForm(f => ({ ...f, post_type: v }))}

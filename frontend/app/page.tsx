@@ -3,7 +3,7 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type Dashboard, type Purchase } from "@/lib/api";
-import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Brain } from "lucide-react";
+import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Brain, Search, Bot, Camera, Lightbulb, Flame } from "lucide-react";
 import Link from "next/link";
 import OnboardingModal, { OnboardingChecklist, useOnboarding } from "@/components/OnboardingModal";
 import { toast } from "@/components/Toast";
@@ -491,7 +491,9 @@ export default function DashboardPage() {
       {/* Guest banner — 未ログイン訪問者向け */}
       {showGuestBanner && (
         <div style={{ display: "flex", alignItems: "center", gap: 12, background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24, padding: "14px 18px", marginBottom: 16 }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: `${C.gold}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Lightbulb size={15} color={C.gold} />
+          </div>
           <span style={{ fontSize: 13, color: C.t2, flex: 1 }}>
             これは<span style={{ color: C.gold, fontWeight: 700 }}>サンプルデータ</span>です。実際の物販データで管理を始めるには無料で登録してください。
           </span>
@@ -510,7 +512,9 @@ export default function DashboardPage() {
           {!error ? (
             <img src="/mascot-cat.png" alt="UPJ" style={{ width: 52, height: 52, objectFit: "contain", flexShrink: 0 }} />
           ) : (
-            <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,69,58,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <AlertTriangle size={17} color="#ff4444" />
+            </div>
           )}
           <div style={{ flex: 1 }}>
             {error ? (
@@ -549,7 +553,7 @@ export default function DashboardPage() {
             <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
               {([
                 {
-                  emoji: "🔍",
+                  icon: Search,
                   label: "利益スキャナー",
                   desc: "商品名を入れるだけ。仕入れ価格・利益率・需要を瞬時に判定。",
                   cta: "今すぐ試す →",
@@ -557,7 +561,7 @@ export default function DashboardPage() {
                   accent: C.gold,
                 },
                 {
-                  emoji: "🤖",
+                  icon: Bot,
                   label: "AI CEO に指示する",
                   desc: "「利益率30%の商品を探して」と入力するだけで全自動スキャン開始。",
                   cta: "起動する →",
@@ -565,7 +569,7 @@ export default function DashboardPage() {
                   accent: "#66aaff",
                 },
                 {
-                  emoji: "📦",
+                  icon: Package,
                   label: "仕入れを登録する",
                   desc: "商品・価格を記録するとダッシュボードに利益・在庫が自動反映。",
                   cta: "登録する →",
@@ -573,14 +577,14 @@ export default function DashboardPage() {
                   accent: C.up,
                 },
                 {
-                  emoji: "📷",
+                  icon: Camera,
                   label: "バーコードスキャン",
                   desc: "スマホのカメラで商品バーコードを読み取るだけで即座に利益計算。店頭で使える。",
                   cta: "スキャンする →",
                   href: "/barcode",
                   accent: "#44ccaa",
                 },
-              ] as { emoji: string; label: string; desc: string; cta: string; href: string; accent: string }[]).map(({ emoji, label, desc, cta, href, accent }) => (
+              ] as { icon: React.ElementType; label: string; desc: string; cta: string; href: string; accent: string }[]).map(({ icon: Icon, label, desc, cta, href, accent }) => (
                 <Link key={label} href={href} style={{ textDecoration: "none", display: "block" }}>
                   <div style={{
                     background: C.bg1,
@@ -594,7 +598,9 @@ export default function DashboardPage() {
                     height: "100%",
                     cursor: "pointer",
                   }}>
-                    <div style={{ fontSize: 26, lineHeight: 1 }}>{emoji}</div>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: `${accent}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Icon size={20} color={accent} />
+                    </div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: C.t1 }}>{label}</div>
                     <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.65, flex: 1 }}>{desc}</div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: accent, display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
@@ -610,7 +616,7 @@ export default function DashboardPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                <span style={{ fontSize: 18 }}>🔥</span>
+                <Flame size={16} color={C.warn} />
                 <span style={{ fontSize: 14, fontWeight: 900, color: C.t1, letterSpacing: "-0.01em" }}>今日のおすすめ仕入れTOP3</span>
               </div>
               <div style={{ fontSize: 11, color: C.t3 }}>利益率・想定利益・仕入れ判断をAIがまとめて表示します。初心者でも即判断できます</div>
@@ -634,7 +640,7 @@ export default function DashboardPage() {
                     letterSpacing: "0.06em",
                     zIndex: 1,
                   }}>
-                    ★ NO.1
+                    NO.1
                   </div>
                 )}
                 <ProfitCandidateCard {...c} />

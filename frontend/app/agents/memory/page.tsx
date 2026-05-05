@@ -24,13 +24,13 @@ const AGENT_META: Record<string, { color: string; label: string }> = {
 
 const TYPE_META: Record<string, string> = {
   learning:          "🎓 学習",
-  approval_history:  "✅ 承認記録",
-  sale_result:       "💰 売上実績",
-  market:            "📈 市場情報",
+  approval_history:  "承認記録",
+  sale_result:       "売上実績",
+  market:            "市場情報",
   pending:           "⏳ 承認待ち",
   listing_generated: "📄 出品文",
   sns_generated:     "📱 SNS生成",
-  sns_performance:   "📊 SNS実績",
+  sns_performance:   "SNS実績",
 };
 
 export default function MemoryPage() {

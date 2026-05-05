@@ -83,7 +83,7 @@ export default function SettingsPage() {
       const r = await testLineNotify(lineToken);
       if (r.ok) {
         setSavedToken(lineToken);
-        toast("LINEに接続しました！テストメッセージを送信しました ✅");
+        toast("LINEに接続しました！テストメッセージを送信しました");
       } else {
         const detail = r.error ?? "トークンを確認してください";
         toast(`送信に失敗しました\n→ ${detail}`, "error");
@@ -132,7 +132,7 @@ export default function SettingsPage() {
         paypay_token: paypayToken.trim(),
       });
       setSyncSaved(true);
-      toast("在庫連携 API を保存しました ✅");
+      toast("在庫連携 API を保存しました");
       setTimeout(() => setSyncSaved(false), 3000);
     } catch (e) { toast(errMsg(e), "error"); }
     finally { setSyncSaving(false); }
@@ -148,7 +148,7 @@ export default function SettingsPage() {
         min_alert_delta_jpy: Number(sourceSyncDeltaJpy || 300),
         active_only: sourceSyncActiveOnly,
       });
-      toast("在庫・価格連動ルールを保存しました ✅");
+      toast("在庫・価格連動ルールを保存しました");
     } catch (e) {
       toast(errMsg(e), "error");
     } finally {
@@ -181,7 +181,7 @@ export default function SettingsPage() {
         usd_jpy: usdJpy,
       });
       setApiSaved(true);
-      toast("API設定を保存しました ✅");
+      toast("API設定を保存しました");
       setTimeout(() => setApiSaved(false), 3000);
     } catch (e) { toast(errMsg(e), "error"); }
     finally { setApiSaving(false); }

@@ -81,8 +81,18 @@ async def _lifespan(app: FastAPI):
         print("[Startup] Monitor started OK")
     except Exception as e:
         print(f"[Startup] Monitor skip: {e}")
-    _scanner_bg_task = asyncio.create_task(_auto_scan_loop())
-    _source_sync_bg_task = asyncio.create_task(_source_sync_loop())
+    print("[Startup] creating background tasks...")
+    try:
+        _scanner_bg_task = asyncio.create_task(_auto_scan_loop())
+        print("[Startup] AutoScan task created")
+    except Exception as e:
+        print(f"[Startup] AutoScan task error: {e}")
+    try:
+        _source_sync_bg_task = asyncio.create_task(_source_sync_loop())
+        print("[Startup] SourceSync task created")
+    except Exception as e:
+        print(f"[Startup] SourceSync task error: {e}")
+    print("[Startup] yielding...")
     yield
     if _scanner_bg_task:
         _scanner_bg_task.cancel()
@@ -2416,9 +2426,12 @@ def run_source_sync_once(user_id: str = 'default') -> Dict:
 
 async def _source_sync_loop():
     """定期ソース連動ループ（全ユーザー分を在庫連動/価格上昇監視）"""
+    await asyncio.sleep(15)  # 起動直後のイベントループブロック防止
     while True:
         try:
-            user_rows = db.conn.execute("SELECT DISTINCT user_id FROM settings ORDER BY user_id").fetchall()
+            user_rows = await asyncio.to_thread(
+                lambda: db.conn.execute("SELECT DISTINCT user_id FROM settings ORDER BY user_id").fetchall()
+            )
             user_ids = [r["user_id"] for r in user_rows] or ["default"]
             for uid in user_ids:
                 try:
@@ -2443,9 +2456,12 @@ async def _source_sync_loop():
 
 async def _auto_scan_loop():
     """定期スキャンループ：全ユーザー分を5分ごとに設定確認し実行する"""
+    await asyncio.sleep(15)  # 起動直後のイベントループブロック防止
     while True:
         try:
-            user_rows = db.conn.execute("SELECT DISTINCT user_id FROM settings ORDER BY user_id").fetchall()
+            user_rows = await asyncio.to_thread(
+                lambda: db.conn.execute("SELECT DISTINCT user_id FROM settings ORDER BY user_id").fetchall()
+            )
             user_ids = [r["user_id"] for r in user_rows] or ["default"]
             for uid in user_ids:
                 try:

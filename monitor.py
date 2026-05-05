@@ -362,6 +362,7 @@ def start(reload_interval_seconds: int = 300):
     _monitor_running = True
 
     def _run():
+        time.sleep(30)  # 起動直後のDB競合を防ぐため遅延起動
         setup_schedules()
         reload_counter = 0
         while _monitor_running:

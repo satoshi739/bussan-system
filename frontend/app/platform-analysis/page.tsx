@@ -284,7 +284,7 @@ export default function PlatformAnalysisPage() {
       {/* ── 販売プラットフォーム詳細テーブル ─────────────── */}
       <div style={{ ...card, marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, marginBottom: 14 }}>
-          📊 販売先 プラットフォーム詳細
+          販売先 プラットフォーム詳細
         </div>
         <div className="table-scroll">
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -336,7 +336,7 @@ export default function PlatformAnalysisPage() {
       {/* ── 仕入れ先詳細テーブル ─────────────────────────── */}
       <div style={{ ...card, marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, marginBottom: 14 }}>
-          🛒 仕入れ先 プラットフォーム詳細
+          仕入れ先 プラットフォーム詳細
         </div>
         <div className="table-scroll">
           <table style={{ width: "100%", borderCollapse: "collapse" }}>

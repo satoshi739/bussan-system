@@ -416,7 +416,7 @@ function SearchPageContent() {
           {stats && (
             <div className="search-cards-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
               <div style={card}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 12 }}>🎯 最大仕入れ価格（相場から逆算）</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 12 }}>最大仕入れ価格（相場から逆算）</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
                   <div>
                     <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>販売プラットフォーム</div>
@@ -442,7 +442,7 @@ function SearchPageContent() {
 
               <div style={card}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0" }}>📈 価格履歴</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0" }}>価格履歴</div>
                   {priceChange !== null && (
                     <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
                       {priceChange > 0 ? <TrendingUp size={14} color="#ff6666" /> : priceChange < 0 ? <TrendingDown size={14} color="#D4AF37" /> : <Minus size={14} color="#8A8278" />}
@@ -532,7 +532,7 @@ function SearchPageContent() {
                 {bestPlatform && (
                   <div style={{ ...card, flex: 2, minWidth: 260, padding: "14px 20px", borderColor: "rgba(212,175,55,0.4)" }}>
                     <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>
-                      {hasBuyPrice ? "🥇 最も利益が出るプラットフォーム" : "💰 最も高く売れるプラットフォーム"}
+                      {hasBuyPrice ? "🥇 最も利益が出るプラットフォーム" : "最も高く売れるプラットフォーム"}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 24 }}>{bestPlatform.flag}</span>

@@ -169,7 +169,7 @@ export default function BarcodePage() {
                   href={`/calculator${result.price ? `?selling_price=${result.price}` : ""}`}
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "linear-gradient(135deg,#1E1608,#2A1E08)", border: "1px solid rgba(212,175,55,0.6)", borderRadius: 10, color: "#D4AF37", padding: "14px 20px", fontSize: 14, fontWeight: 800, textDecoration: "none" }}
                 >
-                  📊 利益計算へ →
+                  利益計算へ →
                 </Link>
               </>
             ) : (

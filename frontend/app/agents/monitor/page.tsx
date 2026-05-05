@@ -148,7 +148,7 @@ export default function MonitorPage() {
       {/* 直近30日実績 */}
       {histData && (
         <div style={{ ...card, marginBottom: 20 }}>
-          <h2 style={{ color: C.t2, fontSize: 14, fontWeight: 700, margin: "0 0 12px 0" }}>📊 直近30日の実績</h2>
+          <h2 style={{ color: C.t2, fontSize: 14, fontWeight: 700, margin: "0 0 12px 0" }}>直近30日の実績</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
             {[
               { label: "売上件数", value: String(histData.total_sold ?? 0) + "件", color: C.gold },
@@ -172,7 +172,7 @@ export default function MonitorPage() {
 
       {/* 手動実行 */}
       <div style={{ ...card, marginBottom: 20 }}>
-        <h2 style={{ color: C.t2, fontSize: 14, fontWeight: 700, margin: "0 0 16px 0" }}>⚡ 今すぐ実行</h2>
+        <h2 style={{ color: C.t2, fontSize: 14, fontWeight: 700, margin: "0 0 16px 0" }}>今すぐ実行</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {(Object.keys(TASK_LABELS) as ("daily_scan" | "stale_check" | "weekly_report")[]).map(task => {
             const meta = TASK_LABELS[task];

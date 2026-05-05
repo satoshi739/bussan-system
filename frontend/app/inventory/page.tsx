@@ -115,7 +115,7 @@ export default function InventoryPage() {
     setSaving(true);
     try {
       await createInventoryItem(form);
-      toast("在庫を追加しました ✅");
+      toast("在庫を追加しました");
       setShowForm(false);
       setForm(emptyForm);
       load();
@@ -138,7 +138,7 @@ export default function InventoryPage() {
       await updateInventoryItem(id, editForm);
       setEditId(null);
       load();
-      toast("更新しました ✅");
+      toast("更新しました");
     } catch (e) {
       toast(e instanceof Error ? e.message : "更新に失敗しました", "error");
     }

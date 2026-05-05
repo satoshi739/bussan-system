@@ -91,7 +91,7 @@ export default function ListingsPage() {
         asin: form.asin || undefined,
       };
       await createListing(body);
-      toast(`出品を追加しました ✅ SKU: ${autoSku}`);
+      toast(`出品を追加しました SKU: ${autoSku}`);
       setForm(emptyForm); setShowForm(false); setFormComparison(null); load();
     } catch { toast("保存に失敗しました", "error"); }
     finally { setListLoading(false); }

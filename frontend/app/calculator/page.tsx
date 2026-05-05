@@ -56,8 +56,8 @@ export default function CalculatorPage() {
         {([
           { id: "profit", label: "🧮 利益計算" },
           { id: "reverse", label: "🔁 最大仕入れ価格" },
-          { id: "compare", label: "📊 プラットフォーム比較" },
-          { id: "bulk", label: "📦 数量シミュレーション" },
+          { id: "compare", label: "プラットフォーム比較" },
+          { id: "bulk", label: "数量シミュレーション" },
         ] as { id: Tab; label: string }[]).map(({ id, label }) => (
           <button key={id} onClick={() => setTab(id)} style={{ padding: "9px 18px", borderRadius: 9, border: "none", background: tab === id ? "linear-gradient(135deg,#1e1608,#2a1e08)" : "transparent", color: tab === id ? "#D4AF37" : "#7aaa8a", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}>
             {label}
@@ -321,7 +321,7 @@ function CompareTab() {
   return (
     <div>
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>📊 全プラットフォームで比較</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>全プラットフォームで比較</div>
         <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>同じ商品をどこで売ると一番儲かるか一覧で確認できます</div>
         <div className="calc-form-3col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div><label style={lbl}>仕入れ価格 (円)</label><input type="number" style={inp} value={form.purchase_price} onChange={e => upd("purchase_price", e.target.value)} placeholder="例: 2000" autoFocus /></div>
@@ -440,7 +440,7 @@ function BulkSimTab({ domestic, overseas }: { domestic: [string, PlatformInfo][]
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={card}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>📦 数量シミュレーション</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>数量シミュレーション</div>
           <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>N個仕入れて何%売れた場合の利益を試算します</div>
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>販売プラットフォーム</label>
