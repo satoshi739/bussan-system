@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { Mail, Loader, Lock, Play, Heart, MessageCircle, Music2 } from "lucide-react";
 import Link from "next/link";
@@ -186,7 +186,13 @@ function TikTokCard({ t }: { t: (typeof TIKTOKS)[number] }) {
 
 export default function LoginPage() {
   const router = useRouter();
+  const [callbackUrl, setCallbackUrl] = useState("/");
   const [mode, setMode] = useState<"magic" | "password">("magic");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setCallbackUrl(params.get("callbackUrl") ?? "/");
+  }, []);
 
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -203,7 +209,7 @@ export default function LoginPage() {
     setError("");
     startTransition(async () => {
       try {
-        const result = await signIn("resend", { email, redirect: false, callbackUrl: "/" });
+        const result = await signIn("resend", { email, redirect: false, callbackUrl });
         if (result?.error) {
           setError("送信に失敗しました。メールアドレスを確認してください。");
         } else {
@@ -225,7 +231,7 @@ export default function LoginPage() {
           email: pwEmail,
           password,
           redirect: false,
-          callbackUrl: "/",
+          callbackUrl,
         });
         if (result?.error) {
           setError("メールアドレスまたはパスワードが間違っています。");

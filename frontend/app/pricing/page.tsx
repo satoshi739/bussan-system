@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Check, Zap, Building2, Gift, ChevronDown, ChevronUp, Star } from "lucide-react";
@@ -117,10 +117,22 @@ export default function PricingPage() {
   const router = useRouter();
   const { plan: currentPlan, loading: planLoading } = usePlan();
   const isMobile = useIsMobile();
+  const autoCheckoutFired = useRef(false);
+
+  useEffect(() => {
+    if (status !== "authenticated" || autoCheckoutFired.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get("checkout") as "LITE" | "STANDARD" | "PRO" | null;
+    if (checkout) {
+      autoCheckoutFired.current = true;
+      handleSubscribe(checkout);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   const handleSubscribe = async (planKey: "LITE" | "STANDARD" | "PRO") => {
     if (status === "unauthenticated") {
-      router.push("/login");
+      router.push(`/login?callbackUrl=${encodeURIComponent(`/pricing?checkout=${planKey}`)}`);
       return;
     }
     setLoading(planKey);
