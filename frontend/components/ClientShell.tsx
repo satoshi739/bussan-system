@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import OnboardingModal, { useOnboarding } from "@/components/OnboardingModal";
 
-const PUBLIC_PATHS = ["/login", "/pricing", "/deals"];
+const PUBLIC_PATHS = ["/login", "/pricing", "/deals", "/legal"];
 
 const CHECKLIST_KEY = "bussan_checklist";
 const PAGE_CHECKLIST_MAP: Record<string, string> = {

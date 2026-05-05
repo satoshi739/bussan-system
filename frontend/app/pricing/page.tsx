@@ -450,7 +450,7 @@ export default function PricingPage() {
         <div style={{ marginBottom: isMobile ? 28 : 48, background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.09)", borderRadius: 12, padding: isMobile ? "16px 14px" : "20px 26px" }}>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: isMobile ? 12 : 10 }}>
             {[
-              ["🏢", "運営", "ユニバーサルプラネットジャパン株式会社"],
+              ["🏢", "運営", "株式会社ユニバースプラネットジャパン"],
               ["🔒", "決済", "Stripe（PCI DSS準拠の安全な決済）"],
               ["🛡️", "カード情報", "当社サーバーでは保持しません"],
               ["✅", "解約", "マイページからいつでも即時解約OK"],
@@ -517,6 +517,22 @@ export default function PricingPage() {
             <a href="/login" style={{ fontSize: 12, color: P.t3, textDecoration: "none" }}>
               まずはフリープランで試す（カード不要）
             </a>
+          </div>
+        </div>
+
+        {/* ── フッター ── */}
+        <div style={{ marginTop: 48, paddingTop: 20, borderTop: "1px solid rgba(201,169,107,0.10)", textAlign: "center" }}>
+          <div style={{ fontSize: 12, color: P.t4, marginBottom: 10 }}>© 2026 株式会社ユニバースプラネットジャパン</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
+            {[
+              ["/legal/tokusho", "特定商取引法に基づく表記"],
+              ["/legal/terms", "利用規約"],
+              ["/legal/privacy", "プライバシーポリシー"],
+            ].map(([href, label]) => (
+              <a key={href} href={href} style={{ fontSize: 12, color: P.t3, textDecoration: "none" }}>
+                {label}
+              </a>
+            ))}
           </div>
         </div>
 
