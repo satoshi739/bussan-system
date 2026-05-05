@@ -159,7 +159,7 @@ export default function InventoryPage() {
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
 
       {/* ── ヘッダー ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+      <div className="inv-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 900, color: C.t1, margin: 0 }}>在庫管理</h1>
           <div style={{ fontSize: 12, color: C.t3, marginTop: 3 }}>
@@ -180,7 +180,7 @@ export default function InventoryPage() {
       </div>
 
       {/* ── KPIカード ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
+      <div className="inv-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
         {[
           { label: "総SKU数",       value: summary.total_items,              color: C.t2,  icon: <Package size={16} /> },
           { label: "補充必要",       value: summary.low_stock_count,          color: C.warn, icon: <AlertTriangle size={16} /> },
@@ -214,7 +214,7 @@ export default function InventoryPage() {
       {showForm && (
         <div style={{ ...card, padding: "20px 24px", marginBottom: 16, border: `1px solid ${C.bdSt}` }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: C.t2, marginBottom: 14 }}>在庫商品を追加</div>
-          <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
+          <div className="inv-form-3col" style={{ display: "grid", gridTemplateColumns: "3fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
             <div>
               <label style={lbl}>商品名 *</label>
               <input style={inp} value={form.product_name} onChange={e => setForm(p => ({ ...p, product_name: e.target.value }))} placeholder="例: Nintendo Switch 本体" autoFocus />
@@ -228,7 +228,7 @@ export default function InventoryPage() {
               <input style={inp} value={form.sku} onChange={e => setForm(p => ({ ...p, sku: e.target.value }))} placeholder="SKU-XXXX" />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
+          <div className="inv-form-5col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
             <div>
               <label style={lbl}>在庫数</label>
               <input type="number" min="0" style={inp} value={form.quantity} onChange={e => setForm(p => ({ ...p, quantity: Number(e.target.value) }))} />
@@ -250,11 +250,11 @@ export default function InventoryPage() {
               <input type="number" min="0" style={inp} value={form.unit_cost} onChange={e => setForm(p => ({ ...p, unit_cost: Number(e.target.value) }))} />
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={handleCreate} disabled={saving} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: `1px solid ${C.bdSt}`, borderRadius: 8, color: C.gold, padding: "10px 24px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+          <div className="inv-btn-group" style={{ display: "flex", gap: 8 }}>
+            <button onClick={handleCreate} disabled={saving} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: `1px solid ${C.bdSt}`, borderRadius: 8, color: C.gold, padding: "10px 24px", fontWeight: 700, cursor: "pointer", fontSize: 14, minHeight: 44 }}>
               {saving ? "保存中..." : "追加する"}
             </button>
-            <button onClick={() => { setShowForm(false); setForm(emptyForm); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: C.t3, padding: "10px 16px", cursor: "pointer" }}>
+            <button onClick={() => { setShowForm(false); setForm(emptyForm); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: C.t3, padding: "10px 16px", cursor: "pointer", minHeight: 44 }}>
               キャンセル
             </button>
           </div>
@@ -262,7 +262,7 @@ export default function InventoryPage() {
       )}
 
       {/* ── フィルタ・検索 ── */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center" }}>
+      <div className="inv-filter-row" style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
         <div style={{ position: "relative", flex: 1 }}>
           <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: C.t3, pointerEvents: "none" }} />
           <input
@@ -290,11 +290,22 @@ export default function InventoryPage() {
 
       {/* ── 在庫テーブル ── */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: 60, color: C.t3 }}>読み込み中...</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          {[1,2,3].map(i => (
+            <div key={i} style={{ ...card, padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ width: "55%", height: 14, borderRadius: 6, background: "rgba(212,175,55,0.07)", animation: "sk 1.6s ease-in-out infinite" }} />
+                <div style={{ width: "35%", height: 11, borderRadius: 6, background: "rgba(212,175,55,0.07)", animation: "sk 1.6s ease-in-out infinite" }} />
+              </div>
+              <div style={{ width: 60, height: 20, borderRadius: 6, background: "rgba(212,175,55,0.07)", animation: "sk 1.6s ease-in-out infinite" }} />
+            </div>
+          ))}
+        </div>
       ) : items.length === 0 ? (
-        <div style={{ ...card, textAlign: "center", padding: 60 }}>
-          <Warehouse size={40} color="rgba(212,175,55,0.2)" style={{ margin: "0 auto 12px", display: "block" }} />
-          <div style={{ color: C.t3, fontSize: 14, marginBottom: 16 }}>在庫データがありません</div>
+        <div style={{ ...card, textAlign: "center", padding: 48 }}>
+          <Warehouse size={40} color="rgba(212,175,55,0.25)" style={{ margin: "0 auto 12px", display: "block" }} />
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>在庫データがありません</div>
+          <div style={{ fontSize: 13, color: C.t3, marginBottom: 16 }}>在庫商品を追加して在庫数・補充アラートを管理しましょう</div>
           <button onClick={() => setShowForm(true)} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: `1px solid ${C.bdSt}`, borderRadius: 9, color: C.gold, padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
             在庫を追加する →
           </button>
@@ -328,7 +339,8 @@ export default function InventoryPage() {
               return (
                 <div
                   key={item.id}
-                  style={{ ...card, padding: isEditing ? "14px 18px" : "11px 14px", borderColor: avail <= 0 ? "rgba(239,68,68,0.2)" : avail <= item.reorder_point ? "rgba(255,153,102,0.2)" : C.bd, transition: "border-color 0.15s" }}
+                  className="inv-row"
+                  style={{ ...card, padding: isEditing ? "14px 18px" : "11px 14px", borderColor: avail <= 0 ? "rgba(239,68,68,0.2)" : avail <= item.reorder_point ? "rgba(255,153,102,0.2)" : C.bd }}
                 >
                   {isEditing ? (
                     <div>
@@ -436,8 +448,19 @@ export default function InventoryPage() {
       )}
 
       <style>{`
+        @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
+        .inv-row:hover { border-color: rgba(212,175,55,0.38) !important; }
+        .inv-row { transition: border-color 0.15s; }
         @media (max-width: 768px) {
-          .inventory-grid { grid-template-columns: 1fr 80px 80px !important; }
+          .inv-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px; }
+          .inv-kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .inv-form-3col { grid-template-columns: 1fr !important; }
+          .inv-form-5col { grid-template-columns: 1fr 1fr !important; }
+          .inv-filter-row { flex-direction: column !important; }
+          .inv-btn-group { flex-direction: column !important; }
+          .inv-btn-group button { width: 100% !important; min-height: 44px; }
+          .inv-item-grid { grid-template-columns: 1fr !important; }
+          .inv-table-wrap { overflow-x: auto; }
         }
       `}</style>
     </div>

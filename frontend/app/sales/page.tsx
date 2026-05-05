@@ -97,14 +97,22 @@ export default function SalesPage() {
     <div>
       <style>{`
         @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
-        .sale-row:hover { background: rgba(212,175,55,0.05) !important; }
-        .sale-row { transition: background 0.12s; }
+        .sale-row:hover { background: rgba(212,175,55,0.05) !important; border-color: rgba(212,175,55,0.38) !important; }
+        .sale-row { transition: all 0.15s; }
         .sort-opt:hover { background: rgba(212,175,55,0.08) !important; }
         .ptab:hover { border-color: rgba(212,175,55,0.35) !important; color: #C8C0B0 !important; }
+        @media (max-width: 768px) {
+          .sales-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px; }
+          .sales-kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .sales-filter-bar { flex-direction: column !important; }
+          .sales-filter-bar > * { width: 100% !important; }
+          .sale-amounts { flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
+          .sale-row .sale-detail { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+        }
       `}</style>
 
       {/* ヘッダー */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+      <div className="sales-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 900, color: C.t1, margin: 0 }}>売上履歴</h1>
           <div style={{ fontSize: 12, color: C.t3, marginTop: 3 }}>
@@ -125,7 +133,7 @@ export default function SalesPage() {
 
       {/* サマリーカード */}
       {!loading && sales.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 18 }}>
+        <div className="sales-kpi-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 18 }}>
           {[
             { label: "純利益合計", value: `¥${Math.round(totalProfit).toLocaleString()}`, color: totalProfit >= 0 ? C.up : C.dn },
             { label: "平均利益/件", value: `¥${Math.round(avgProfit).toLocaleString()}`, color: C.blue },
@@ -255,14 +263,14 @@ export default function SalesPage() {
             </button>
           </div>
         ) : sales.length === 0 ? (
-          <div style={{ ...card, textAlign: "center", padding: 60 }}>
+          <div style={{ ...card, textAlign: "center", padding: 48 }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-              <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 16, padding: 18 }}>
-                <BarChart2 size={32} color={C.t3} />
+              <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 16, padding: 18 }}>
+                <BarChart2 size={32} color="rgba(212,175,55,0.4)" />
               </div>
             </div>
-            <div style={{ color: C.t3, fontSize: 14, marginBottom: 12 }}>まだ売上データがありません</div>
-            <div style={{ color: "#3a5a4a", fontSize: 12, marginBottom: 16 }}>仕入れ管理ページから売却を記録してください</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>まだ売上データがありません</div>
+            <div style={{ color: C.t3, fontSize: 13, marginBottom: 16 }}>仕入れ管理ページから売却を記録すると、ここに履歴が表示されます</div>
             <Link href="/purchases" style={{ display: "inline-block", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: C.gold, padding: "10px 22px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
               まずはこれから：仕入れを登録する →
             </Link>
@@ -292,7 +300,7 @@ export default function SalesPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", gap: 20, alignItems: "center", flexShrink: 0 }}>
+                  <div className="sale-amounts" style={{ display: "flex", gap: 20, alignItems: "center", flexShrink: 0 }}>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: 10, color: C.t3, marginBottom: 1 }}>売却価格</div>
                       <div style={{ fontFamily: "monospace", color: C.blue, fontSize: 13 }}>¥{sale.sale_price.toLocaleString()}</div>

@@ -307,8 +307,23 @@ function SearchPageContent() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 4 }}>相場検索</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20 }}>国内・海外プラットフォームの現在価格を一括取得します</div>
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
+        .search-row:hover { border-color: rgba(212,175,55,0.38) !important; }
+        .search-row { transition: all 0.15s; }
+        @media (max-width: 768px) {
+          .search-stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .search-header { flex-direction: column !important; align-items: flex-start !important; }
+          .search-bar { flex-direction: column !important; }
+          .search-bar > * { width: 100% !important; min-width: unset !important; }
+          .search-cards-2col { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+      <div className="search-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>相場検索</h1>
+      </div>
+      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20, marginTop: 3 }}>国内・海外プラットフォームの現在価格を一括取得します</div>
 
       {/* タブ */}
       <div style={{ display: "flex", gap: 6, marginBottom: 20, borderBottom: "1px solid rgba(212,175,55,0.12)", paddingBottom: 0 }}>
@@ -338,7 +353,7 @@ function SearchPageContent() {
       />
 
       {/* 検索バー */}
-      <div style={{ display: "flex", gap: 10, marginBottom: tab === "global" ? 12 : 24, flexWrap: "wrap" }}>
+      <div className="search-bar" style={{ display: "flex", gap: 10, marginBottom: tab === "global" ? 12 : 24, flexWrap: "wrap" }}>
         <div style={{ position: "relative", flex: 2, minWidth: 200 }}>
           <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#8A8278" }} />
           <input
@@ -383,7 +398,7 @@ function SearchPageContent() {
         <>
           {domError && <div style={{ ...card, borderColor: "rgba(255,80,80,0.3)", color: "#ff6644", marginBottom: 20 }}>{domError}</div>}
           {stats && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 20 }}>
+            <div className="search-stats-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 20 }}>
               {[
                 { label: "最安値",  value: `¥${stats.min.toLocaleString()}`, color: "#D4AF37" },
                 { label: "最高値",  value: `¥${stats.max.toLocaleString()}`, color: "#ff9966" },
@@ -399,7 +414,7 @@ function SearchPageContent() {
           )}
 
           {stats && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+            <div className="search-cards-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
               <div style={card}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 12 }}>🎯 最大仕入れ価格（相場から逆算）</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
@@ -459,7 +474,7 @@ function SearchPageContent() {
               <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 14 }}>検索結果（安い順）</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {results.map((r, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", background: i === 0 ? "rgba(212,175,55,0.05)" : "transparent", borderRadius: 8, border: i === 0 ? "1px solid rgba(212,175,55,0.15)" : "1px solid transparent" }}>
+                  <div key={i} className="search-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", background: i === 0 ? "rgba(212,175,55,0.05)" : "transparent", borderRadius: 8, border: i === 0 ? "1px solid rgba(212,175,55,0.15)" : "1px solid transparent" }}>
                     {r.image && <Image src={r.image} alt="" width={44} height={44} unoptimized style={{ objectFit: "cover", borderRadius: 6, flexShrink: 0 }} onError={e => (e.currentTarget.style.display = "none")} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, color: "#F5F0E8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
@@ -474,13 +489,17 @@ function SearchPageContent() {
           )}
 
           {!domLoading && results.length === 0 && keyword && (
-            <div style={{ ...card, textAlign: "center", padding: 40, color: "#8A8278" }}>商品名を入力してEnterまたは検索ボタンを押してください</div>
+            <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: 48, textAlign: "center" }}>
+              <Search size={28} color="rgba(212,175,55,0.25)" style={{ margin: "0 auto 12px", display: "block" }} />
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>検索結果が見つかりませんでした</div>
+              <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 16 }}>別のキーワードで試してください</div>
+            </div>
           )}
           {!keyword && (
-            <div style={{ ...card, textAlign: "center", padding: 60, color: "#3a6a4a" }}>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
-              <div style={{ fontSize: 14, marginBottom: 8 }}>商品名を入力して相場を調べましょう</div>
-              <div style={{ fontSize: 12 }}>メルカリ・ラクマ・Yahoo!オークションの現在価格を一括取得します</div>
+            <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: 48, textAlign: "center" }}>
+              <Search size={36} color="rgba(212,175,55,0.2)" style={{ margin: "0 auto 16px", display: "block" }} />
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>商品名を入力して相場を調べましょう</div>
+              <div style={{ fontSize: 13, color: "#8A8278" }}>メルカリ・ラクマ・Yahoo!オークションの現在価格を一括取得します</div>
             </div>
           )}
         </>
@@ -572,10 +591,10 @@ function SearchPageContent() {
           )}
 
           {!globResult && !globLoading && !globError && (
-            <div style={{ ...card, textAlign: "center", padding: "56px 24px", borderStyle: "dashed" }}>
-              <Globe size={40} color="#1a4a2a" style={{ margin: "0 auto 16px" }} />
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#8A8278", marginBottom: 8 }}>商品名を入力して検索してください</div>
-              <div style={{ fontSize: 13, color: "#3a5a4a", marginBottom: 20 }}>
+            <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, textAlign: "center", padding: "56px 24px", borderStyle: "dashed" }}>
+              <Globe size={40} color="rgba(212,175,55,0.25)" style={{ margin: "0 auto 16px" }} />
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>商品名を入力して検索してください</div>
+              <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 20 }}>
                 日本（メルカリ・ヤフオク・ラクマ）と海外（eBay・Shopee・Lazada）の<br />現在の販売価格を同時に取得して比較します
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
@@ -591,7 +610,6 @@ function SearchPageContent() {
         </>
       )}
 
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

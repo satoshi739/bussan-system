@@ -82,6 +82,18 @@ const FAQS = [
     q: "クレジットカードなしで試せますか？",
     a: "フリープランはカード不要でご利用いただけます。Lite・Standard・Proはカード登録が必要ですが、Standard・Proはトライアル期間内に解約すれば費用は一切かかりません。",
   },
+  {
+    q: "スマホでも使えますか？",
+    a: "はい、モバイルブラウザに完全対応しています。アプリのインストールは不要で、スマホのブラウザからそのままご利用いただけます。バーコードスキャン機能もスマホカメラで直接使えます。",
+  },
+  {
+    q: "対応している仕入れプラットフォームは何ですか？",
+    a: "eBay・メルカリ・Amazon・Shopee等に対応しています。プランにより対応範囲が異なります（上記の比較表をご参照ください）。スキャン機能は国内モードとグローバルモードを切り替えて使用できます。",
+  },
+  {
+    q: "サポートはどのように受けられますか？",
+    a: "ログイン後のサポートページよりお問い合わせいただけます。Standard・Proプランのユーザーは優先対応をご利用いただけます。よくある質問はヘルプページにも随時追加しています。",
+  },
 ];
 
 function CellVal({ val }: { val: boolean | string }) {
@@ -389,12 +401,17 @@ export default function PricingPage() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: isMobile ? 12 : 14 }}>
             {[
-              { name: "T.K さん（会社員・副業）", plan: "Standard", body: "eBayで何を仕入れたらいいか全然わからなかったけど、スキャナーで候補が一覧で出てくるのが助かる。利益率の計算を手動でやってた頃が嘘みたいです。" },
-              { name: "M.S さん（専業物販）", plan: "Pro", body: "複数プラットフォームの相場を一括で見られるのがいい。メルカリとAmazonで価格差がある商品を拾いやすくなった。毎朝これを開くのが日課になっています。" },
-              { name: "R.N さん（大学生）", plan: "Standard", body: "無料トライアルで試したら即課金しました。仕入れ判断が3秒で出るのが衝撃的。思ったより手軽に始められてよかったです。" },
-            ].map(({ name, plan, body }) => (
-              <div key={name} style={{ background: "rgba(10,21,48,0.9)", border: "1px solid rgba(201,169,107,0.13)", borderRadius: 12, padding: "20px 18px" }}>
-                <div style={{ fontSize: 12, color: P.t3, lineHeight: 1.8, marginBottom: 14 }}>「{body}」</div>
+              { name: "T.K さん（会社員・副業）", plan: "Standard", stars: 5, body: "eBayで何を仕入れたらいいか全然わからなかったけど、スキャナーで候補が一覧で出てくるのが助かる。利益率の計算を手動でやってた頃が嘘みたいです。" },
+              { name: "M.S さん（専業物販）", plan: "Pro", stars: 5, body: "複数プラットフォームの相場を一括で見られるのがいい。メルカリとAmazonで価格差がある商品を拾いやすくなった。毎朝これを開くのが日課になっています。" },
+              { name: "R.N さん（大学生）", plan: "Standard", stars: 5, body: "無料トライアルで試したら即課金しました。仕入れ判断が3秒で出るのが衝撃的。思ったより手軽に始められてよかったです。" },
+            ].map(({ name, plan, stars, body }) => (
+              <div key={name} style={{ background: "rgba(10,21,48,0.9)", border: "1px solid rgba(201,169,107,0.13)", borderRadius: 12, padding: "20px 18px", display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", gap: 2, marginBottom: 10 }}>
+                  {Array.from({ length: stars }).map((_, i) => (
+                    <span key={i} style={{ color: "#f59e0b", fontSize: 15, lineHeight: 1 }}>★</span>
+                  ))}
+                </div>
+                <div style={{ fontSize: 13, color: P.t2, lineHeight: 1.8, marginBottom: 14, flex: 1 }}>「{body}」</div>
                 <div style={{ borderTop: "1px solid rgba(201,169,107,0.07)", paddingTop: 10 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: P.t1 }}>{name}</div>
                   <div style={{ fontSize: 11, color: P.t3, marginTop: 2 }}>{plan}プラン利用中</div>
@@ -419,12 +436,14 @@ export default function PricingPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1.8fr 0.9fr 0.9fr 1.1fr 0.9fr", background: "rgba(0,0,0,0.28)", borderBottom: "1px solid rgba(201,169,107,0.10)" }}>
                 <div style={{ padding: isMobile ? "11px 12px" : "13px 18px", fontSize: 11, color: P.t3, fontWeight: 700 }}>機能</div>
                 {[
-                  { name: "Free",     color: P.t3 },
-                  { name: "Lite",     color: P.lite },
-                  { name: "Standard", color: P.gold },
-                  { name: "Pro",      color: "#7eb0e8" },
-                ].map(({ name, color }) => (
-                  <div key={name} style={{ padding: isMobile ? "11px 6px" : "13px 12px", textAlign: "center", fontSize: isMobile ? 11 : 12, color, fontWeight: 800 }}>{name}</div>
+                  { name: "Free",     color: P.t3,     highlight: false },
+                  { name: "Lite",     color: P.lite,   highlight: false },
+                  { name: "Standard", color: P.gold,   highlight: true  },
+                  { name: "Pro",      color: "#7eb0e8", highlight: false },
+                ].map(({ name, color, highlight }) => (
+                  <div key={name} style={{ padding: isMobile ? "11px 6px" : "13px 12px", textAlign: "center", fontSize: isMobile ? 11 : 12, color, fontWeight: 800, background: highlight ? "rgba(201,169,107,0.08)" : undefined }}>
+                    {highlight ? <span>⭐ {name}</span> : name}
+                  </div>
                 ))}
               </div>
               {COMPARISON.map((row, i) => (
@@ -435,7 +454,7 @@ export default function PricingPage() {
                   <div style={{ padding: isMobile ? "10px 12px" : "12px 18px", fontSize: isMobile ? 11 : 12, color: "#d0d8e8" }}>{row.label}</div>
                   <div style={{ padding: isMobile ? "10px 6px" : "12px 12px", textAlign: "center" }}><CellVal val={row.free} /></div>
                   <div style={{ padding: isMobile ? "10px 6px" : "12px 12px", textAlign: "center" }}><CellVal val={row.lite} /></div>
-                  <div style={{ padding: isMobile ? "10px 6px" : "12px 12px", textAlign: "center", background: "rgba(201,169,107,0.03)" }}><CellVal val={row.standard} /></div>
+                  <div style={{ padding: isMobile ? "10px 6px" : "12px 12px", textAlign: "center", background: "rgba(201,169,107,0.06)", borderLeft: "1px solid rgba(201,169,107,0.10)", borderRight: "1px solid rgba(201,169,107,0.10)" }}><CellVal val={row.standard} /></div>
                   <div style={{ padding: isMobile ? "10px 6px" : "12px 12px", textAlign: "center" }}><CellVal val={row.pro} /></div>
                 </div>
               ))}
@@ -517,6 +536,19 @@ export default function PricingPage() {
             <a href="/login" style={{ fontSize: 12, color: P.t3, textDecoration: "none" }}>
               まずはフリープランで試す（カード不要）
             </a>
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", gap: isMobile ? 12 : 24, flexWrap: "wrap", marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(201,169,107,0.08)" }}>
+            {[
+              { icon: "🎁", text: "7日間無料" },
+              { icon: "⚡", text: "いつでも即解約" },
+              { icon: "🔒", text: "カード情報は保持しない" },
+              { icon: "🏢", text: "法人運営・Stripe決済" },
+            ].map(({ icon, text }) => (
+              <div key={text} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: P.t4 }}>
+                <span style={{ fontSize: 13 }}>{icon}</span>
+                <span>{text}</span>
+              </div>
+            ))}
           </div>
         </div>
 

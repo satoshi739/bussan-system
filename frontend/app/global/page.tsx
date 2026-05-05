@@ -277,13 +277,13 @@ function GlobalPageContent() {
 
       {/* ヘッダー */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-          <Globe size={24} color="#D4AF37" />
-          <h1 style={{ fontSize: 24, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>
+        <div className="global-header" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+          <Globe size={22} color="#D4AF37" />
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>
             全プラットフォーム相場比較
           </h1>
         </div>
-        <p style={{ fontSize: 13, color: "#8A8278", margin: 0 }}>
+        <p style={{ fontSize: 12, color: "#8A8278", margin: 0, marginTop: 3 }}>
           商品名を入れると、日本・海外の全プラットフォームで「今いくらで売れるか」を一発で比較
         </p>
       </div>
@@ -346,7 +346,7 @@ function GlobalPageContent() {
 
         <div style={{ borderTop: "1px solid rgba(212,175,55,0.08)", marginBottom: 16 }} />
 
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+        <div className="global-search-row" style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
           {/* キーワード */}
           <div style={{ flex: 2, minWidth: 220 }}>
             <label style={{ fontSize: 12, color: "#8A8278", display: "block", marginBottom: 5, fontWeight: 600 }}>
@@ -427,7 +427,7 @@ function GlobalPageContent() {
       {result && !loading && (
         <>
           {/* サマリーバナー */}
-          <div style={{ display: "flex", gap: 14, marginBottom: 20, flexWrap: "wrap" }}>
+          <div className="global-summary-cards" style={{ display: "flex", gap: 14, marginBottom: 20, flexWrap: "wrap" }}>
             <div style={{ ...card, flex: 1, minWidth: 180, padding: "14px 20px" }}>
               <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>検索キーワード</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>「{result.keyword}」</div>
@@ -508,12 +508,12 @@ function GlobalPageContent() {
 
       {/* 初期状態 */}
       {!result && !loading && !error && (
-        <div style={{ ...card, textAlign: "center", padding: "56px 24px", borderStyle: "dashed" }}>
-          <Globe size={40} color="#1a4a2a" style={{ margin: "0 auto 16px" }} />
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#8A8278", marginBottom: 8 }}>
+        <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, textAlign: "center", padding: "56px 24px" }}>
+          <Globe size={40} color="rgba(212,175,55,0.25)" style={{ margin: "0 auto 16px" }} />
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>
             商品名を入力して検索してください
           </div>
-          <div style={{ fontSize: 13, color: "#3a5a4a", marginBottom: 20 }}>
+          <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 20 }}>
             日本（メルカリ・ヤフオク・ラクマ）と海外（eBay・Shopee・Lazada）の<br />
             現在の販売価格を同時に取得して比較します
           </div>
@@ -536,7 +536,17 @@ function GlobalPageContent() {
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
         input[type=number]::-webkit-inner-spin-button { opacity: 0.4; }
+        .global-row:hover { background: rgba(212,175,55,0.05) !important; }
+        .global-row { transition: background 0.12s; }
+        @media (max-width: 768px) {
+          .global-header { flex-direction: column !important; gap: 6px; }
+          .global-search-row { flex-direction: column !important; }
+          .global-search-row > * { width: 100% !important; min-width: unset !important; }
+          .global-summary-cards { flex-direction: column !important; }
+          .global-summary-cards > * { min-width: unset !important; width: 100% !important; }
+        }
       `}</style>
     </div>
   );

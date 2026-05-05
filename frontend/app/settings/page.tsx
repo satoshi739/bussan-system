@@ -189,8 +189,19 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 6 }}>設定</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>通知・連携の設定</div>
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .settings-step:hover { border-color: rgba(212,175,55,0.38) !important; }
+        .settings-step { transition: border-color 0.15s; }
+        @media (max-width: 768px) {
+          .settings-sync-grid { grid-template-columns: 1fr !important; }
+          .settings-sync-grid2 { grid-template-columns: 1fr !important; }
+          .settings-btn-group { flex-direction: column !important; }
+          .settings-btn-group button { width: 100% !important; min-height: 44px; }
+        }
+      `}</style>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>設定</h1>
+      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16, marginTop: 3 }}>通知・連携の設定</div>
 
       {/* ── まずはサンプルで試せます ── */}
       <div style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 12, padding: "14px 18px", marginBottom: 20 }}>
@@ -207,7 +218,7 @@ export default function SettingsPage() {
             ["②", "利益を確認する",   "仕入れ価格・想定利益・おすすめ度を確認する", "/scanner"],
             ["③", "良ければ保存する", "「仕入れ＆出品」ボタンで仕入れ管理に登録する", "/purchases"],
           ] as [string, string, string, string][]).map(([step, title, desc, href]) => (
-            <a key={step} href={href} style={{ textDecoration: "none", display: "flex", gap: 14, alignItems: "flex-start", background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 10, padding: "12px 14px", transition: "border-color 0.15s" }}>
+            <a key={step} href={href} className="settings-step" style={{ textDecoration: "none", display: "flex", gap: 14, alignItems: "flex-start", background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 10, padding: "12px 14px" }}>
               <div style={{ fontSize: 20, fontWeight: 900, color: "#D4AF37", lineHeight: 1, flexShrink: 0, minWidth: 26 }}>{step}</div>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#F5F0E8", marginBottom: 2 }}>{title}</div>
@@ -434,7 +445,7 @@ export default function SettingsPage() {
               </label>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+            <div className="settings-sync-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
               <div>
                 <label style={lbl}>監視間隔（分）</label>
                 <input style={inp} type="number" min="3" max="120" value={sourceSyncIntervalMin} onChange={e => setSourceSyncIntervalMin(e.target.value)} />
@@ -444,7 +455,7 @@ export default function SettingsPage() {
                 <input style={inp} type="number" min="1" max="50" value={sourceSyncThresholdPct} onChange={e => setSourceSyncThresholdPct(e.target.value)} />
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end", marginBottom: 12 }}>
+            <div className="settings-sync-grid2" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end", marginBottom: 12 }}>
               <div>
                 <label style={lbl}>最低上昇額（円）</label>
                 <input style={inp} type="number" min="50" value={sourceSyncDeltaJpy} onChange={e => setSourceSyncDeltaJpy(e.target.value)} />
@@ -455,7 +466,7 @@ export default function SettingsPage() {
               </label>
             </div>
 
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="settings-btn-group" style={{ display: "flex", gap: 8 }}>
               <button
                 onClick={saveSourceSync}
                 disabled={sourceSyncSaving}
@@ -645,9 +656,6 @@ export default function SettingsPage() {
 
       </div>
 
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }

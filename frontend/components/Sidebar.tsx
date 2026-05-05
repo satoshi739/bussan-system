@@ -10,8 +10,8 @@ import { T } from "@/lib/tokens";
 
 const GROUP_LABEL = "#4d6080";
 
-const PLAN_LABELS: Record<string, string> = { FREE: "フリー", STANDARD: "Standard", PRO: "Pro" };
-const PLAN_COLORS: Record<string, string> = { FREE: T.t3, STANDARD: T.gold, PRO: T.goldLt };
+const PLAN_LABELS: Record<string, string> = { FREE: "フリー", LITE: "Lite", STANDARD: "Standard", PRO: "Pro" };
+const PLAN_COLORS: Record<string, string> = { FREE: T.t3, LITE: "#7eb0e8", STANDARD: T.gold, PRO: T.goldLt };
 
 const navGroups = [
   {

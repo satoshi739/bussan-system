@@ -496,6 +496,23 @@ function ScannerPageContent() {
 
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
+        .scan-card:hover { border-color: rgba(212,175,55,0.35) !important; }
+        .scan-card { transition: border-color 0.15s; }
+        @media (max-width: 768px) {
+          .scanner-steps    { grid-template-columns: 1fr !important; }
+          .scanner-stat-bar { grid-template-columns: repeat(2,1fr) !important; }
+          .scanner-grid     { grid-template-columns: 1fr !important; }
+          .scanner-sample   { grid-template-columns: 1fr !important; }
+          .scanner-header   { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+          .scanner-quickbar { flex-direction: column !important; }
+          .scanner-quickbar input { min-height: 44px; }
+          .scanner-quickbar button { min-height: 44px; }
+          .scan-info-grid   { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
 
       {/* ── 3ステップ ガイド ── */}
       <div style={{ background: "linear-gradient(135deg,rgba(20,20,22,0.9),rgba(26,20,10,0.9))", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 14, padding: "18px 22px", marginBottom: 20 }}>
@@ -536,7 +553,7 @@ function ScannerPageContent() {
       {/* ── クイック商品検索 ── */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#d0e8d8", marginBottom: 8 }}>商品名で利益を調べる</div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="scanner-quickbar" style={{ display: "flex", gap: 8 }}>
           <input
             style={{ flex: 1, background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#F5F0E8", padding: "14px 16px", fontSize: 14, outline: "none", minHeight: 50 }}
             placeholder="例：スニーカー、カメラ、フィギュア、ゲーム機"
@@ -562,7 +579,7 @@ function ScannerPageContent() {
       </div>
 
       {/* ── ヘッダー ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+      <div className="scanner-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
             <Radar size={22} color="#D4AF37" />
@@ -591,7 +608,7 @@ function ScannerPageContent() {
 
       {/* ── 統計バー ── */}
       {results.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, marginBottom: 16 }}>
+        <div className="scanner-stat-bar" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, marginBottom: 16 }}>
           {[
             { label: "利益候補",       value: `${results.length}件`,                                    sub: `フィルター後: ${processed.length}件`, color: "#F5F0E8" },
             { label: "最高利益率",     value: `${bestProfit.toFixed(1)}%`,                              sub: "スキャン結果中のベスト",              color: "#D4AF37" },
@@ -816,24 +833,27 @@ function ScannerPageContent() {
             </div>
             <span style={{ fontSize: 10, color: "#5a5248", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 5, padding: "2px 8px" }}>SAMPLE</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+          <div className="scanner-sample" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
             {SAMPLE_SCAN_ITEMS.map(item => <SampleResultCard key={item.id} {...item} />)}
           </div>
         </div>
       ) : processed.length === 0 ? (
-        <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.08)", borderRadius: 14, textAlign: "center", padding: "60px 0" }}>
-          <Radar size={32} color="rgba(212,175,55,0.15)" style={{ margin: "0 auto 14px", display: "block" }} />
-          <div style={{ fontSize: 13, color: "#8A8278" }}>フィルター条件に一致する結果がありません</div>
+        <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.08)", borderRadius: 14, textAlign: "center", padding: "60px 24px" }}>
+          <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 50, width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+            <Radar size={28} color="rgba(212,175,55,0.5)" />
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>条件に一致する結果がありません</div>
+          <div style={{ fontSize: 13, color: "#8A8278", lineHeight: 1.7 }}>フィルターを変更するか、新しいキーワードでスキャンしてください</div>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+        <div className="scanner-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
           {processed.map((item, i) => {
             const rt = RATING[item.rating as keyof typeof RATING] ?? RATING.ok;
             const rankColor = i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : i === 2 ? "#cd7f32" : "rgba(212,175,55,0.3)";
             const profitColor = item.net_profit_jpy >= 0 ? rt.color : "#ff4444";
             const key = itemKey(item);
             return (
-              <div key={key} style={{ background: "rgba(20,20,22,0.95)", border: `1px solid ${i < 3 ? rankColor + "30" : "rgba(212,175,55,0.1)"}`, borderRadius: 14, padding: "18px 20px", position: "relative", overflow: "visible" }}
+              <div key={key} className="scan-card" style={{ background: "rgba(20,20,22,0.95)", border: `1px solid ${i < 3 ? rankColor + "30" : "rgba(212,175,55,0.1)"}`, borderRadius: 14, padding: "18px 20px", position: "relative", overflow: "visible" }}
                 onClick={() => setOpenScore(null)}>
 
                 {/* 上部アクセントライン */}
@@ -895,7 +915,7 @@ function ScannerPageContent() {
                 </div>
 
                 {/* 利益情報 */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
+                <div className="scan-info-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
                   <div style={{ background: `${profitColor}0c`, border: `1px solid ${profitColor}22`, borderRadius: 7, padding: "7px 8px", textAlign: "center" }}>
                     <div style={{ fontSize: 9, color: "#8A8278" }}>想定利益</div>
                     <div style={{ fontSize: 16, fontWeight: 900, color: profitColor, fontFamily: "monospace" }}>
@@ -1177,9 +1197,6 @@ function ScannerPageContent() {
         </div>
       )}
 
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }

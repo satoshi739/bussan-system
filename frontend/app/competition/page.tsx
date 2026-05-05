@@ -32,8 +32,16 @@ export default function CompetitionPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 6 }}>競合セラー分析</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 24 }}>
+      <style>{`
+        .comp-row:hover { border-color: rgba(212,175,55,0.38) !important; }
+        .comp-row { transition: border-color 0.15s; }
+        @media (max-width: 768px) {
+          .comp-summary { grid-template-columns: 1fr !important; }
+          .comp-detail-grid { grid-template-columns: repeat(2,1fr) !important; }
+        }
+      `}</style>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>競合セラー分析</h1>
+      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 24, marginTop: 3 }}>
         出品中の商品の市場相場をリアルタイムで取得して、あなたの価格の競争力を診断します
       </div>
 
@@ -67,9 +75,10 @@ export default function CompetitionPage() {
       )}
 
       {results !== null && results.length === 0 && (
-        <div style={{ ...card, textAlign: "center", padding: 60 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
-          <div style={{ color: "#8A8278" }}>
+        <div style={{ ...card, textAlign: "center", padding: 48 }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>🎯</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>分析結果がありません</div>
+          <div style={{ color: "#8A8278", fontSize: 13 }}>
             アクティブな出品がないか、相場データを取得できませんでした
           </div>
         </div>
@@ -78,7 +87,7 @@ export default function CompetitionPage() {
       {results !== null && results.length > 0 && (
         <>
           {/* サマリーバー */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
+          <div className="comp-summary" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
             {(["high", "competitive", "low"] as const).map(s => {
               const count = results.filter(r => r.status === s).length;
               const cfg = STATUS_CONFIG[s];
@@ -109,7 +118,7 @@ export default function CompetitionPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginTop: 14 }}>
+                  <div className="comp-detail-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginTop: 14 }}>
                     {[
                       { label: "自分の価格",   value: `¥${r.your_price.toLocaleString()}`,             color: "#F5F0E8" },
                       { label: "市場平均",     value: `¥${r.market_avg.toLocaleString()}`,             color: "#66ccff" },

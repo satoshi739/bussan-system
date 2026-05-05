@@ -33,7 +33,16 @@ export default function CalculatorPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 20 }}>利益計算</h1>
+      <style>{`
+        @media (max-width: 768px) {
+          .calc-tab-group { flex-wrap: wrap !important; }
+          .calc-2col { grid-template-columns: 1fr !important; }
+          .calc-form-2col { grid-template-columns: 1fr !important; }
+          .calc-form-3col { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>利益計算</h1>
+      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20, marginTop: 3 }}>仕入れ価格・手数料から利益を自動計算します</div>
       {apiError && (
         <div style={{ background: "rgba(255,120,50,0.08)", border: "1px solid rgba(255,120,50,0.3)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
           <span style={{ fontSize: 18 }}>⚠️</span>
@@ -43,7 +52,7 @@ export default function CalculatorPage() {
       )}
 
       {/* タブ */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 20, background: "rgba(0,10,3,0.8)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12, padding: 5, width: "fit-content" }}>
+      <div className="calc-tab-group" style={{ display: "flex", gap: 6, marginBottom: 20, background: "rgba(0,10,3,0.8)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12, padding: 5, width: "fit-content" }}>
         {([
           { id: "profit", label: "🧮 利益計算" },
           { id: "reverse", label: "🔁 最大仕入れ価格" },
@@ -111,11 +120,11 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+    <div className="calc-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={card}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 14 }}>📥 仕入れ</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="calc-form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div><label style={lbl}>仕入れ価格 (円)</label><input type="number" style={inp} value={form.purchase_price} onChange={e => upd("purchase_price", e.target.value)} placeholder="0" /></div>
             <div><label style={lbl}>仕入れ送料 (円)</label><input type="number" style={inp} value={form.purchase_shipping} onChange={e => upd("purchase_shipping", e.target.value)} placeholder="0" /></div>
           </div>
@@ -155,7 +164,7 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
               </div>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="calc-form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div><label style={lbl}>販売価格 (円)</label><input type="number" style={inp} value={form.selling_price} onChange={e => upd("selling_price", e.target.value)} placeholder="0" /></div>
             <div><label style={lbl}>配送料 (円)</label><input type="number" style={inp} value={form.shipping_to_platform} onChange={e => upd("shipping_to_platform", e.target.value)} placeholder="0" /></div>
           </div>
@@ -314,7 +323,7 @@ function CompareTab() {
       <div style={{ ...card, marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>📊 全プラットフォームで比較</div>
         <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>同じ商品をどこで売ると一番儲かるか一覧で確認できます</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+        <div className="calc-form-3col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div><label style={lbl}>仕入れ価格 (円)</label><input type="number" style={inp} value={form.purchase_price} onChange={e => upd("purchase_price", e.target.value)} placeholder="例: 2000" autoFocus /></div>
           <div><label style={lbl}>仕入れ送料 (円)</label><input type="number" style={inp} value={form.purchase_shipping} onChange={e => upd("purchase_shipping", e.target.value)} placeholder="0" /></div>
           <div><label style={lbl}>販売価格 (円)</label><input type="number" style={inp} value={form.selling_price} onChange={e => upd("selling_price", e.target.value)} placeholder="例: 4000" /></div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getPriceChangeAlerts, type PriceAlert } from "@/lib/api";
+import { Bell, TrendingDown, TrendingUp } from "lucide-react";
 
 const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
 
@@ -20,13 +21,33 @@ export default function AlertsPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 6 }}>価格変動アラート</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 24 }}>
+      <style>{`
+        @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
+        .alert-row:hover { border-color: rgba(212,175,55,0.38) !important; }
+        .alert-row { transition: border-color 0.15s; }
+        @media (max-width: 768px) {
+          .alert-item-row { flex-direction: column !important; align-items: flex-start !important; gap: 8px; }
+        }
+      `}</style>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>価格変動アラート</h1>
+      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 24, marginTop: 3 }}>
         相場検索で取得した価格履歴をもとに、大きな変動があった商品を表示します（変動率5%以上・過去7日間）
       </div>
 
       {loading ? (
-        <div style={{ ...card, textAlign: "center", padding: 60, color: "#8A8278" }}>読み込み中...</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {[1,2,3].map(i => (
+            <div key={i} style={{ ...card, padding: "18px 24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ width: "45%", height: 15, borderRadius: 6, background: "rgba(212,175,55,0.07)", animation: "sk 1.6s ease-in-out infinite" }} />
+                  <div style={{ width: "30%", height: 11, borderRadius: 6, background: "rgba(212,175,55,0.07)", animation: "sk 1.6s ease-in-out infinite" }} />
+                </div>
+                <div style={{ width: 80, height: 32, borderRadius: 6, background: "rgba(212,175,55,0.07)", animation: "sk 1.6s ease-in-out infinite" }} />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : error ? (
         <div style={{ ...card, textAlign: "center", padding: 60 }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
@@ -39,24 +60,24 @@ export default function AlertsPage() {
           </button>
         </div>
       ) : alerts.length === 0 ? (
-        <div style={{ ...card, textAlign: "center", padding: 60 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🔔</div>
-          <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
-            現在アラートはありません
-            <span style={{ fontSize: 12, display: "block", marginTop: 8 }}>
-              「相場検索」でキーワードを繰り返し検索すると<br />
-              価格変動を自動で記録・検出します
-            </span>
+        <div style={{ ...card, textAlign: "center", padding: 48 }}>
+          <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 50, width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+            <Bell size={28} color="rgba(212,175,55,0.5)" />
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>現在アラートはありません</div>
+          <div style={{ fontSize: 13, color: "#8A8278", lineHeight: 1.8 }}>
+            「相場検索」でキーワードを繰り返し検索すると<br />
+            価格変動を自動で記録・検出します
           </div>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {alerts.map((a) => (
-            <div key={a.keyword} style={{
+            <div key={a.keyword} className="alert-row" style={{
               ...card,
               borderColor: a.direction === "down" ? "rgba(212,175,55,0.35)" : "rgba(255,100,100,0.35)",
             }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
+              <div className="alert-item-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
                 <div>
                   <div style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 15 }}>{a.keyword}</div>
                   <div style={{ fontSize: 12, color: "#8A8278", marginTop: 3, display: "flex", alignItems: "center", gap: 8 }}>

@@ -99,7 +99,16 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 24 }}>課金・プラン管理</h1>
+      <style>{`
+        .billing-plan-row:hover { border-color: rgba(212,175,55,0.35) !important; }
+        .billing-plan-row { transition: border-color 0.15s; }
+        @media (max-width: 768px) {
+          .billing-current-row { flex-direction: column !important; align-items: flex-start !important; gap: 10px; }
+          .billing-plan-inner { flex-direction: column !important; align-items: flex-start !important; gap: 8px; }
+        }
+      `}</style>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0, marginBottom: 4 }}>課金・プラン管理</h1>
+      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20, marginTop: 3 }}>現在のプランと請求情報を管理できます</div>
 
       {successMsg && (
         <div style={{ ...card, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(0,40,15,0.9)", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
@@ -113,7 +122,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
       {/* Current Plan */}
       <div style={{ ...card, marginBottom: 20 }}>
         <div style={{ fontSize: 13, color: "#8A8278", fontWeight: 600, marginBottom: 16 }}>現在のプラン</div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="billing-current-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ background: `${planColor}14`, border: `1px solid ${planColor}30`, borderRadius: 12, padding: 12 }}>
               <PlanIcon size={22} color={planColor} />
@@ -185,7 +194,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
             const Icon = PLAN_ICONS[key] ?? Gift;
             const color = PLAN_COLORS[key] ?? "#8A8278";
             return (
-              <div key={key} style={{
+              <div key={key} className="billing-plan-row" style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",

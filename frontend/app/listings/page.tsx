@@ -133,9 +133,20 @@ export default function ListingsPage() {
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <style>{`
+        .listing-row:hover { border-color: rgba(212,175,55,0.38) !important; }
+        .listing-row { transition: border-color 0.15s; }
+        @media (max-width: 768px) {
+          .listing-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px; }
+          .listing-form-3col { grid-template-columns: 1fr !important; }
+          .listing-form-3col-2 { grid-template-columns: 1fr 1fr !important; }
+          .listing-item-row { flex-direction: column !important; align-items: flex-start !important; gap: 8px; }
+          .listing-item-row button { width: 100% !important; justify-content: center !important; min-height: 44px; }
+        }
+      `}</style>
 
       {/* ── ヘッダー ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+      <div className="listing-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>出品管理</h1>
           <div style={{ fontSize: 12, color: "#8A8278", marginTop: 3 }}>
@@ -153,7 +164,7 @@ export default function ListingsPage() {
         <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 14, padding: "20px 24px", marginBottom: 20 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 16 }}>新規出品登録</div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
+          <div className="listing-form-3col" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
             <div>
               <label style={lbl}>仕入れ商品 *</label>
               <select style={inp} value={form.purchase_id} onChange={e => setFormField("purchase_id", e.target.value)}>
@@ -170,7 +181,7 @@ export default function ListingsPage() {
               <input type="date" style={inp} value={form.listed_date} onChange={e => setFormField("listed_date", e.target.value)} />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
+          <div className="listing-form-3col-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
             <div>
               <label style={lbl}>ASIN（Amazon商品ID）</label>
               <input style={inp} value={form.asin} onChange={e => setForm(p => ({ ...p, asin: e.target.value }))} placeholder="B0XXXXXXXXXX" />
@@ -311,7 +322,7 @@ export default function ListingsPage() {
             {active.map(item => {
               const pf = SELL_PLATFORMS.find(p => p.key === item.selling_platform);
               return (
-                <div key={item.id} style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(100,200,255,0.12)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+                <div key={item.id} className="listing-row" style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(100,200,255,0.12)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.product_name}</div>
                     <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2, display: "flex", gap: 8 }}>
@@ -356,9 +367,13 @@ export default function ListingsPage() {
       )}
 
       {listings.length === 0 && !showForm && (
-        <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 14, textAlign: "center", padding: 60 }}>
-          <Tag size={34} color="rgba(212,175,55,0.2)" style={{ margin: "0 auto 12px", display: "block" }} />
-          <div style={{ color: "#8A8278", fontSize: 14 }}>「出品追加」から出品を登録してください</div>
+        <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, textAlign: "center", padding: 48 }}>
+          <Tag size={36} color="rgba(212,175,55,0.25)" style={{ margin: "0 auto 16px", display: "block" }} />
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>出品データがありません</div>
+          <div style={{ color: "#8A8278", fontSize: 13, marginBottom: 16 }}>仕入れた商品をどのプラットフォームに出品するか登録できます</div>
+          <button onClick={() => setShowForm(true)} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: "#D4AF37", padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            出品を登録する →
+          </button>
         </div>
       )}
     </div>

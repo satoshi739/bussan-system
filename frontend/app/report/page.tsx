@@ -20,11 +20,23 @@ function ReportPageContent() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 6 }}>レポート</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20 }}>売上分析・トレンド予測・月次レポートを確認できます</div>
+      <style>{`
+        .report-row:hover { background: rgba(212,175,55,0.04) !important; }
+        .report-row { transition: background 0.15s; }
+        @media (max-width: 768px) {
+          .report-tab-group { flex-wrap: wrap !important; }
+          .report-kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .report-2col { grid-template-columns: 1fr !important; }
+          .report-3col { grid-template-columns: 1fr !important; }
+          .report-monthly-ctrl { flex-direction: column !important; align-items: flex-start !important; gap: 10px; }
+          .report-monthly-ctrl > div { width: 100% !important; }
+        }
+      `}</style>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>レポート</h1>
+      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20, marginTop: 3 }}>売上分析・トレンド予測・月次レポートを確認できます</div>
 
       {/* タブ */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 24, background: "rgba(0,10,3,0.8)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12, padding: 5, width: "fit-content", flexWrap: "wrap" }}>
+      <div className="report-tab-group" style={{ display: "flex", gap: 6, marginBottom: 24, background: "rgba(0,10,3,0.8)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12, padding: 5, width: "fit-content", flexWrap: "wrap" }}>
         {([
           { id: "analytics", label: "📊 売上分析" },
           { id: "trends",    label: "📈 トレンド予測" },
@@ -111,7 +123,7 @@ function AnalyticsTab() {
           <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>また仕入れるべき商品がわかります</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {bestProducts.map((p, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: i === 0 ? "rgba(212,175,55,0.06)" : "transparent", borderRadius: 10, border: i === 0 ? "1px solid rgba(212,175,55,0.2)" : "1px solid transparent" }}>
+              <div key={i} className="report-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: i === 0 ? "rgba(212,175,55,0.06)" : "transparent", borderRadius: 10, border: i === 0 ? "1px solid rgba(212,175,55,0.2)" : "1px solid transparent" }}>
                 <div style={{ fontSize: 16, fontWeight: 900, color: i === 0 ? "#D4AF37" : i === 1 ? "#aaa" : i === 2 ? "#cc8844" : "#8A8278", width: 24, textAlign: "center", flexShrink: 0 }}>
                   {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`}
                 </div>
@@ -129,7 +141,7 @@ function AnalyticsTab() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div className="report-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <div style={card}>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#C8C0B0", marginBottom: 16 }}>📤 販売プラットフォーム別利益</div>
           {byPlatform.length === 0 ? (
@@ -346,7 +358,7 @@ function MonthlyTab() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* コントロールバー */}
-      <div style={{ ...card, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+      <div className="report-monthly-ctrl" style={{ ...card, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
         <div>
           <label style={{ fontSize: 12, color: "#8A8278", display: "block", marginBottom: 4 }}>対象月</label>
           <select
@@ -374,7 +386,7 @@ function MonthlyTab() {
       {report && !loading && (
         <>
           {/* KPIカード */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          <div className="report-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
             {[
               { label: "総利益",     value: `¥${report.summary.total_profit.toLocaleString()}`,  color: "#D4AF37",  sub: report.profit_growth ? `前月比 ${report.profit_growth > 0 ? "+" : ""}${report.profit_growth}%` : "前月データなし" },
               { label: "販売件数",   value: `${report.summary.sale_count}件`,                     color: "#66ccff",  sub: `前月: ${report.prev_month.sale_count}件` },
@@ -554,7 +566,7 @@ function RouteMatrixTab() {
       </div>
 
       {/* サマリーカード */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+      <div className="report-3col" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
         {[
           {
             label: "最高利益ルート",

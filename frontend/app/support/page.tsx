@@ -114,10 +114,15 @@ export default function SupportPage() {
 
   return (
     <div style={{ color: C.t1, maxWidth: 760, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: C.t1, marginBottom: 4, letterSpacing: "-0.02em" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .support-contact-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: C.t1, margin: 0, letterSpacing: "-0.02em" }}>
         ヘルプ・サポート
       </h1>
-      <p style={{ fontSize: 13, color: C.t3, marginBottom: 32 }}>
+      <p style={{ fontSize: 13, color: C.t3, marginBottom: 32, marginTop: 3 }}>
         よくある質問とお問い合わせ窓口です。
       </p>
 
@@ -136,7 +141,7 @@ export default function SupportPage() {
         <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 16 }}>
           お問い合わせ
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="support-contact-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
 
           {/* フォーム */}
           <div style={card}>
