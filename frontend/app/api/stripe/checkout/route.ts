@@ -5,6 +5,8 @@ import { stripe, PRICE_IDS } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import type { PlanKey } from "@/lib/plans";
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {

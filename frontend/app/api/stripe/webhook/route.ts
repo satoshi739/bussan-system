@@ -4,6 +4,8 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
@@ -207,9 +209,10 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 function getPlanFromPriceId(priceId: string) {
-  if (!process.env.STRIPE_STANDARD_PRICE_ID || !process.env.STRIPE_PRO_PRICE_ID) {
+  if (!process.env.STRIPE_LITE_PRICE_ID || !process.env.STRIPE_STANDARD_PRICE_ID || !process.env.STRIPE_PRO_PRICE_ID) {
     throw new Error("Stripe Price IDs not configured");
   }
+  if (priceId === process.env.STRIPE_LITE_PRICE_ID) return "LITE" as const;
   if (priceId === process.env.STRIPE_STANDARD_PRICE_ID) return "STANDARD" as const;
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "PRO" as const;
   throw new Error(`Unknown priceId: ${priceId}`);

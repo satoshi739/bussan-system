@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getPriceChangeAlerts, type PriceAlert } from "@/lib/api";
-import { Bell, TrendingDown, TrendingUp } from "lucide-react";
+import { Bell } from "lucide-react";
 
 const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
 

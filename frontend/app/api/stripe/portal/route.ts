@@ -4,6 +4,8 @@ import { auth } from "@/auth";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+
 export async function POST() {
   const session = await auth();
   if (!session?.user?.id) {

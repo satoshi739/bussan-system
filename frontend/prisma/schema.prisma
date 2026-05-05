@@ -178,6 +178,7 @@ model ContentItem {
 
 enum Plan {
   FREE
+  LITE
   STANDARD
   PRO
 }

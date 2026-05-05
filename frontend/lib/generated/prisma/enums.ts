@@ -19,6 +19,7 @@ export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
 export const Plan = {
   FREE: 'FREE',
+  LITE: 'LITE',
   STANDARD: 'STANDARD',
   PRO: 'PRO'
 } as const
