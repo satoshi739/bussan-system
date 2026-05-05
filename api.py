@@ -95,7 +95,7 @@ async def _lifespan(app: FastAPI):
         pass
 
 
-app = FastAPI(title="物販チェッカー API", dependencies=[Depends(_verify_key)], lifespan=_lifespan)
+app = FastAPI(title="物販チェッカー API", dependencies=[Depends(_verify_key)], lifespan=_lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 
 _ALLOWED_ORIGINS = [
     "http://localhost:3000",
