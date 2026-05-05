@@ -256,6 +256,11 @@ export default function Sidebar() {
           </Link>
         )}
 
+        {/* ── マスコット ── */}
+        <div style={{ display: "flex", justifyContent: "center", padding: "4px 0 8px" }}>
+          <img src="/mascot-cat.png" alt="UPJ" style={{ width: 72, height: 72, objectFit: "contain" }} />
+        </div>
+
         <div style={{ display: "flex", gap: 2, marginBottom: 2 }}>
           <Link href="/settings" style={{ flex: 1, display: "flex", alignItems: "center", gap: 6, textDecoration: "none", padding: "7px 8px", borderRadius: 12, color: T.t3, fontSize: 12, transition: "color 0.15s" }}>
             <Settings size={11} /> 設定

@@ -315,57 +315,38 @@ function QuickProfitCheck() {
   );
 }
 
-// ── AI CEO Hero ──────────────────────────────────────────
+// ── Mascot Hero ──────────────────────────────────────────
 function AICEOHero() {
   return (
     <div style={{
-      background: C.bg1,
-      border: `1px solid ${C.bd}`,
+      background: "#FAF4EF",
+      border: `1px solid rgba(0,0,0,0.07)`,
       borderRadius: 28,
-      padding: "22px 24px",
+      overflow: "hidden",
       marginBottom: 16,
-      display: "flex",
-      alignItems: "center",
-      gap: 20,
-      flexWrap: "wrap",
     }}>
-      <div style={{
-        background: `${C.gold}15`,
-        borderRadius: 20,
-        width: 64,
-        height: 64,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        boxShadow: `0 2px 12px ${C.gold}25`,
-      }}>
-        <Brain size={30} color={C.gold} />
+      <img
+        src="/mascot-banner.png"
+        alt="勘で稼ぐ時代は、終わった。UPJ利益スキャナー"
+        style={{ width: "100%", display: "block" }}
+      />
+      <div style={{ display: "flex", gap: 10, padding: "14px 20px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+        <Link href="/scanner" style={{
+          flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+          gap: 8, background: C.gold, borderRadius: 16, color: "#FFFFFF",
+          padding: "12px 20px", fontSize: 14, fontWeight: 700, textDecoration: "none",
+        }}>
+          <Zap size={15} /> 今すぐ利益を調べる
+        </Link>
+        <Link href="/agents" style={{
+          display: "flex", alignItems: "center", gap: 8,
+          background: "transparent", border: `1px solid ${C.bd}`,
+          borderRadius: 16, color: C.t2, padding: "12px 20px",
+          fontSize: 13, fontWeight: 600, textDecoration: "none",
+        }}>
+          <Play size={13} /> AI に任せる
+        </Link>
       </div>
-      <div style={{ flex: 1, minWidth: 160 }}>
-        <div style={{ fontSize: 18, fontWeight: 700, color: C.t1, marginBottom: 6, letterSpacing: "-0.01em" }}>
-          AI CEO が仕入れ戦略を全自動で立案します
-        </div>
-        <div style={{ fontSize: 13, color: C.t3, lineHeight: 1.6 }}>
-          ゴールを入力するだけ。スキャン・分析・候補リストアップを自動実行。初心者でも即日スタート。
-        </div>
-      </div>
-      <Link href="/agents" style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        background: C.gold,
-        borderRadius: 18,
-        color: "#FFFFFF",
-        padding: "14px 28px",
-        fontSize: 15,
-        fontWeight: 700,
-        textDecoration: "none",
-        whiteSpace: "nowrap",
-        flexShrink: 0,
-      }}>
-        <Brain size={16} /> AI CEO を起動する
-      </Link>
     </div>
   );
 }
@@ -526,7 +507,11 @@ export default function DashboardPage() {
       {/* Empty-data banner — ログイン済み・データ0件 or バックエンドエラー */}
       {showEmptyBanner && (
         <div style={{ display: "flex", alignItems: "center", gap: 12, background: error ? "rgba(255,69,58,0.08)" : C.bg1, border: `1px solid ${error ? "rgba(255,69,58,0.35)" : C.bd}`, borderRadius: 24, padding: "14px 20px", marginBottom: 16 }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>{error ? "⚠️" : "🚀"}</span>
+          {!error ? (
+            <img src="/mascot-cat.png" alt="UPJ" style={{ width: 52, height: 52, objectFit: "contain", flexShrink: 0 }} />
+          ) : (
+            <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
+          )}
           <div style={{ flex: 1 }}>
             {error ? (
               <>
