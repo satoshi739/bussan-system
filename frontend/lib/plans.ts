@@ -1,4 +1,4 @@
-export type PlanKey = "FREE" | "STANDARD" | "PRO";
+export type PlanKey = "FREE" | "LITE" | "STANDARD" | "PRO";
 
 export interface PlanInfo {
   name: string;
@@ -23,14 +23,36 @@ export const PLANS: Record<PlanKey, PlanInfo> = {
     price: 0,
     priceId: null,
     features: [
-      "仕入れ管理（30件まで）",
-      "利益計算",
-      "ダッシュボード",
+      "月10スキャン",
+      "基本利益計算（送料・手数料込み）",
+      "履歴保存（3件）",
+      "AIアドバイス（一部表示）",
     ],
     limits: {
-      maxPurchases: 30,
-      scanner: false,
+      maxPurchases: 10,
+      scanner: true,
       search: false,
+      watchlist: false,
+      globalCalc: false,
+      advancedReports: false,
+    },
+  },
+  LITE: {
+    name: "Lite",
+    nameEn: "Lite",
+    price: 4980,
+    priceId: null,
+    features: [
+      "月100スキャン",
+      "買い／注意／見送り 赤字判定",
+      "利益計算（メルカリ／Amazon）",
+      "履歴保存（50件）",
+      "基本AIアドバイス",
+    ],
+    limits: {
+      maxPurchases: 50,
+      scanner: true,
+      search: true,
       watchlist: false,
       globalCalc: false,
       advancedReports: false,
@@ -42,13 +64,13 @@ export const PLANS: Record<PlanKey, PlanInfo> = {
     price: 9800,
     priceId: null,
     features: [
-      "仕入れ管理（無制限）",
-      "利益計算",
-      "スキャナー（商品検索）",
-      "価格検索",
-      "ウォッチリスト",
-      "グローバル計算",
-      "レポート",
+      "月500スキャン（買い／注意／見送り判定）",
+      "赤字仕入れ防止AIアドバイス（全項目）",
+      "利益計算（メルカリ／Amazon／eBay）",
+      "相場検索 無制限",
+      "ウォッチリスト 無制限",
+      "仕入れ・出品・売上管理 無制限",
+      "CSVエクスポート",
     ],
     limits: {
       maxPurchases: Infinity,

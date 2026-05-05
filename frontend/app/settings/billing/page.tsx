@@ -12,6 +12,7 @@ export default async function BillingPage() {
 
   const plansWithPriceIds = {
     FREE:     { ...PLANS.FREE,     priceId: PRICE_IDS.FREE },
+    LITE:     { ...PLANS.LITE,     priceId: PRICE_IDS.LITE },
     STANDARD: { ...PLANS.STANDARD, priceId: PRICE_IDS.STANDARD },
     PRO:      { ...PLANS.PRO,      priceId: PRICE_IDS.PRO },
   };

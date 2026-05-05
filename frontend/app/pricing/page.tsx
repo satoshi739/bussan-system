@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Check, Zap, Building2, Gift, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, Zap, Building2, Gift, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { PLANS } from "@/lib/stripe";
 import { toast } from "@/components/Toast";
 import { usePlan } from "@/lib/usePlan";
@@ -19,48 +19,48 @@ function useIsMobile() {
   return isMobile;
 }
 
-// LP準拠カラー
 const P = {
-  bg0:   "#07101f",
-  bg1:   "#0a1530",   // LP --ink
-  bg2:   "#111e44",   // LP --ink-2
-  gold:  "#c9a96b",   // LP --gold
-  goldLt:"#e6c87a",   // LP --gold-2
-  goldDm:"#8a6d35",   // LP --gold-deep
-  azure: "#4a7fc1",   // LP --azure
-  t1:    "#f5f1e8",   // LP --paper
-  t2:    "#e5d9bc",
-  t3:    "#8a9ab8",
-  t4:    "#4d6080",
-  up:    "#4ade80",
-  bd:    "rgba(201,169,107,0.15)",
-  bdSt:  "rgba(201,169,107,0.45)",
+  bg0:    "#07101f",
+  bg1:    "#0a1530",
+  bg2:    "#111e44",
+  gold:   "#c9a96b",
+  goldLt: "#e6c87a",
+  goldDm: "#8a6d35",
+  azure:  "#4a7fc1",
+  t1:     "#f5f1e8",
+  t2:     "#e5d9bc",
+  t3:     "#8a9ab8",
+  t4:     "#4d6080",
+  up:     "#4ade80",
+  bd:     "rgba(201,169,107,0.15)",
+  bdSt:   "rgba(201,169,107,0.45)",
+  lite:   "#7eb0e8",
 };
 
-
-// ── 機能比較表データ ──────────────────────────────────────
+// ── 機能比較表データ（5列: 機能 / Free / Lite / Standard / Pro）──
 const COMPARISON = [
-  { label: "仕入れ管理",           free: "30件まで",    standard: "無制限",   pro: "無制限"  },
-  { label: "利益計算（4種）",       free: true,         standard: true,       pro: true      },
-  { label: "利益スキャナー",        free: false,        standard: true,       pro: true      },
-  { label: "国内外 相場検索",       free: false,        standard: true,       pro: true      },
-  { label: "ウォッチリスト",        free: false,        standard: true,       pro: true      },
-  { label: "在庫・出品・売上管理",  free: false,        standard: true,       pro: true      },
-  { label: "AI アシスタント",       free: false,        standard: true,       pro: true      },
-  { label: "高度な分析レポート",    free: false,        standard: false,      pro: true      },
-  { label: "CSV エクスポート",      free: false,        standard: true,       pro: true      },
-  { label: "優先サポート",          free: false,        standard: false,      pro: true      },
+  { label: "月間スキャン数",          free: "10回",      lite: "100回",     standard: "500回",    pro: "無制限"   },
+  { label: "赤字判定（買い／注意／見送り）", free: false,    lite: true,        standard: true,       pro: true       },
+  { label: "AIアドバイス",           free: "一部",       lite: "基本",       standard: "全項目",   pro: "全項目"   },
+  { label: "利益計算（送料・手数料込）",  free: true,        lite: true,         standard: true,       pro: true       },
+  { label: "対応プラットフォーム",     free: "基本",       lite: "メルカリ/Amazon", standard: "メルカリ/Amazon/eBay", pro: "全プラットフォーム" },
+  { label: "履歴保存",               free: "3件",         lite: "50件",       standard: "無制限",   pro: "無制限"   },
+  { label: "相場検索",               free: false,         lite: true,         standard: true,       pro: true       },
+  { label: "ウォッチリスト",          free: false,         lite: false,        standard: true,       pro: true       },
+  { label: "在庫・出品・売上管理",    free: false,         lite: false,        standard: true,       pro: true       },
+  { label: "CSVエクスポート",        free: false,         lite: false,        standard: true,       pro: true       },
+  { label: "高度な分析レポート",      free: false,         lite: false,        standard: false,      pro: true       },
+  { label: "優先サポート",            free: false,         lite: false,        standard: false,      pro: true       },
 ];
 
-// ── FAQ データ ───────────────────────────────────────────
 const FAQS = [
   {
     q: "7日間無料トライアルはどのように機能しますか？",
     a: "Standard・Proプランはご登録後7日間、全機能を無料でお使いいただけます。トライアル期間中に解約すれば費用は一切かかりません。8日目以降に自動で課金が始まります。",
   },
   {
-    q: "クレジットカードなしで試せますか？",
-    a: "現在は無料トライアルの開始にカード登録が必要です。ただしトライアル期間内に解約すれば請求は発生しません。",
+    q: "Liteプランとはどう違うのですか？",
+    a: "Liteは月100スキャン・基本AIアドバイスのエントリープランです。StandardはAIアドバイスが全項目に広がり、ウォッチリスト・CSV出力など本格的な機能が使えます。月500スキャン以上使いたい方や、より精度の高い仕入れ判断をしたい方はStandardが最適です。",
   },
   {
     q: "途中でプランを変更できますか？",
@@ -72,18 +72,22 @@ const FAQS = [
   },
   {
     q: "スキャン・検索はリアルタイムで動きますか？",
-    a: "はい。スキャン実行時に eBay・メルカリ・Shopee 等から最新の価格情報を取得します。バックエンドはクラウドで稼働しており、初回アクセス時は数秒の起動時間が発生することがあります。",
+    a: "はい。スキャン実行時にeBay・メルカリ・Shopee等から最新の価格情報を取得します。バックエンドはクラウドで稼働しており、初回アクセス時は数秒の起動時間が発生することがあります。",
   },
   {
     q: "フリープランとの違いは何ですか？",
-    a: "フリープランは利益計算と仕入れ管理（30件）のみ使えます。利益スキャナーや相場検索などコア機能はStandard以上が必要です。まずフリーで使い勝手を確認してからアップグレードする方法もおすすめです。",
+    a: "フリープランは月10スキャン・基本利益計算のみです。赤字判定AIや相場検索はLite以上が必要です。まず無料で使い勝手を確認してからアップグレードする方法もおすすめです。",
+  },
+  {
+    q: "クレジットカードなしで試せますか？",
+    a: "フリープランはカード不要でご利用いただけます。Lite・Standard・Proはカード登録が必要ですが、Standard・Proはトライアル期間内に解約すれば費用は一切かかりません。",
   },
 ];
 
 function CellVal({ val }: { val: boolean | string }) {
   if (val === true)  return <span style={{ color: "#22c55e", fontSize: 18, fontWeight: 700 }}>✓</span>;
   if (val === false) return <span style={{ color: "#3a5a4a", fontSize: 16 }}>—</span>;
-  return <span style={{ color: "#c9a96b", fontSize: 12, fontWeight: 700, fontFamily: "monospace" }}>{val}</span>;
+  return <span style={{ color: "#c9a96b", fontSize: 11, fontWeight: 700, fontFamily: "monospace", lineHeight: 1.3 }}>{val}</span>;
 }
 
 function CurrentPlanBadge() {
@@ -102,23 +106,7 @@ export default function PricingPage() {
   const { plan: currentPlan, loading: planLoading } = usePlan();
   const isMobile = useIsMobile();
 
-  const card: React.CSSProperties = {
-    background: P.bg1,
-    border: `1px solid ${P.bd}`,
-    borderRadius: 18,
-    padding: isMobile ? "24px 18px" : "32px 28px",
-    flex: isMobile ? undefined : 1,
-    width: isMobile ? "100%" : undefined,
-  };
-
-  const proCard: React.CSSProperties = {
-    ...card,
-    border: `1px solid ${P.bdSt}`,
-    background: P.bg2,
-    position: "relative",
-  };
-
-  const handleSubscribe = async (planKey: "STANDARD" | "PRO") => {
+  const handleSubscribe = async (planKey: "LITE" | "STANDARD" | "PRO") => {
     if (status === "unauthenticated") {
       router.push("/login");
       return;
@@ -145,30 +133,53 @@ export default function PricingPage() {
     }
   };
 
+  // カード共通スタイル
+  const baseCard: React.CSSProperties = {
+    background: P.bg1,
+    border: `1px solid ${P.bd}`,
+    borderRadius: 18,
+    padding: isMobile ? "22px 16px" : "28px 22px",
+    flex: 1,
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+  };
+
+  // Standard 本命カード（目立たせる）
+  const featuredCard: React.CSSProperties = {
+    ...baseCard,
+    border: `2px solid ${P.bdSt}`,
+    background: P.bg2,
+    position: "relative",
+    boxShadow: "0 0 32px rgba(201,169,107,0.12)",
+    transform: isMobile ? undefined : "translateY(-8px)",
+  };
+
   return (
-    <div style={{ minHeight: "100vh", background: "#07101f", padding: isMobile ? "36px 16px" : "60px 24px" }}>
-      <div style={{ maxWidth: 960, margin: "0 auto" }}>
+    <div style={{ minHeight: "100vh", background: P.bg0, padding: isMobile ? "32px 14px" : "56px 20px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
 
         {/* ── Header ── */}
-        <div style={{ textAlign: "center", marginBottom: isMobile ? 32 : 48 }}>
-          <div style={{ fontSize: 13, color: "#c9a96b", fontFamily: "monospace", fontWeight: 700, marginBottom: 12, letterSpacing: 2 }}>
+        <div style={{ textAlign: "center", marginBottom: isMobile ? 28 : 44 }}>
+          <div style={{ fontSize: 12, color: P.gold, fontFamily: "monospace", fontWeight: 700, marginBottom: 10, letterSpacing: 2 }}>
             PRICING
           </div>
-          <h1 style={{ fontSize: isMobile ? 26 : 36, fontWeight: 900, color: "#f5f1e8", marginBottom: 14 }}>
-            シンプルな料金プラン
+          <h1 style={{ fontSize: isMobile ? 24 : 34, fontWeight: 900, color: P.t1, marginBottom: 12, lineHeight: 1.3 }}>
+            赤字仕入れを防ぐ、4つのプラン
           </h1>
-          <p style={{ fontSize: 14, color: "#8a9ab8", maxWidth: 480, margin: "0 auto 20px" }}>
-            物販ビジネスの規模に合わせて選べる3つのプラン。<br />
-            いつでもアップグレード・ダウングレード可能。
+          <p style={{ fontSize: isMobile ? 13 : 14, color: P.t3, maxWidth: 480, margin: "0 auto 16px" }}>
+            「高い」ではなく「赤字1回分の損失より安い」。<br />
+            仕入れ判断の精度を上げることで、ツール代以上の損失を防ぎます。
           </p>
-          <div style={{ display: "inline-flex", flexWrap: "wrap", justifyContent: "center", gap: 10 }}>
+          {/* バリュープロポジション */}
+          <div style={{ display: "inline-flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
             {[
-              { icon: "🔍", text: "利益商品を自動スキャン" },
-              { icon: "📊", text: "国内外の相場を瞬時に比較" },
-              { icon: "🤖", text: "AI仕入れ判断" },
+              { icon: "🛡️", text: "赤字仕入れを防ぐ" },
+              { icon: "⚡", text: "3秒で買い/注意/見送り判定" },
+              { icon: "🤖", text: "AIが利益を計算" },
               { icon: "🎁", text: "7日間無料トライアル" },
             ].map(({ icon, text }) => (
-              <span key={text} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(201,169,107,0.08)", border: "1px solid rgba(201,169,107,0.20)", borderRadius: 20, padding: "6px 14px", fontSize: 12, color: "#e5d9bc", fontWeight: 600 }}>
+              <span key={text} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(201,169,107,0.08)", border: "1px solid rgba(201,169,107,0.18)", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: P.t2, fontWeight: 600 }}>
                 {icon} {text}
               </span>
             ))}
@@ -176,83 +187,125 @@ export default function PricingPage() {
         </div>
 
         {/* ── 社会的証明バー ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: isMobile ? 8 : 12, marginBottom: isMobile ? 32 : 48 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 8 : 10, marginBottom: isMobile ? 28 : 44 }}>
           {[
-            { num: "¥9,800〜", label: "月額", sub: "1日あたり約¥326" },
-            { num: "7日間",    label: "無料トライアル", sub: "カード登録後すぐ開始" },
-            { num: "即時",     label: "解約可能",      sub: "縛り・違約金なし" },
+            { num: "¥4,980〜",  label: "月額スタート",      sub: "1日あたり約¥160〜" },
+            { num: "7日間",     label: "無料トライアル",     sub: "Standard・Pro対象" },
+            { num: "即時",      label: "解約可能",           sub: "縛り・違約金なし" },
+            { num: "¥0",        label: "フリープラン",       sub: "カード不要で試せる" },
           ].map(({ num, label, sub }) => (
-            <div key={label} style={{ background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.10)", borderRadius: 12, padding: isMobile ? "14px 8px" : "18px 20px", textAlign: "center" }}>
-              <div style={{ fontSize: isMobile ? 18 : 26, fontWeight: 900, color: "#c9a96b", fontFamily: "monospace" }}>{num}</div>
-              <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: "#f5f1e8", margin: "4px 0 2px" }}>{label}</div>
-              <div style={{ fontSize: 10, color: "#8a9ab8" }}>{sub}</div>
+            <div key={label} style={{ background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.10)", borderRadius: 12, padding: isMobile ? "12px 10px" : "16px 18px", textAlign: "center" }}>
+              <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 900, color: P.gold, fontFamily: "monospace" }}>{num}</div>
+              <div style={{ fontSize: isMobile ? 10 : 12, fontWeight: 700, color: P.t1, margin: "3px 0 2px" }}>{label}</div>
+              <div style={{ fontSize: 10, color: P.t3 }}>{sub}</div>
             </div>
           ))}
         </div>
 
-        {/* ── Plans ── */}
-        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 16 : 20, alignItems: "stretch", marginBottom: isMobile ? 32 : 48 }}>
+        {/* ── 4つのプランカード ── */}
+        <div style={{
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? 14 : 14,
+          alignItems: isMobile ? "stretch" : "flex-end",
+          marginBottom: isMobile ? 28 : 60,
+        }}>
+
           {/* Free */}
-          <div style={card}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <div style={{ background: "rgba(201,169,107,0.07)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 10, padding: 8 }}>
-                <Gift size={18} color="#8a9ab8" />
+          <div style={baseCard}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div style={{ background: "rgba(201,169,107,0.07)", border: "1px solid rgba(201,169,107,0.12)", borderRadius: 8, padding: 7 }}>
+                <Gift size={16} color={P.t3} />
               </div>
-              <span style={{ fontSize: 18, fontWeight: 800, color: "#f5f1e8" }}>{PLANS.FREE.name}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: P.t1 }}>フリー</span>
             </div>
             {!planLoading && status === "authenticated" && currentPlan === "FREE" && <CurrentPlanBadge />}
-            <div style={{ marginBottom: 24 }}>
-              <span style={{ fontSize: 36, fontWeight: 900, color: "#f5f1e8", fontFamily: "monospace" }}>¥0</span>
-              <span style={{ fontSize: 14, color: "#8a9ab8", marginLeft: 6 }}>/月</span>
+            <div style={{ margin: "14px 0 6px" }}>
+              <span style={{ fontSize: 32, fontWeight: 900, color: P.t1, fontFamily: "monospace" }}>¥0</span>
+              <span style={{ fontSize: 13, color: P.t3, marginLeft: 5 }}>/月</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+            <p style={{ fontSize: 12, color: P.t3, marginBottom: 18, lineHeight: 1.6 }}>
+              まず試したい方向け。カード不要。
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: "auto", paddingBottom: 24 }}>
               {PLANS.FREE.features.map((f) => (
-                <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#a8d8b8" }}>
-                  <Check size={14} color="#8a9ab8" />
+                <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 7, fontSize: 13, color: P.t2, lineHeight: 1.5 }}>
+                  <Check size={13} color={P.t3} style={{ flexShrink: 0, marginTop: 2 }} />
                   {f}
                 </div>
               ))}
             </div>
             <a
               href="/login"
-              style={{ display: "block", textAlign: "center", background: "transparent", border: "1px solid rgba(201,169,107,0.25)", borderRadius: 10, color: "#8a9ab8", padding: "12px", fontSize: 14, fontWeight: 700, textDecoration: "none" }}
+              style={{ display: "block", textAlign: "center", background: "transparent", border: `1px solid rgba(201,169,107,0.22)`, borderRadius: 10, color: P.t3, padding: "11px", fontSize: 13, fontWeight: 700, textDecoration: "none", marginTop: 16 }}
             >
-              無料で始める
+              無料で試す
             </a>
           </div>
 
-          {/* Standard (PLANS.STANDARD) */}
-          <div style={proCard}>
-            {!isMobile && (
-              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.50)", borderRadius: 20, padding: "4px 16px", fontSize: 12, fontWeight: 800, color: "#c9a96b", whiteSpace: "nowrap" }}>
-                おすすめ
+          {/* Lite */}
+          <div style={baseCard}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div style={{ background: "rgba(126,176,232,0.08)", border: "1px solid rgba(126,176,232,0.20)", borderRadius: 8, padding: 7 }}>
+                <Star size={16} color={P.lite} />
               </div>
-            )}
-            {isMobile && (
-              <div style={{ display: "inline-block", background: "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.50)", borderRadius: 20, padding: "3px 14px", fontSize: 11, fontWeight: 800, color: "#c9a96b", marginBottom: 12 }}>
-                ⭐ おすすめ
+              <span style={{ fontSize: 16, fontWeight: 800, color: P.t1 }}>Lite</span>
+            </div>
+            {!planLoading && status === "authenticated" && currentPlan === "LITE" && <CurrentPlanBadge />}
+            <div style={{ margin: "14px 0 6px" }}>
+              <span style={{ fontSize: 32, fontWeight: 900, color: P.lite, fontFamily: "monospace" }}>¥4,980</span>
+              <span style={{ fontSize: 13, color: P.t3, marginLeft: 5 }}>/月</span>
+            </div>
+            <p style={{ fontSize: 12, color: P.t3, marginBottom: 18, lineHeight: 1.6 }}>
+              物販を始めたばかりの方向けのエントリープラン。
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: "auto", paddingBottom: 24 }}>
+              {PLANS.LITE.features.map((f) => (
+                <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 7, fontSize: 13, color: P.t2, lineHeight: 1.5 }}>
+                  <Check size={13} color={P.lite} style={{ flexShrink: 0, marginTop: 2 }} />
+                  {f}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => handleSubscribe("LITE")}
+              disabled={loading === "LITE"}
+              style={{ width: "100%", background: "transparent", border: `1px solid rgba(126,176,232,0.35)`, borderRadius: 10, color: P.lite, padding: "11px", fontSize: 13, fontWeight: 700, cursor: loading === "LITE" ? "not-allowed" : "pointer", marginTop: 16, opacity: loading === "LITE" ? 0.6 : 1 }}
+            >
+              {loading === "LITE" ? "処理中..." : "初心者プランで始める"}
+            </button>
+          </div>
+
+          {/* Standard（本命・目立つ） */}
+          <div style={featuredCard}>
+            {/* おすすめバッジ */}
+            <div style={{ position: "absolute", top: isMobile ? undefined : -14, left: isMobile ? undefined : "50%", transform: isMobile ? undefined : "translateX(-50%)", ...(isMobile ? { marginBottom: 12 } : {}), display: isMobile ? "inline-block" : undefined, background: `linear-gradient(135deg,${P.bg1},${P.bg2})`, border: `1px solid ${P.bdSt}`, borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 800, color: P.gold, whiteSpace: "nowrap" }}>
+              ⭐ 一番人気
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, marginTop: isMobile ? 0 : 10 }}>
+              <div style={{ background: "rgba(201,169,107,0.10)", border: `1px solid rgba(201,169,107,0.30)`, borderRadius: 8, padding: 7 }}>
+                <Zap size={16} color={P.gold} />
               </div>
-            )}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <div style={{ background: "rgba(201,169,107,0.10)", border: "1px solid rgba(201,169,107,0.30)", borderRadius: 10, padding: 8 }}>
-                <Zap size={18} color="#c9a96b" />
-              </div>
-              <span style={{ fontSize: 18, fontWeight: 800, color: "#f5f1e8" }}>{PLANS.STANDARD.name}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: P.t1 }}>Standard</span>
             </div>
             {!planLoading && status === "authenticated" && currentPlan === "STANDARD" && <CurrentPlanBadge />}
-            <div style={{ marginBottom: 8 }}>
-              <span style={{ fontSize: 36, fontWeight: 900, color: "#c9a96b", fontFamily: "monospace" }}>¥{PLANS.STANDARD.price.toLocaleString()}</span>
-              <span style={{ fontSize: 14, color: "#8a9ab8", marginLeft: 6 }}>/月</span>
+            <div style={{ margin: "14px 0 6px" }}>
+              <span style={{ fontSize: 32, fontWeight: 900, color: P.gold, fontFamily: "monospace" }}>¥9,800</span>
+              <span style={{ fontSize: 13, color: P.t3, marginLeft: 5 }}>/月</span>
             </div>
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 14 }}>
               <span style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 20, padding: "2px 10px", fontWeight: 700 }}>
                 🎁 7日間無料トライアル
               </span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+            {/* 価値訴求 */}
+            <div style={{ background: "rgba(201,169,107,0.06)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: P.t2, lineHeight: 1.6 }}>
+              赤字仕入れ1回（想定損失¥10,000〜）を防ぐだけで、月額代を回収できます。※モデルケース
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: "auto", paddingBottom: 24 }}>
               {PLANS.STANDARD.features.map((f) => (
-                <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#a8d8b8" }}>
-                  <Check size={14} color="#c9a96b" />
+                <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 7, fontSize: 13, color: P.t2, lineHeight: 1.5 }}>
+                  <Check size={13} color={P.gold} style={{ flexShrink: 0, marginTop: 2 }} />
                   {f}
                 </div>
               ))}
@@ -260,34 +313,37 @@ export default function PricingPage() {
             <button
               onClick={() => handleSubscribe("STANDARD")}
               disabled={loading === "STANDARD"}
-              style={{ width: "100%", background: loading === "STANDARD" ? "rgba(0,50,20,0.5)" : "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.50)", borderRadius: 10, color: "#c9a96b", padding: "13px", fontSize: 14, fontWeight: 800, cursor: loading === "STANDARD" ? "not-allowed" : "pointer" }}
+              style={{ width: "100%", background: loading === "STANDARD" ? "rgba(0,20,10,0.5)" : `linear-gradient(135deg,${P.bg1},${P.bg2})`, border: `2px solid ${P.bdSt}`, borderRadius: 10, color: P.gold, padding: "13px", fontSize: 14, fontWeight: 900, cursor: loading === "STANDARD" ? "not-allowed" : "pointer", marginTop: 16, letterSpacing: "0.02em" }}
             >
-              {loading === "STANDARD" ? "処理中..." : "Standardプランを始める"}
+              {loading === "STANDARD" ? "処理中..." : "一番人気で始める →"}
             </button>
           </div>
 
-          {/* Pro (PLANS.PRO) */}
-          <div style={card}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <div style={{ background: "rgba(74,127,193,0.10)", border: "1px solid rgba(74,127,193,0.28)", borderRadius: 10, padding: 8 }}>
-                <Building2 size={18} color="#7eb0e8" />
+          {/* Pro */}
+          <div style={baseCard}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div style={{ background: "rgba(74,127,193,0.10)", border: "1px solid rgba(74,127,193,0.25)", borderRadius: 8, padding: 7 }}>
+                <Building2 size={16} color="#7eb0e8" />
               </div>
-              <span style={{ fontSize: 18, fontWeight: 800, color: "#f5f1e8" }}>{PLANS.PRO.name}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: P.t1 }}>Pro</span>
             </div>
             {!planLoading && status === "authenticated" && currentPlan === "PRO" && <CurrentPlanBadge />}
-            <div style={{ marginBottom: 8 }}>
-              <span style={{ fontSize: 36, fontWeight: 900, color: "#7eb0e8", fontFamily: "monospace" }}>¥{PLANS.PRO.price.toLocaleString()}</span>
-              <span style={{ fontSize: 14, color: "#8a9ab8", marginLeft: 6 }}>/月</span>
+            <div style={{ margin: "14px 0 6px" }}>
+              <span style={{ fontSize: 32, fontWeight: 900, color: "#7eb0e8", fontFamily: "monospace" }}>¥19,800</span>
+              <span style={{ fontSize: 13, color: P.t3, marginLeft: 5 }}>/月</span>
             </div>
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 14 }}>
               <span style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 20, padding: "2px 10px", fontWeight: 700 }}>
                 🎁 7日間無料トライアル
               </span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+            <p style={{ fontSize: 12, color: P.t3, marginBottom: 16, lineHeight: 1.6 }}>
+              本格運用したい方・チームでの利用に。
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: "auto", paddingBottom: 24 }}>
               {PLANS.PRO.features.map((f) => (
-                <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#a8d8b8" }}>
-                  <Check size={14} color="#7eb0e8" />
+                <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 7, fontSize: 13, color: P.t2, lineHeight: 1.5 }}>
+                  <Check size={13} color="#7eb0e8" style={{ flexShrink: 0, marginTop: 2 }} />
                   {f}
                 </div>
               ))}
@@ -295,80 +351,104 @@ export default function PricingPage() {
             <button
               onClick={() => handleSubscribe("PRO")}
               disabled={loading === "PRO"}
-              style={{ width: "100%", background: "transparent", border: "1px solid rgba(74,127,193,0.45)", borderRadius: 10, color: "#7eb0e8", padding: "13px", fontSize: 14, fontWeight: 700, cursor: loading === "PRO" ? "not-allowed" : "pointer" }}
+              style={{ width: "100%", background: "transparent", border: "1px solid rgba(74,127,193,0.40)", borderRadius: 10, color: "#7eb0e8", padding: "11px", fontSize: 13, fontWeight: 700, cursor: loading === "PRO" ? "not-allowed" : "pointer", marginTop: 16, opacity: loading === "PRO" ? 0.6 : 1 }}
             >
-              {loading === "PRO" ? "処理中..." : "Proプランを始める"}
+              {loading === "PRO" ? "処理中..." : "Proで本格運用する"}
             </button>
           </div>
         </div>
 
-        {/* ── 社会的証明 ── */}
-        <div style={{ marginBottom: isMobile ? 32 : 48 }}>
+        {/* ── 競合比較（価格ではなく価値で訴求）── */}
+        <div style={{ marginBottom: isMobile ? 28 : 48, background: "rgba(10,21,48,0.8)", border: "1px solid rgba(201,169,107,0.12)", borderRadius: 14, padding: isMobile ? "20px 16px" : "28px 32px" }}>
           <div style={{ textAlign: "center", marginBottom: 20 }}>
-            <div style={{ fontSize: 13, color: "#c9a96b", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>USERS</div>
-            <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: "#f5f1e8", margin: 0 }}>使った人の声</h2>
+            <div style={{ fontSize: 12, color: P.gold, fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>WHY UPJ</div>
+            <h2 style={{ fontSize: isMobile ? 16 : 20, fontWeight: 900, color: P.t1, margin: 0 }}>「安さ」ではなく「赤字を防ぐ設計」</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: isMobile ? 12 : 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 12 : 20 }}>
+            {[
+              { label: "一般的なリサーチツール", items: ["価格推移・グラフ分析が中心", "どう判断するかは自分次第", "操作が複雑で時間がかかる"], color: "#c46060", icon: "✕" },
+              { label: "UPJ Profit Scanner", items: ["赤字仕入れ防止が中心設計", "買い／注意／見送りで即決できる", "物販初心者でも3秒で判断"], color: "#22c55e", icon: "✓" },
+            ].map(({ label, items, color, icon }) => (
+              <div key={label} style={{ border: `1px solid ${color}30`, borderRadius: 10, padding: "16px 20px" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color, marginBottom: 12 }}>{icon} {label}</div>
+                {items.map((item) => (
+                  <div key={item} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: P.t2, marginBottom: 8 }}>
+                    <span style={{ color, fontSize: 14 }}>{icon}</span>{item}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── 声のセクション ── */}
+        <div style={{ marginBottom: isMobile ? 28 : 48 }}>
+          <div style={{ textAlign: "center", marginBottom: 18 }}>
+            <div style={{ fontSize: 12, color: P.gold, fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>USERS</div>
+            <h2 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 900, color: P.t1, margin: 0 }}>使った人の声</h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: isMobile ? 12 : 14 }}>
             {[
               { name: "T.K さん（会社員・副業）", plan: "Standard", body: "eBayで何を仕入れたらいいか全然わからなかったけど、スキャナーで候補が一覧で出てくるのが助かる。利益率の計算を手動でやってた頃が嘘みたいです。" },
               { name: "M.S さん（専業物販）", plan: "Pro", body: "複数プラットフォームの相場を一括で見られるのがいい。メルカリとAmazonで価格差がある商品を拾いやすくなった。毎朝これを開くのが日課になっています。" },
               { name: "R.N さん（大学生）", plan: "Standard", body: "無料トライアルで試したら即課金しました。仕入れ判断が3秒で出るのが衝撃的。思ったより手軽に始められてよかったです。" },
             ].map(({ name, plan, body }) => (
-              <div key={name} style={{ background: "rgba(10,21,48,0.9)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 14, padding: "22px 20px" }}>
-                <div style={{ fontSize: 13, color: "#8a9ab8", lineHeight: 1.8, marginBottom: 16 }}>「{body}」</div>
-                <div style={{ borderTop: "1px solid rgba(201,169,107,0.08)", paddingTop: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#f5f1e8" }}>{name}</div>
-                  <div style={{ fontSize: 11, color: "#8a9ab8", marginTop: 2 }}>{plan}プラン利用中</div>
+              <div key={name} style={{ background: "rgba(10,21,48,0.9)", border: "1px solid rgba(201,169,107,0.13)", borderRadius: 12, padding: "20px 18px" }}>
+                <div style={{ fontSize: 12, color: P.t3, lineHeight: 1.8, marginBottom: 14 }}>「{body}」</div>
+                <div style={{ borderTop: "1px solid rgba(201,169,107,0.07)", paddingTop: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: P.t1 }}>{name}</div>
+                  <div style={{ fontSize: 11, color: P.t3, marginTop: 2 }}>{plan}プラン利用中</div>
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 10, fontSize: 11, color: "#5A5248", textAlign: "right" }}>
+          <div style={{ marginTop: 8, fontSize: 11, color: "#5A5248", textAlign: "right" }}>
             ※ 上記は利用者の個人的な感想です。利用状況・商品・市場環境により結果は異なります。
           </div>
         </div>
 
-        {/* ── 機能比較表 ── */}
-        <div style={{ marginBottom: isMobile ? 32 : 48 }}>
-          <div style={{ textAlign: "center", marginBottom: 20 }}>
-            <div style={{ fontSize: 13, color: "#c9a96b", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>COMPARISON</div>
-            <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: "#f5f1e8", margin: 0 }}>プラン機能比較</h2>
+        {/* ── 機能比較表（5列）── */}
+        <div style={{ marginBottom: isMobile ? 28 : 48 }}>
+          <div style={{ textAlign: "center", marginBottom: 18 }}>
+            <div style={{ fontSize: 12, color: P.gold, fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>COMPARISON</div>
+            <h2 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 900, color: P.t1, margin: 0 }}>プラン機能比較</h2>
           </div>
           <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"] }}>
-            <div style={{ background: "rgba(10,21,48,0.9)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 14, overflow: "hidden", minWidth: isMobile ? 480 : undefined }}>
+            <div style={{ background: "rgba(10,21,48,0.9)", border: "1px solid rgba(201,169,107,0.13)", borderRadius: 12, overflow: "hidden", minWidth: isMobile ? 560 : undefined }}>
               {/* ヘッダー行 */}
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "2fr 1fr 1fr 1fr" : "1fr 1fr 1fr 1fr", background: "rgba(0,0,0,0.30)", borderBottom: "1px solid rgba(201,169,107,0.12)" }}>
-                <div style={{ padding: isMobile ? "12px 14px" : "14px 20px", fontSize: 12, color: "#8a9ab8", fontWeight: 700 }}>機能</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1.8fr 0.9fr 0.9fr 1.1fr 0.9fr", background: "rgba(0,0,0,0.28)", borderBottom: "1px solid rgba(201,169,107,0.10)" }}>
+                <div style={{ padding: isMobile ? "11px 12px" : "13px 18px", fontSize: 11, color: P.t3, fontWeight: 700 }}>機能</div>
                 {[
-                  { name: "フリー",    color: "#8a9ab8" },
-                  { name: "Standard", color: "#c9a96b" },
+                  { name: "Free",     color: P.t3 },
+                  { name: "Lite",     color: P.lite },
+                  { name: "Standard", color: P.gold },
                   { name: "Pro",      color: "#7eb0e8" },
                 ].map(({ name, color }) => (
-                  <div key={name} style={{ padding: isMobile ? "12px 8px" : "14px 20px", textAlign: "center", fontSize: isMobile ? 11 : 13, color, fontWeight: 800 }}>{name}</div>
+                  <div key={name} style={{ padding: isMobile ? "11px 6px" : "13px 12px", textAlign: "center", fontSize: isMobile ? 11 : 12, color, fontWeight: 800 }}>{name}</div>
                 ))}
               </div>
-              {/* データ行 */}
               {COMPARISON.map((row, i) => (
                 <div
                   key={row.label}
-                  style={{ display: "grid", gridTemplateColumns: isMobile ? "2fr 1fr 1fr 1fr" : "1fr 1fr 1fr 1fr", borderBottom: i < COMPARISON.length - 1 ? "1px solid rgba(201,169,107,0.06)" : "none" }}
+                  style={{ display: "grid", gridTemplateColumns: "1.8fr 0.9fr 0.9fr 1.1fr 0.9fr", borderBottom: i < COMPARISON.length - 1 ? "1px solid rgba(201,169,107,0.05)" : "none" }}
                 >
-                  <div style={{ padding: isMobile ? "11px 14px" : "13px 20px", fontSize: isMobile ? 12 : 13, color: "#d0d8e8" }}>{row.label}</div>
-                  <div style={{ padding: isMobile ? "11px 8px" : "13px 20px", textAlign: "center" }}><CellVal val={row.free} /></div>
-                  <div style={{ padding: isMobile ? "11px 8px" : "13px 20px", textAlign: "center", background: "rgba(201,169,107,0.03)" }}><CellVal val={row.standard} /></div>
-                  <div style={{ padding: isMobile ? "11px 8px" : "13px 20px", textAlign: "center" }}><CellVal val={row.pro} /></div>
+                  <div style={{ padding: isMobile ? "10px 12px" : "12px 18px", fontSize: isMobile ? 11 : 12, color: "#d0d8e8" }}>{row.label}</div>
+                  <div style={{ padding: isMobile ? "10px 6px" : "12px 12px", textAlign: "center" }}><CellVal val={row.free} /></div>
+                  <div style={{ padding: isMobile ? "10px 6px" : "12px 12px", textAlign: "center" }}><CellVal val={row.lite} /></div>
+                  <div style={{ padding: isMobile ? "10px 6px" : "12px 12px", textAlign: "center", background: "rgba(201,169,107,0.03)" }}><CellVal val={row.standard} /></div>
+                  <div style={{ padding: isMobile ? "10px 6px" : "12px 12px", textAlign: "center" }}><CellVal val={row.pro} /></div>
                 </div>
               ))}
             </div>
           </div>
           {isMobile && (
-            <div style={{ textAlign: "center", marginTop: 8, fontSize: 11, color: "#4d6080" }}>← 左右にスクロールできます</div>
+            <div style={{ textAlign: "center", marginTop: 6, fontSize: 11, color: P.t4 }}>← 左右にスクロールできます</div>
           )}
         </div>
 
         {/* ── 信頼表示 ── */}
-        <div style={{ marginBottom: isMobile ? 32 : 48, background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.10)", borderRadius: 14, padding: isMobile ? "18px 16px" : "20px 28px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: isMobile ? 14 : 12 }}>
+        <div style={{ marginBottom: isMobile ? 28 : 48, background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.09)", borderRadius: 12, padding: isMobile ? "16px 14px" : "20px 26px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: isMobile ? 12 : 10 }}>
             {[
               ["🏢", "運営", "ユニバーサルプラネットジャパン株式会社"],
               ["🔒", "決済", "Stripe（PCI DSS準拠の安全な決済）"],
@@ -376,9 +456,9 @@ export default function PricingPage() {
               ["✅", "解約", "マイページからいつでも即時解約OK"],
             ].map(([icon, label, desc]) => (
               <div key={label} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>{icon}</span>
                 <div>
-                  <div style={{ fontSize: 11, color: "#8a9ab8", fontWeight: 700, marginBottom: 1 }}>{label}</div>
+                  <div style={{ fontSize: 11, color: P.t3, fontWeight: 700, marginBottom: 1 }}>{label}</div>
                   <div style={{ fontSize: 12, color: "#c0b8a8" }}>{desc}</div>
                 </div>
               </div>
@@ -387,29 +467,29 @@ export default function PricingPage() {
         </div>
 
         {/* ── FAQ ── */}
-        <div style={{ marginBottom: isMobile ? 32 : 48 }}>
-          <div style={{ textAlign: "center", marginBottom: 20 }}>
-            <div style={{ fontSize: 13, color: "#c9a96b", fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>FAQ</div>
-            <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: "#f5f1e8", margin: 0 }}>よくある質問</h2>
+        <div style={{ marginBottom: isMobile ? 28 : 48 }}>
+          <div style={{ textAlign: "center", marginBottom: 18 }}>
+            <div style={{ fontSize: 12, color: P.gold, fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>FAQ</div>
+            <h2 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 900, color: P.t1, margin: 0 }}>よくある質問</h2>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {FAQS.map((faq, i) => (
               <div
                 key={i}
-                style={{ background: "rgba(10,21,48,0.9)", border: `1px solid ${openFaq === i ? "rgba(201,169,107,0.35)" : "rgba(201,169,107,0.12)"}`, borderRadius: 12, overflow: "hidden", transition: "border-color 0.15s" }}
+                style={{ background: "rgba(10,21,48,0.9)", border: `1px solid ${openFaq === i ? "rgba(201,169,107,0.32)" : "rgba(201,169,107,0.10)"}`, borderRadius: 10, overflow: "hidden", transition: "border-color 0.15s" }}
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "none", border: "none", cursor: "pointer", textAlign: "left", gap: 12 }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", background: "none", border: "none", cursor: "pointer", textAlign: "left", gap: 12 }}
                 >
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#f5f1e8", lineHeight: 1.5 }}>{faq.q}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: P.t1, lineHeight: 1.5 }}>{faq.q}</span>
                   {openFaq === i
-                    ? <ChevronUp size={16} color="#c9a96b" style={{ flexShrink: 0 }} />
-                    : <ChevronDown size={16} color="#8a9ab8" style={{ flexShrink: 0 }} />
+                    ? <ChevronUp size={15} color={P.gold} style={{ flexShrink: 0 }} />
+                    : <ChevronDown size={15} color={P.t3} style={{ flexShrink: 0 }} />
                   }
                 </button>
                 {openFaq === i && (
-                  <div style={{ padding: "0 20px 16px", fontSize: 13, color: "#8a9ab8", lineHeight: 1.8 }}>
+                  <div style={{ padding: "0 18px 14px", fontSize: 13, color: P.t3, lineHeight: 1.8 }}>
                     {faq.a}
                   </div>
                 )}
@@ -419,23 +499,23 @@ export default function PricingPage() {
         </div>
 
         {/* ── 最終CTA ── */}
-        <div style={{ textAlign: "center", padding: isMobile ? "28px 16px" : "40px 24px", background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.20)", borderRadius: 18 }}>
-          <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: "#f5f1e8", marginBottom: 8 }}>
+        <div style={{ textAlign: "center", padding: isMobile ? "28px 14px" : "40px 24px", background: "rgba(10,21,48,0.7)", border: "1px solid rgba(201,169,107,0.18)", borderRadius: 16 }}>
+          <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 900, color: P.t1, marginBottom: 8, lineHeight: 1.4 }}>
             まずは7日間、無料で試してみませんか？
           </div>
-          <div style={{ fontSize: 13, color: "#8a9ab8", marginBottom: 24 }}>
+          <div style={{ fontSize: 13, color: P.t3, marginBottom: 20 }}>
             クレジットカード登録後すぐ開始。期間中に解約すれば費用0円。
           </div>
           <button
             onClick={() => handleSubscribe("STANDARD")}
             disabled={loading !== null}
-            style={{ width: isMobile ? "100%" : undefined, background: "linear-gradient(135deg,#0a1530,#111e44)", border: "2px solid rgba(201,169,107,0.60)", borderRadius: 12, color: "#c9a96b", padding: isMobile ? "15px 20px" : "16px 40px", fontSize: isMobile ? 14 : 16, fontWeight: 900, cursor: "pointer", letterSpacing: "0.02em" }}
+            style={{ width: isMobile ? "100%" : undefined, background: `linear-gradient(135deg,${P.bg1},${P.bg2})`, border: `2px solid ${P.bdSt}`, borderRadius: 12, color: P.gold, padding: isMobile ? "14px 18px" : "15px 40px", fontSize: isMobile ? 14 : 15, fontWeight: 900, cursor: "pointer", letterSpacing: "0.02em" }}
           >
-            {loading === "STANDARD" ? "処理中..." : isMobile ? "7日間無料で試す →" : "Standardプランを7日間無料で試す →"}
+            {loading === "STANDARD" ? "処理中..." : isMobile ? "Standardを7日間無料で試す →" : "一番人気のStandardプランを7日間無料で試す →"}
           </button>
-          <div style={{ marginTop: 14 }}>
-            <a href="/login" style={{ fontSize: 13, color: "#8a9ab8", textDecoration: "none" }}>
-              まずは無料アカウントで試す（カード不要）
+          <div style={{ marginTop: 12 }}>
+            <a href="/login" style={{ fontSize: 12, color: P.t3, textDecoration: "none" }}>
+              まずはフリープランで試す（カード不要）
             </a>
           </div>
         </div>

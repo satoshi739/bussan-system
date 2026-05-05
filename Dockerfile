@@ -6,6 +6,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     gcc \
+    ffmpeg \
+    fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
 # 依存パッケージを先にインストール（キャッシュ効率化）

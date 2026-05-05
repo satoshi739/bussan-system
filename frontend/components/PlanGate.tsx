@@ -11,10 +11,11 @@ interface Props {
   featureName?: string;
 }
 
-const PLAN_ORDER: PlanKey[] = ["FREE", "STANDARD", "PRO"];
+const PLAN_ORDER: PlanKey[] = ["FREE", "LITE", "STANDARD", "PRO"];
 
 const PLAN_LABELS: Record<PlanKey, string> = {
   FREE: "フリー",
+  LITE: "Lite",
   STANDARD: "Standard",
   PRO: "Pro",
 };

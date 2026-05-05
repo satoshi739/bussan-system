@@ -22,13 +22,17 @@ except ImportError:
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Security, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict
 from datetime import date
 import os as _os
 import sys
+import io
+import re
+import subprocess
+import tempfile
 import asyncio
 import time as _time
 from pathlib import Path
@@ -3960,3 +3964,189 @@ def get_admin_user_stats(user_id: str = Depends(get_user_id)):
         GROUP BY p.user_id
     """).fetchall()
     return [dict(r) for r in rows]
+
+
+# ── 動画生成 ────────────────────────────────────────────
+
+_FONT_CANDIDATES = [
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc",
+    "/Library/Fonts/Arial Unicode.ttf",
+]
+_FONT_REG_CANDIDATES = [
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+    "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+]
+
+_PLATFORM_BG = {
+    "tiktok":    (255, 45, 85),
+    "instagram": (193, 53, 132),
+    "x":         (29, 155, 240),
+    "dm":        (68, 204, 170),
+}
+_PLATFORM_LABEL = {
+    "tiktok": "TikTok",
+    "instagram": "Instagram Reels",
+    "x": "X / Twitter",
+    "dm": "DM",
+}
+
+
+def _load_font(candidates: list, size: int):
+    try:
+        from PIL import ImageFont
+        for path in candidates:
+            if _os.path.exists(path):
+                return ImageFont.truetype(path, size)
+        return ImageFont.load_default()
+    except Exception:
+        from PIL import ImageFont
+        return ImageFont.load_default()
+
+
+def _wrap_text(draw, text: str, font, max_w: int) -> list:
+    lines = []
+    for para in text.split("\n"):
+        if not para.strip():
+            lines.append("")
+            continue
+        cur = ""
+        for ch in para:
+            test = cur + ch
+            try:
+                w = draw.textlength(test, font=font)
+            except Exception:
+                w = len(test) * 20
+            if w <= max_w:
+                cur = test
+            else:
+                if cur:
+                    lines.append(cur)
+                cur = ch
+        if cur:
+            lines.append(cur)
+    return lines
+
+
+def _build_reel_image(title: str, body: str, platform: str) -> bytes:
+    from PIL import Image, ImageDraw
+    W, H = 720, 1280
+    BG    = (10, 10, 11)
+    GOLD  = (212, 175, 55)
+    WHITE = (245, 240, 232)
+    GRAY  = (100, 95, 88)
+    p_col = _PLATFORM_BG.get(platform, GOLD)
+
+    img  = Image.new("RGB", (W, H), BG)
+    draw = ImageDraw.Draw(img)
+
+    f_title = _load_font(_FONT_CANDIDATES, 54)
+    f_body  = _load_font(_FONT_REG_CANDIDATES, 36)
+    f_badge = _load_font(_FONT_CANDIDATES, 28)
+    f_logo  = _load_font(_FONT_CANDIDATES, 28)
+    f_small = _load_font(_FONT_REG_CANDIDATES, 22)
+
+    draw.rectangle([0, 0, W, 8], fill=GOLD)
+
+    badge = _PLATFORM_LABEL.get(platform, platform.upper())
+    try:
+        bw = int(draw.textlength(badge, font=f_badge))
+    except Exception:
+        bw = len(badge) * 14
+    bx = (W - bw - 32) // 2
+    draw.rounded_rectangle([bx, 28, bx + bw + 32, 68], radius=20, fill=(*p_col, 50))
+    draw.text((bx + 16, 38), badge, font=f_badge, fill=p_col)
+
+    y = 90
+    title_lines = _wrap_text(draw, title, f_title, W - 80)
+    for tl in title_lines[:3]:
+        draw.text((W // 2, y), tl, font=f_title, fill=WHITE, anchor="mt")
+        y += 66
+    y += 10
+
+    draw.rectangle([60, y, W - 60, y + 3], fill=(*GOLD, 80))
+    y += 20
+
+    body_lines = _wrap_text(draw, body, f_body, W - 80)
+    for bl in body_lines:
+        if y > H - 160:
+            break
+        if not bl.strip():
+            y += 14
+            continue
+        draw.text((40, y), bl, font=f_body, fill=WHITE)
+        y += 48
+
+    draw.text((W // 2, H - 60), "物販チェッカー", font=f_logo, fill=GOLD, anchor="mm")
+    draw.text((W // 2, H - 32), "bussan-checker.com", font=f_small, fill=GRAY, anchor="mm")
+    draw.rectangle([0, H - 6, W, H], fill=GOLD)
+
+    buf = io.BytesIO()
+    img.save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
+def _clean_for_tts(text: str) -> str:
+    text = re.sub(r"【[^】]*】", "", text)
+    text = re.sub(r"\*+", "", text)
+    text = re.sub(r"#+ ", "", text)
+    text = re.sub(r"[-・•]\s*", "。", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
+def _generate_video_sync(title: str, body: str, platform: str) -> bytes:
+    with tempfile.TemporaryDirectory() as tmp:
+        img_bytes = _build_reel_image(title, body, platform)
+        bg_path   = _os.path.join(tmp, "bg.png")
+        with open(bg_path, "wb") as f:
+            f.write(img_bytes)
+
+        from gtts import gTTS
+        tts_text = f"{title}。{_clean_for_tts(body)}"
+        tts = gTTS(text=tts_text, lang="ja", slow=False)
+        audio_path = _os.path.join(tmp, "audio.mp3")
+        tts.save(audio_path)
+
+        out_path = _os.path.join(tmp, "output.mp4")
+        subprocess.run([
+            "ffmpeg", "-y",
+            "-loop", "1", "-framerate", "1", "-i", bg_path,
+            "-i", audio_path,
+            "-c:v", "libx264", "-preset", "fast", "-crf", "32",
+            "-c:a", "aac", "-b:a", "128k",
+            "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
+            "-shortest",
+            out_path,
+        ], check=True, capture_output=True, timeout=120)
+
+        with open(out_path, "rb") as f:
+            return f.read()
+
+
+class VideoGenRequest(BaseModel):
+    title: str
+    body: str
+    platform: str = "tiktok"
+
+
+@app.post("/generate-video")
+async def generate_video_endpoint(req: VideoGenRequest):
+    """台本テキストから縦型(720x1280)MP4動画を生成して返す"""
+    try:
+        video_bytes = await asyncio.to_thread(
+            _generate_video_sync, req.title, req.body, req.platform
+        )
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(500, f"FFmpeg error: {e.stderr.decode()[:300]}")
+    except Exception as e:
+        raise HTTPException(500, f"Video generation failed: {e}")
+
+    return Response(
+        content=video_bytes,
+        media_type="video/mp4",
+        headers={"Content-Disposition": f'attachment; filename="{req.platform}_content.mp4"'},
+    )

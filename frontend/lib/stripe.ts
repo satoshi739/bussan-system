@@ -25,6 +25,7 @@ export const stripe = {
 
 export const PRICE_IDS: Record<string, string | null> = {
   FREE: null,
+  LITE: process.env.STRIPE_LITE_PRICE_ID ?? null,
   STANDARD: process.env.STRIPE_STANDARD_PRICE_ID ?? null,
   PRO: process.env.STRIPE_PRO_PRICE_ID ?? null,
 };

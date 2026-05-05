@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Users, TrendingUp, Crown, RefreshCw, AlertTriangle, Activity, FileText, Plus, Copy, Trash2, Sparkles } from "lucide-react";
+import { Users, TrendingUp, Crown, RefreshCw, AlertTriangle, Activity, FileText, Plus, Copy, Trash2, Sparkles, Video, Download } from "lucide-react";
 
 interface UserStat {
   id: string;
@@ -73,6 +73,8 @@ export default function AdminPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [form, setForm] = useState({ platform: "tiktok", theme: "", title: "", body: "" });
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
+  const [videoGenerating, setVideoGenerating] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/login"); return; }
@@ -146,6 +148,18 @@ export default function AdminPage() {
       body: JSON.stringify({ ...item, status: "published", publishedAt: new Date().toISOString() }),
     });
     fetchContents();
+  };
+
+  const handleGenerateVideo = async (item: ContentItem) => {
+    setVideoGenerating(item.id);
+    try {
+      const res = await fetch(`/api/admin/content/${item.id}/video`, { method: "POST" });
+      if (!res.ok) { alert("動画生成に失敗しました"); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      setVideoUrls(v => ({ ...v, [item.id]: url }));
+    } catch { alert("動画生成に失敗しました"); }
+    finally { setVideoGenerating(null); }
   };
 
   const handleCopy = (id: string, text: string) => {
@@ -425,7 +439,32 @@ export default function AdminPage() {
                   {expandedId === item.id && (
                     <div style={{ borderTop: "1px solid rgba(212,175,55,0.08)", padding: "14px 16px" }}>
                       <pre style={{ fontSize: 12, color: "#C8C0B0", whiteSpace: "pre-wrap", lineHeight: 1.8, margin: 0, fontFamily: "inherit" }}>{item.body}</pre>
+                      {/* 動画プレビュー */}
+                      {videoUrls[item.id] && (
+                        <div style={{ marginTop: 16, background: "rgba(0,0,0,0.4)", borderRadius: 10, padding: 12, display: "flex", gap: 16, alignItems: "flex-start" }}>
+                          <video src={videoUrls[item.id]} controls style={{ width: 160, borderRadius: 8, background: "#000" }} />
+                          <div style={{ display: "flex", flexDirection: "column", gap: 8, justifyContent: "center" }}>
+                            <a href={videoUrls[item.id]} download={`${item.platform}_content.mp4`} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 7, color: "#D4AF37", padding: "8px 14px", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+                              <Download size={12} /> ダウンロード
+                            </a>
+                            {item.platform === "tiktok" && (
+                              <a href="https://www.tiktok.com/upload" target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,45,85,0.1)", border: "1px solid rgba(255,45,85,0.3)", borderRadius: 7, color: "#ff2d55", padding: "8px 14px", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+                                🎵 TikTokで投稿
+                              </a>
+                            )}
+                            {item.platform === "instagram" && (
+                              <a href="https://www.instagram.com/reels/create" target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(193,53,132,0.1)", border: "1px solid rgba(193,53,132,0.3)", borderRadius: 7, color: "#c13584", padding: "8px 14px", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+                                📸 Instagramで投稿
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                        <button onClick={() => handleGenerateVideo(item)} disabled={videoGenerating === item.id} style={{ display: "flex", alignItems: "center", gap: 5, background: videoGenerating === item.id ? "rgba(100,100,100,0.15)" : "rgba(170,136,255,0.12)", border: "1px solid rgba(170,136,255,0.35)", borderRadius: 7, color: videoGenerating === item.id ? "#8A8278" : "#aa88ff", padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: videoGenerating === item.id ? "not-allowed" : "pointer" }}>
+                          <Video size={12} /> {videoGenerating === item.id ? "動画生成中..." : videoUrls[item.id] ? "再生成" : "動画生成"}
+                        </button>
                         <button onClick={() => handleCopy(item.id, item.body)} style={{ display: "flex", alignItems: "center", gap: 5, background: copied === item.id ? "rgba(68,204,170,0.15)" : "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, color: copied === item.id ? "#44ccaa" : "#C8C0B0", padding: "7px 14px", fontSize: 12, cursor: "pointer" }}>
                           <Copy size={12} /> {copied === item.id ? "コピーしました！" : "コピー"}
                         </button>
