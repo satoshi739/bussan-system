@@ -7,8 +7,8 @@
 | サービス名 | 物販チェッカー |
 | 運営会社 | 株式会社ユニバースプラネットジャパン |
 | 代表 | Satoshi |
-| 本番ドメイン | app.upjapan.co.jp（予定） |
-| 現フロントエンド | https://frontend-one-steel-loaau9zmao.vercel.app |
+| 本番ドメイン | https://app.upjapan.co.jp |
+| Vercelデプロイ先 | https://frontend-one-steel-loaau9zmao.vercel.app |
 | バックエンド | FastAPI + SQLite（`api.py` / `data/bussan.db`） |
 | フロントエンド | Next.js 16（`frontend/`）|
 

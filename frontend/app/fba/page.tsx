@@ -12,6 +12,7 @@ import {
   Send, BoxesIcon, Printer, Edit2, Save, RefreshCw,
 } from "lucide-react";
 import { toast } from "@/components/Toast";
+import RequirePlan from "@/components/RequirePlan";
 
 // ── Design tokens ──────────────────────────────────────────────
 const C = {
@@ -219,6 +220,7 @@ export default function FbaPage() {
   const byStatus = (s: string) => shipments.filter(sh => sh.status === s).length;
 
   return (
+    <RequirePlan requiredPlan="STANDARD" featureName="FBA納品管理">
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
 
       {/* ── ヘッダー ── */}
@@ -542,5 +544,6 @@ export default function FbaPage() {
         </div>
       )}
     </div>
+    </RequirePlan>
   );
 }

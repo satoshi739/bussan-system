@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Brain, Play, CheckCircle, TrendingUp, Zap, Clock, AlertCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import RequirePlan from "@/components/RequirePlan";
 import { getAgentSessions, getApprovalQueue, type AgentSession } from "@/lib/api";
 import { toast } from "@/components/Toast";
 
@@ -91,6 +92,7 @@ export default function AgentsPage() {
   const statusLabel = (s: string) => s === "completed" ? "完了" : s === "error" ? "エラー" : "実行中";
 
   return (
+    <RequirePlan requiredPlan="PRO" featureName="AI CEOエージェント">
     <div style={{ background: C.bg0, minHeight: "100vh", padding: "24px 20px", maxWidth: 900, margin: "0 auto" }}>
       {/* ヘッダー */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
@@ -314,5 +316,6 @@ export default function AgentsPage() {
         )}
       </div>
     </div>
+    </RequirePlan>
   );
 }

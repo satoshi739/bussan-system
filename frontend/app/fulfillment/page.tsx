@@ -10,6 +10,7 @@ import {
 import { Plus, Trash2, Truck, Search, X, ExternalLink, Edit2, Send, Settings } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
+import RequirePlan from "@/components/RequirePlan";
 
 const SHIPPING_METHODS = [
   { key: "nekoposu",          label: "ネコポス",          price: 385 },
@@ -203,6 +204,7 @@ export default function FulfillmentPage() {
   const countByStatus = (s: string) => items.filter(i => i.status === s).length;
 
   return (
+    <RequirePlan requiredPlan="STANDARD" featureName="フルフィルメント管理">
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
 
       {/* ── ヘッダー ── */}
@@ -604,5 +606,6 @@ export default function FulfillmentPage() {
         .fulfillment-row { transition: background 0.12s, border-color 0.12s; }
       `}</style>
     </div>
+    </RequirePlan>
   );
 }
