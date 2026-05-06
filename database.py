@@ -44,71 +44,7 @@ class _Cursor:
         return iter(self.fetchall())
 
 
-class _Connection:
-    """
-    psycopg2 接続を sqlite3 の conn.execute() インターフェース互換にラップ。
-    - ? プレースホルダーを %s に自動変換
-    - BEGIN / COMMIT / ROLLBACK をネイティブ処理に変換
-    - OperationalError / InterfaceError 時に自動再接続 (Railway idle timeout 対策)
-    """
-    def __init__(self, conn):
-        self._conn = conn
-        self._lock = threading.Lock()
-
-    def _reconnect(self):
-        try:
-            self._conn.close()
-        except Exception:
-            pass
-        self._conn = _pg_connect()
-        print("[DB] 接続を再確立しました")
-
-    def execute(self, sql: str, params=()):
-        stripped = sql.strip().upper().split()[0] if sql.strip() else ""
-        if stripped == "BEGIN":
-            return _Cursor(self._new_cursor())
-        if stripped == "COMMIT":
-            self._conn.commit()
-            return _Cursor(self._new_cursor())
-        if stripped == "ROLLBACK":
-            self._conn.rollback()
-            return _Cursor(self._new_cursor())
-
-        sql_pg = sql.replace("?", "%s")
-        with self._lock:
-            try:
-                cur = self._new_cursor()
-                cur.execute(sql_pg, params or ())
-                return _Cursor(cur)
-            except (psycopg2.OperationalError, psycopg2.InterfaceError):
-                # Railway idle timeout 等でコネクションが切断された場合に再接続して1回リトライ
-                self._reconnect()
-                cur = self._new_cursor()
-                cur.execute(sql_pg, params or ())
-                return _Cursor(cur)
-            except psycopg2.errors.InFailedSqlTransaction:
-                # 前のクエリが失敗してトランザクションが壊れた場合はロールバックして1回リトライ
-                self._conn.rollback()
-                cur = self._new_cursor()
-                cur.execute(sql_pg, params or ())
-                return _Cursor(cur)
-
-    def executescript(self, script: str):
-        statements = [s.strip() for s in script.split(";") if s.strip()]
-        with self._lock:
-            cur = self._new_cursor()
-            for stmt in statements:
-                cur.execute(stmt)
-        self._conn.commit()
-
-    def commit(self):
-        self._conn.commit()
-
-    def rollback(self):
-        self._conn.rollback()
-
-    def _new_cursor(self):
-        return self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+_tls = threading.local()
 
 
 def _pg_connect() -> psycopg2.extensions.connection:
@@ -116,19 +52,95 @@ def _pg_connect() -> psycopg2.extensions.connection:
     if not url:
         raise RuntimeError("DATABASE_URL 環境変数が設定されていません")
     conn = psycopg2.connect(url)
+    # セッションタイムアウト設定（ゾンビ接続・ロック蓄積を防ぐ）
+    conn.autocommit = True
+    with conn.cursor() as c:
+        c.execute("SET idle_in_transaction_session_timeout = '30000'")  # 30s
+        c.execute("SET statement_timeout = '60000'")  # 60s
     conn.autocommit = False
     return conn
 
 
+def _get_thread_conn() -> psycopg2.extensions.connection:
+    """スレッドごとに専用の psycopg2 接続を返す（接続なければ作成、切断なら再接続）"""
+    conn = getattr(_tls, "pg_conn", None)
+    if conn is None or conn.closed:
+        _tls.pg_conn = _pg_connect()
+    return _tls.pg_conn
+
+
+class _Connection:
+    """
+    psycopg2 接続を sqlite3 の conn.execute() インターフェース互換にラップ。
+    スレッドローカル接続を使用するためロック不要。各スレッドが独立した接続を持つ。
+    """
+    def __init__(self):
+        pass
+
+    def execute(self, sql: str, params=()):
+        stripped = sql.strip().upper().split()[0] if sql.strip() else ""
+        conn = _get_thread_conn()
+
+        if stripped == "BEGIN":
+            return _Cursor(conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor))
+        if stripped == "COMMIT":
+            conn.commit()
+            return _Cursor(conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor))
+        if stripped == "ROLLBACK":
+            conn.rollback()
+            return _Cursor(conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor))
+
+        sql_pg = sql.replace("?", "%s")
+        try:
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur.execute(sql_pg, params or ())
+            return _Cursor(cur)
+        except (psycopg2.OperationalError, psycopg2.InterfaceError):
+            # 接続切断時は再接続して1回リトライ
+            _tls.pg_conn = _pg_connect()
+            conn = _tls.pg_conn
+            print("[DB] 接続を再確立しました")
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur.execute(sql_pg, params or ())
+            return _Cursor(cur)
+        except psycopg2.errors.InFailedSqlTransaction:
+            conn.rollback()
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur.execute(sql_pg, params or ())
+            return _Cursor(cur)
+
+    def executescript(self, script: str):
+        conn = _get_thread_conn()
+        statements = [s.strip() for s in script.split(";") if s.strip()]
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        for stmt in statements:
+            cur.execute(stmt)
+        conn.commit()
+
+    def commit(self):
+        _get_thread_conn().commit()
+
+    def rollback(self):
+        _get_thread_conn().rollback()
+
+
 class Database:
     def __init__(self):
-        self.conn = _Connection(_pg_connect())
-        self._create_tables()
-        self._add_indexes()
+        self.conn = _Connection()
+        # テーブルが存在しない場合のみ作成（冷起動の高速化）
+        row = self.conn.execute(
+            "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name='purchases' AND table_schema='public')"
+        ).fetchone()
+        needs_init = not (list(row.values())[0] if row else False)
+        if needs_init:
+            self._create_tables()
+            self._add_indexes()
 
     def close(self):
         try:
-            self.conn._conn.close()
+            conn = _get_thread_conn()
+            conn.close()
+            _tls.pg_conn = None
         except Exception:
             pass
 

@@ -34,6 +34,7 @@ import re
 import subprocess
 import tempfile
 import asyncio
+import threading as _threading
 import time as _time
 from pathlib import Path
 
@@ -81,6 +82,8 @@ async def _lifespan(app: FastAPI):
         print("[Startup] Monitor started OK")
     except Exception as e:
         print(f"[Startup] Monitor skip: {e}")
+    print("[Startup] pre-warming DB (Neon cold start)...")
+    await asyncio.to_thread(_prewarm_db)
     print("[Startup] creating background tasks...")
     try:
         _scanner_bg_task = asyncio.create_task(_auto_scan_loop())
@@ -138,12 +141,24 @@ async def sentry_test():
     raise Exception("Sentry動作確認テスト — 物販チェッカー バックエンド")
 
 _db: "Database | None" = None
+_db_init_lock = _threading.Lock()
 
 def db_instance() -> "Database":
     global _db
     if _db is None:
-        _db = Database()
+        with _db_init_lock:
+            if _db is None:
+                _db = Database()
     return _db
+
+def _prewarm_db():
+    """起動時にNeonコールドスタートを完了させる（スレッド内で実行）"""
+    try:
+        inst = db_instance()
+        inst.conn.execute("SELECT 1").fetchone()
+        print("[Startup] DB pre-warm OK")
+    except Exception as e:
+        print(f"[Startup] DB pre-warm failed: {e}")
 
 # グローバル db 変数 — 既存コードとの互換性を維持
 class _LazyDb:
@@ -2424,34 +2439,77 @@ def run_source_sync_once(user_id: str = 'default') -> Dict:
     }
 
 
+def _source_sync_tick():
+    """_source_sync_loop の同期処理本体（スレッドプール内で実行）"""
+    user_rows = db_instance().conn.execute(
+        "SELECT DISTINCT user_id FROM settings ORDER BY user_id"
+    ).fetchall()
+    user_ids = [r["user_id"] for r in user_rows] or ["default"]
+    for uid in user_ids:
+        try:
+            settings = db_instance().get_settings(user_id=uid)
+            if settings.get("source_sync_enabled", "0") == "1":
+                interval_min = float(settings.get("source_sync_interval_min", "15"))
+                last_run = float(settings.get("source_sync_last_run", "0"))
+                now = _time.time()
+                if now - last_run >= interval_min * 60:
+                    print(f"[SourceSync] user={uid} 在庫・価格チェック開始...")
+                    result = run_source_sync_once(uid)
+                    print(
+                        f"[SourceSync] user={uid} 完了: checked={result['checked']} "
+                        f"sold_out={result['sold_out_detected']} price_rise={result['price_rise_detected']}"
+                    )
+        except Exception as e:
+            print(f"[SourceSync] user={uid} エラー: {e}")
+
+
 async def _source_sync_loop():
     """定期ソース連動ループ（全ユーザー分を在庫連動/価格上昇監視）"""
     await asyncio.sleep(15)  # 起動直後のイベントループブロック防止
     while True:
         try:
-            user_rows = await asyncio.to_thread(
-                lambda: db.conn.execute("SELECT DISTINCT user_id FROM settings ORDER BY user_id").fetchall()
-            )
-            user_ids = [r["user_id"] for r in user_rows] or ["default"]
-            for uid in user_ids:
-                try:
-                    settings = db.get_settings(user_id=uid)
-                    if settings.get("source_sync_enabled", "0") == "1":
-                        interval_min = float(settings.get("source_sync_interval_min", "15"))
-                        last_run = float(settings.get("source_sync_last_run", "0"))
-                        now = _time.time()
-                        if now - last_run >= interval_min * 60:
-                            print(f"[SourceSync] user={uid} 在庫・価格チェック開始...")
-                            result = await asyncio.to_thread(run_source_sync_once, uid)
-                            print(
-                                f"[SourceSync] user={uid} 完了: checked={result['checked']} "
-                                f"sold_out={result['sold_out_detected']} price_rise={result['price_rise_detected']}"
-                            )
-                except Exception as e:
-                    print(f"[SourceSync] user={uid} エラー: {e}")
+            await asyncio.to_thread(_source_sync_tick)
         except Exception as e:
             print(f"[SourceSync] エラー: {e}")
         await asyncio.sleep(120)  # 2分ごとに実行判定
+
+
+def _auto_scan_tick():
+    """_auto_scan_loop の同期処理本体（スレッドプール内で実行）"""
+    user_rows = db_instance().conn.execute(
+        "SELECT DISTINCT user_id FROM settings ORDER BY user_id"
+    ).fetchall()
+    user_ids = [r["user_id"] for r in user_rows] or ["default"]
+    for uid in user_ids:
+        try:
+            settings = db_instance().get_settings(user_id=uid)
+            if settings.get("auto_scan_enabled") == "1":
+                interval_hours = float(settings.get("auto_scan_interval_hours", "8"))
+                last_run = float(settings.get("auto_scan_last_run", "0"))
+                now = _time.time()
+                if now - last_run >= interval_hours * 3600:
+                    print(f"[AutoScan] user={uid} スキャン開始...")
+                    results = scan_all_keywords(8, db_instance())
+                    db_instance().save_scan_cache(results, None, uid)
+                    db_instance().save_settings({"auto_scan_last_run": str(now)}, user_id=uid)
+                    print(f"[AutoScan] user={uid} 完了: {len(results)}件")
+
+                    threshold = float(settings.get("auto_scan_notify_score", "70"))
+                    top_items = [r for r in results if r.get("score", 0) >= threshold]
+                    if top_items:
+                        token = settings.get("line_token", "")
+                        if token:
+                            msg = f"\n🔍 利益スキャナー 自動結果\n高スコア商品 {len(top_items)}件\n\n"
+                            for item in top_items[:5]:
+                                msg += (
+                                    f"・{item.get('name', item.get('product_name', ''))}\n"
+                                    f"  スコア: {item.get('score', 0):.0f}"
+                                    f" / 利益率: {item.get('profit_rate', 0):.1f}%"
+                                    f" / 利益: ¥{int(item.get('net_profit_jpy', 0)):,}\n\n"
+                                )
+                            _send_line(token, msg)
+        except Exception as e:
+            print(f"[AutoScan] user={uid} エラー: {e}")
 
 
 async def _auto_scan_loop():
@@ -2459,40 +2517,7 @@ async def _auto_scan_loop():
     await asyncio.sleep(15)  # 起動直後のイベントループブロック防止
     while True:
         try:
-            user_rows = await asyncio.to_thread(
-                lambda: db.conn.execute("SELECT DISTINCT user_id FROM settings ORDER BY user_id").fetchall()
-            )
-            user_ids = [r["user_id"] for r in user_rows] or ["default"]
-            for uid in user_ids:
-                try:
-                    settings = db.get_settings(user_id=uid)
-                    if settings.get("auto_scan_enabled") == "1":
-                        interval_hours = float(settings.get("auto_scan_interval_hours", "8"))
-                        last_run = float(settings.get("auto_scan_last_run", "0"))
-                        now = _time.time()
-                        if now - last_run >= interval_hours * 3600:
-                            print(f"[AutoScan] user={uid} スキャン開始...")
-                            results = await asyncio.to_thread(scan_all_keywords, 8, db)
-                            await asyncio.to_thread(db.save_scan_cache, results, None, uid)
-                            db.save_settings({"auto_scan_last_run": str(now)}, user_id=uid)
-                            print(f"[AutoScan] user={uid} 完了: {len(results)}件")
-
-                            threshold = float(settings.get("auto_scan_notify_score", "70"))
-                            top_items = [r for r in results if r.get("score", 0) >= threshold]
-                            if top_items:
-                                token = settings.get("line_token", "")
-                                if token:
-                                    msg = f"\n🔍 利益スキャナー 自動結果\n高スコア商品 {len(top_items)}件\n\n"
-                                    for item in top_items[:5]:
-                                        msg += (
-                                            f"・{item.get('name', item.get('product_name', ''))}\n"
-                                            f"  スコア: {item.get('score', 0):.0f}"
-                                            f" / 利益率: {item.get('profit_rate', 0):.1f}%"
-                                            f" / 利益: ¥{int(item.get('net_profit_jpy', 0)):,}\n\n"
-                                        )
-                                    _send_line(token, msg)
-                except Exception as e:
-                    print(f"[AutoScan] user={uid} エラー: {e}")
+            await asyncio.to_thread(_auto_scan_tick)
         except Exception as e:
             print(f"[AutoScan] エラー: {e}")
 
