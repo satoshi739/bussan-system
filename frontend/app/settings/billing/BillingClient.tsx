@@ -111,11 +111,12 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
       <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20, marginTop: 3 }}>現在のプランと請求情報を管理できます</div>
 
       {successMsg && (
-        <div style={{ ...card, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(0,40,15,0.9)", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
-          <Check size={18} color="#D4AF37" />
-          <span style={{ color: "#D4AF37", fontWeight: 700, fontSize: 14 }}>
-            プランのアップグレードが完了しました！
-          </span>
+        <div style={{ ...card, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(0,40,15,0.9)", marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 12 }}>
+          <Check size={18} color="#D4AF37" style={{ marginTop: 2, flexShrink: 0 }} />
+          <div>
+            <div style={{ color: "#D4AF37", fontWeight: 700, fontSize: 14 }}>プランのアップグレードが完了しました！</div>
+            <div style={{ color: "#8A8278", fontSize: 12, marginTop: 4 }}>反映まで数分かかる場合があります。しばらく待ってもプランが変わらない場合は、ページを再読み込みしてください。</div>
+          </div>
         </div>
       )}
 

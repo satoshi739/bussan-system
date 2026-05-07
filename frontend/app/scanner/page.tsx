@@ -1,7 +1,7 @@
 "use client";
 
 import RequirePlan from "@/components/RequirePlan";
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, SlidersHorizontal, TrendingUp, ArrowUpDown, X, Sparkles, ChevronDown, ChevronUp, BarChart2, Activity } from "lucide-react";
 import { toast } from "@/components/Toast";
@@ -221,6 +221,8 @@ function ScannerPageContent() {
   const [scanning, setScanning]     = useState(false);
   const [scanningKw, setScanningKw] = useState<Set<string>>(new Set());
   const [scanMsg, setScanMsg]       = useState("");
+  const [slowWarning, setSlowWarning] = useState(false);
+  const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [quickKw, setQuickKw]       = useState("");
   const [quickPlatform, setQuickPlatform] = useState("eBay");
 
@@ -296,6 +298,8 @@ function ScannerPageContent() {
       setScanning(true);
     }
     setScanMsg(keyword ? `「${keyword}」をスキャン中...` : "全キーワードをスキャン中...");
+    setSlowWarning(false);
+    slowTimerRef.current = setTimeout(() => setSlowWarning(true), 8000);
     try {
       let r: { count: number; results: ScanResult[] };
       if (effectiveMode === "domestic") {
@@ -325,6 +329,8 @@ function ScannerPageContent() {
       }
     }
     finally {
+      if (slowTimerRef.current) { clearTimeout(slowTimerRef.current); slowTimerRef.current = null; }
+      setSlowWarning(false);
       if (keyword) {
         setScanningKw(p => { const n = new Set(p); n.delete(keyword); return n; });
       } else {
@@ -594,6 +600,11 @@ function ScannerPageContent() {
             <span style={{ fontSize: 12, color: scanning ? "#ffcc44" : "#8A8278" }}>
               {scanning && <RefreshCw size={11} style={{ display: "inline", marginRight: 5, animation: "spin 1s linear infinite" }} />}
               {scanMsg}
+              {slowWarning && (
+                <span style={{ display: "block", fontSize: 11, color: "#8A8278", marginTop: 2 }}>
+                  初回は少し時間がかかります。そのままお待ちください...
+                </span>
+              )}
             </span>
           )}
           <button
@@ -846,6 +857,10 @@ function ScannerPageContent() {
           <div style={{ fontSize: 13, color: "#8A8278", lineHeight: 1.7 }}>フィルターを変更するか、新しいキーワードでスキャンしてください</div>
         </div>
       ) : (
+        <>
+          <div style={{ fontSize: 11, color: "#5a5248", background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 7, padding: "6px 12px", marginBottom: 10 }}>
+            表示価格はスキャン時点の参考値です。実際の価格は変動する場合があります。購入前に必ず現在の価格をご確認ください。
+          </div>
         <div className="scanner-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
           {processed.map((item, i) => {
             const rt = RATING[item.rating as keyof typeof RATING] ?? RATING.ok;
@@ -893,6 +908,9 @@ function ScannerPageContent() {
                       {item.scan_keyword && <><span style={{ opacity: 0.5 }}>·</span><span style={{ color: "#3a7a5a" }}>{item.scan_keyword}</span></>}
                       {item.price_source === "実売価格(Amazon.co.jp)" && (
                         <span style={{ fontSize: 9, background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", borderRadius: 8, padding: "1px 6px", color: "#4ade80", fontWeight: 700, flexShrink: 0 }}>実売価格</span>
+                      )}
+                      {item.scanned_at && (
+                        <span style={{ opacity: 0.5 }}>取得: {new Date(item.scanned_at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</span>
                       )}
                     </div>
                   </div>
@@ -1081,6 +1099,7 @@ function ScannerPageContent() {
             );
           })}
         </div>
+        </>
       )}
 
       {/* ── 出品モーダル ── */}
