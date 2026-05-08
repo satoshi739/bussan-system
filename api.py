@@ -641,7 +641,7 @@ def get_best_products(limit: int = 10, user_id: str = Depends(get_user_id)):
                s.sale_price,
                s.net_profit,
                s.sale_date,
-               ROUND(s.net_profit / s.sale_price * 100, 1) as profit_rate
+               ROUND((s.net_profit / s.sale_price * 100)::numeric, 1) as profit_rate
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
         JOIN purchases p ON l.purchase_id = p.id
@@ -2787,7 +2787,7 @@ def get_sales_trends(months: int = 6, user_id: str = Depends(get_user_id)):
         SELECT p.product_name,
                COUNT(*) as sale_count,
                ROUND(SUM(s.net_profit)) as total_profit,
-               ROUND(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100), 1) as avg_rate,
+               ROUND(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100)::numeric, 1) as avg_rate,
                MAX(s.sale_date) as last_sold
         FROM sales s
         JOIN listings l ON s.listing_id = l.id
@@ -2893,7 +2893,7 @@ def ai_research(body: AIResearchRequest, user_id: str = Depends(get_user_id)):
         try:
             recent = db.conn.execute("""
                 SELECT p.product_name, p.platform as buy_platform, l.selling_platform,
-                       s.net_profit, ROUND(s.net_profit / NULLIF(s.sale_price, 0) * 100, 1) as profit_rate
+                       s.net_profit, ROUND((s.net_profit / NULLIF(s.sale_price, 0) * 100)::numeric, 1) as profit_rate
                 FROM sales s
                 JOIN listings l ON s.listing_id = l.id
                 JOIN purchases p ON l.purchase_id = p.id
@@ -2979,7 +2979,7 @@ def get_monthly_report(month: Optional[str] = None, user_id: str = Depends(get_u
     by_platform = db.conn.execute("""
         SELECT l.selling_platform, COUNT(*) as count,
                ROUND(SUM(s.net_profit)) as profit,
-               ROUND(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100), 1) as avg_rate
+               ROUND(AVG(s.net_profit / NULLIF(s.sale_price, 0) * 100)::numeric, 1) as avg_rate
         FROM sales s JOIN listings l ON s.listing_id = l.id
         WHERE s.user_id = ? AND to_char(s.sale_date, 'YYYY-MM') = ?
         GROUP BY l.selling_platform ORDER BY profit DESC
@@ -2988,7 +2988,7 @@ def get_monthly_report(month: Optional[str] = None, user_id: str = Depends(get_u
     best = db.conn.execute("""
         SELECT p.product_name, p.platform as buy_platform,
                l.selling_platform, ROUND(s.net_profit) as net_profit,
-               ROUND(s.net_profit / NULLIF(s.sale_price, 0) * 100, 1) as profit_rate
+               ROUND((s.net_profit / NULLIF(s.sale_price, 0) * 100)::numeric, 1) as profit_rate
         FROM sales s JOIN listings l ON s.listing_id = l.id
         JOIN purchases p ON l.purchase_id = p.id
         WHERE p.user_id = ? AND to_char(s.sale_date, 'YYYY-MM') = ?

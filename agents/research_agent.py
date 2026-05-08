@@ -175,7 +175,7 @@ class ResearchAgent:
             SELECT p.product_name, p.platform as buy_platform,
                    l.selling_platform, p.purchase_price,
                    s.sale_price, s.net_profit,
-                   ROUND(s.net_profit / s.sale_price * 100, 1) as profit_rate
+                   ROUND((s.net_profit / s.sale_price * 100)::numeric, 1) as profit_rate
             FROM sales s
             JOIN listings l ON s.listing_id = l.id
             JOIN purchases p ON l.purchase_id = p.id

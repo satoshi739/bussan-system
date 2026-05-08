@@ -51,7 +51,14 @@ def _pg_connect() -> psycopg2.extensions.connection:
     url = os.environ.get("DATABASE_URL")
     if not url:
         raise RuntimeError("DATABASE_URL 環境変数が設定されていません")
-    conn = psycopg2.connect(url)
+    # keepalives: Neon がアイドル接続を切断する前に OS が TCP を維持する
+    conn = psycopg2.connect(
+        url,
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=5,
+    )
     # セッションタイムアウト設定（ゾンビ接続・ロック蓄積を防ぐ）
     conn.autocommit = True
     with conn.cursor() as c:
@@ -118,10 +125,19 @@ class _Connection:
         conn.commit()
 
     def commit(self):
-        _get_thread_conn().commit()
+        conn = _get_thread_conn()
+        try:
+            conn.commit()
+        except (psycopg2.OperationalError, psycopg2.InterfaceError):
+            _tls.pg_conn = _pg_connect()
+            _tls.pg_conn.commit()
 
     def rollback(self):
-        _get_thread_conn().rollback()
+        conn = _get_thread_conn()
+        try:
+            conn.rollback()
+        except (psycopg2.OperationalError, psycopg2.InterfaceError):
+            _tls.pg_conn = _pg_connect()
 
 
 class Database:
@@ -424,17 +440,14 @@ class Database:
     def add_scan_keyword(self, keyword: str, target_sell_platform: str = "eBay",
                          max_buy_price=None, min_profit_rate: float = 20.0, memo: str = "",
                          user_id: str = 'default') -> bool:
-        existing = self.conn.execute(
-            "SELECT keyword FROM scan_keywords WHERE keyword = %s AND user_id = %s", (keyword, user_id)
-        ).fetchone()
-        if existing:
-            return False
-        self.conn.execute("""
+        cur = self.conn.execute("""
             INSERT INTO scan_keywords (user_id, keyword, target_sell_platform, max_buy_price, min_profit_rate, memo)
             VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (user_id, keyword) DO NOTHING
+            RETURNING id
         """, (user_id, keyword, target_sell_platform, max_buy_price, min_profit_rate, memo))
         self.conn.commit()
-        return True
+        return cur.fetchone() is not None
 
     def remove_scan_keyword(self, keyword: str, user_id: str = 'default') -> None:
         self.conn.execute("DELETE FROM scan_keywords WHERE keyword = %s AND user_id = %s", (keyword, user_id))
