@@ -407,6 +407,33 @@ function ScannerPageContent() {
   const [listingRegistering, setListingRegistering] = useState(false); // 登録中フラグ
   const [checked, setChecked]                 = useState<Set<string>>(new Set());
 
+  // AI出品文生成
+  type AiDraft = { title: string; description: string; keywords: string[]; price_tip: string };
+  const [aiDraft, setAiDraft]           = useState<AiDraft | null>(null);
+  const [aiDraftLoading, setAiDraftLoading] = useState(false);
+
+  const generateAiDraft = async (item: ScanResult) => {
+    setAiDraft(null);
+    setAiDraftLoading(true);
+    try {
+      const res = await fetch("/api/ai/listing-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_name: item.name,
+          buy_price: item.buy_price,
+          sell_platform: item.sell_platform_name,
+          condition: item.condition,
+          profit_rate: item.profit_rate,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) setAiDraft(data.draft);
+      else toast(data.error ?? "AI生成に失敗しました", "error");
+    } catch { toast("AI生成に失敗しました", "error"); }
+    finally { setAiDraftLoading(false); }
+  };
+
   // ルートマトリックスモーダル
   type RouteEntry = { gross_profit: number; profit_rate: number; platform_fees: number; emoji: string; area: string };
   const [routeItem, setRouteItem]   = useState<ScanResult | null>(null);
@@ -574,6 +601,7 @@ function ScannerPageContent() {
     setChecked(new Set());
     setListingConfirmed(false);
     setListingRegistering(false);
+    setAiDraft(null);
     try {
       const r = await api<{ deep_links: Record<string, DeepLink> }>("/api/flow/listing-preview", {
         method: "POST",
@@ -1537,12 +1565,55 @@ function ScannerPageContent() {
               <button onClick={() => setListingItem(null)} style={{ background: "none", border: "none", color: "var(--text-3)", cursor: "pointer" }}><X size={16} /></button>
             </div>
 
-            <div style={{ background: "rgba(10,10,11,0.8)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, border: "1px solid var(--border)" }}>
+            <div style={{ background: "rgba(10,10,11,0.8)", borderRadius: 10, padding: "12px 16px", marginBottom: 12, border: "1px solid var(--border)" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 4, lineHeight: 1.4 }}>{listingItem.name}</div>
               <div style={{ display: "flex", gap: 16, fontSize: 12 }}>
                 <span style={{ color: "var(--text-3)" }}>仕入れ <span style={{ color: "var(--text)", fontWeight: 700 }}>¥{listingItem.buy_price.toLocaleString()}</span></span>
                 <span style={{ color: "var(--text-3)" }}>推定利益 <span style={{ color: "var(--blue)", fontWeight: 700 }}>+¥{Math.round(listingItem.net_profit_jpy).toLocaleString()}</span></span>
               </div>
+            </div>
+
+            {/* AI出品文生成 */}
+            <div style={{ marginBottom: 16 }}>
+              <button
+                onClick={() => generateAiDraft(listingItem)}
+                disabled={aiDraftLoading}
+                style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.06))", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: aiDraftLoading ? "#4a6a4a" : "var(--blue)", padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: aiDraftLoading ? "not-allowed" : "pointer", width: "100%" }}
+              >
+                {aiDraftLoading
+                  ? <><RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> AI生成中...</>
+                  : <><Sparkles size={12} /> ✨ AI出品文を自動生成（タイトル・説明文・キーワード）</>
+                }
+              </button>
+              {aiDraft && (
+                <div style={{ marginTop: 10, background: "rgba(0,20,5,0.6)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, marginBottom: 4 }}>タイトル</div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <div style={{ flex: 1, fontSize: 12, color: "var(--text)", lineHeight: 1.5, fontWeight: 600 }}>{aiDraft.title}</div>
+                      <button onClick={() => { navigator.clipboard.writeText(aiDraft.title); toast("コピーしました", "success"); }} style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 5, color: "var(--blue)", padding: "3px 8px", fontSize: 10, cursor: "pointer", flexShrink: 0 }}>コピー</button>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, marginBottom: 4 }}>説明文</div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <div style={{ flex: 1, fontSize: 11, color: "#a8c8b8", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{aiDraft.description}</div>
+                      <button onClick={() => { navigator.clipboard.writeText(aiDraft.description); toast("コピーしました", "success"); }} style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 5, color: "var(--blue)", padding: "3px 8px", fontSize: 10, cursor: "pointer", flexShrink: 0 }}>コピー</button>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, marginBottom: 4 }}>キーワード</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                      {aiDraft.keywords.map((kw, i) => (
+                        <span key={i} onClick={() => { navigator.clipboard.writeText(kw); toast("コピーしました", "success"); }} style={{ background: "rgba(0,111,230,0.1)", border: "1px solid rgba(0,111,230,0.2)", borderRadius: 20, padding: "2px 10px", fontSize: 11, color: "#66aaff", cursor: "pointer" }}>{kw}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", background: "rgba(212,175,55,0.05)", borderRadius: 6, padding: "6px 10px" }}>
+                    💡 {aiDraft.price_tip}
+                  </div>
+                </div>
+              )}
             </div>
 
             {listingLoading ? (

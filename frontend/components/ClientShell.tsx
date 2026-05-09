@@ -34,10 +34,19 @@ function useAutoChecklist(pathname: string) {
   }, [pathname]);
 }
 
+function useBackendWarmup() {
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_API_URL;
+    if (!url) return;
+    fetch(`${url}/health`, { method: "GET", signal: AbortSignal.timeout(15_000) }).catch(() => {});
+  }, []);
+}
+
 export default function ClientShell({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  useBackendWarmup();
   const showSidebar = !isPublic;
 
   const { show: showOnboarding, complete: completeOnboarding } = useOnboarding();
