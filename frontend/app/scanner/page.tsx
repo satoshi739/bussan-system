@@ -60,16 +60,25 @@ const RATING_STARS: Record<string, number> = {
 
 // サンプル表示用（スキャン前・未ログイン時）
 const SAMPLE_SCAN_ITEMS = [
-  { id: "s1",  name: "セイコー 5 SNXS79 自動巻き 中古",       buy: 4200,  sell: 12800, profit: 7800,  rate: 61, rating: "excellent", source: "ヤフオク",  platform: "eBay 🌏" },
-  { id: "s2",  name: "ポケモンカード 旧裏面 まとめ 20枚",      buy: 2800,  sell: 6500,  profit: 3200,  rate: 49, rating: "good",      source: "メルカリ",  platform: "eBay 🌏" },
-  { id: "s3",  name: "レゴ テクニック 42083 ブガッティ 中古",  buy: 8500,  sell: 19800, profit: 9800,  rate: 51, rating: "good",      source: "ヤフオク",  platform: "eBay 🌏" },
-  { id: "s4",  name: "フィルムカメラ OLYMPUS OM-1 中古",      buy: 6800,  sell: 21500, profit: 12800, rate: 65, rating: "excellent", source: "ヤフオク",  platform: "eBay 🌏" },
-  { id: "s5",  name: "BONSAI 盆栽 五葉松 20年物",             buy: 3500,  sell: 14200, profit: 9500,  rate: 73, rating: "excellent", source: "メルカリ",  platform: "eBay 🌏" },
-  { id: "s6",  name: "ワンピース 初版 1巻〜10巻 セット",       buy: 1800,  sell: 4200,  profit: 2000,  rate: 52, rating: "good",      source: "ブックオフ", platform: "eBay 🌏" },
-  { id: "s7",  name: "ソニー PlayStation 2 本体 美品",         buy: 3200,  sell: 5800,  profit: 1800,  rate: 36, rating: "ok",        source: "ハードオフ", platform: "eBay 🌏" },
-  { id: "s8",  name: "任天堂 ゲームボーイ カラー 電池なし",    buy: 2200,  sell: 3100,  profit: 600,   rate: 22, rating: "marginal",  source: "メルカリ",  platform: "eBay 🌏" },
-  { id: "s9",  name: "VHS ビデオ ドラゴンボールZ 旧版",        buy: 800,   sell: 600,   profit: -350,  rate: -44, rating: "loss",     source: "リサイクル", platform: "メルカリ 🏪" },
-  { id: "s10", name: "CASIO G-SHOCK DW-5600 新品未使用",      buy: 12000, sell: 38000, profit: 21000, rate: 68, rating: "excellent", source: "ネット仕入", platform: "eBay 🌏" },
+  { id: "s1",  name: "セイコー 5 SNXS79 自動巻き 中古",       buy: 4200,  sell: 12800, profit: 7800,  rate: 61, rating: "excellent", source: "ヤフオク",   platform: "eBay 🌏",    aiScore: 88, trend: "up"     as const, demand: "高" as const, soldPerMonth: 45, competition: "少" as const, aiVerdict: "強く買い" as const },
+  { id: "s2",  name: "ポケモンカード 旧裏面 まとめ 20枚",      buy: 2800,  sell: 6500,  profit: 3200,  rate: 49, rating: "good",      source: "メルカリ",   platform: "eBay 🌏",    aiScore: 74, trend: "up"     as const, demand: "高" as const, soldPerMonth: 80, competition: "中" as const, aiVerdict: "買い"     as const },
+  { id: "s3",  name: "レゴ テクニック 42083 ブガッティ 中古",  buy: 8500,  sell: 19800, profit: 9800,  rate: 51, rating: "good",      source: "ヤフオク",   platform: "eBay 🌏",    aiScore: 76, trend: "stable" as const, demand: "中" as const, soldPerMonth: 22, competition: "少" as const, aiVerdict: "買い"     as const },
+  { id: "s4",  name: "フィルムカメラ OLYMPUS OM-1 中古",       buy: 6800,  sell: 21500, profit: 12800, rate: 65, rating: "excellent", source: "ヤフオク",   platform: "eBay 🌏",    aiScore: 91, trend: "up"     as const, demand: "高" as const, soldPerMonth: 38, competition: "少" as const, aiVerdict: "強く買い" as const },
+  { id: "s5",  name: "BONSAI 盆栽 五葉松 20年物",              buy: 3500,  sell: 14200, profit: 9500,  rate: 73, rating: "excellent", source: "メルカリ",   platform: "eBay 🌏",    aiScore: 93, trend: "up"     as const, demand: "高" as const, soldPerMonth: 15, competition: "少" as const, aiVerdict: "強く買い" as const },
+  { id: "s6",  name: "ワンピース 初版 1巻〜10巻 セット",        buy: 1800,  sell: 4200,  profit: 2000,  rate: 52, rating: "good",      source: "ブックオフ", platform: "eBay 🌏",    aiScore: 68, trend: "stable" as const, demand: "中" as const, soldPerMonth: 55, competition: "中" as const, aiVerdict: "買い"     as const },
+  { id: "s7",  name: "ソニー PlayStation 2 本体 美品",          buy: 3200,  sell: 5800,  profit: 1800,  rate: 36, rating: "ok",        source: "ハードオフ", platform: "eBay 🌏",    aiScore: 52, trend: "down"   as const, demand: "低" as const, soldPerMonth: 18, competition: "多" as const, aiVerdict: "様子見"   as const },
+  { id: "s8",  name: "任天堂 ゲームボーイ カラー 電池なし",     buy: 2200,  sell: 3100,  profit: 600,   rate: 22, rating: "marginal",  source: "メルカリ",   platform: "eBay 🌏",    aiScore: 31, trend: "down"   as const, demand: "低" as const, soldPerMonth: 10, competition: "多" as const, aiVerdict: "見送り"   as const },
+  { id: "s9",  name: "VHS ビデオ ドラゴンボールZ 旧版",         buy: 800,   sell: 600,   profit: -350,  rate: -44, rating: "loss",     source: "リサイクル", platform: "メルカリ 🏪", aiScore: 8,  trend: "down"   as const, demand: "低" as const, soldPerMonth: 3,  competition: "多" as const, aiVerdict: "見送り"   as const },
+  { id: "s10", name: "CASIO G-SHOCK DW-5600 新品未使用",       buy: 12000, sell: 38000, profit: 21000, rate: 68, rating: "excellent", source: "ネット仕入", platform: "eBay 🌏",    aiScore: 95, trend: "up"     as const, demand: "高" as const, soldPerMonth: 62, competition: "少" as const, aiVerdict: "強く買い" as const },
+];
+
+const AI_HOT_GENRES = [
+  { label: "フィルムカメラ", emoji: "📷", reason: "ヴィンテージ人気急上昇" },
+  { label: "セイコー腕時計", emoji: "⌚", reason: "海外評価No.1" },
+  { label: "ポケモンカード", emoji: "🃏", reason: "海外需要が安定" },
+  { label: "盆栽・BONSAI",   emoji: "🌿", reason: "欧米で爆発的人気" },
+  { label: "G-SHOCK",        emoji: "⏱️", reason: "定番高利益ジャンル" },
+  { label: "レゴ廃盤品",     emoji: "🧱", reason: "廃番品は希少価値高" },
 ];
 
 const BASE = "/api/proxy";
@@ -191,38 +200,72 @@ function ScanStars({ n }: { n: number }) {
 }
 
 // ── Sample Result Card ───────────────────────────────────
-function SampleResultCard({ name, buy, sell, profit, rate, rating, source, platform }: typeof SAMPLE_SCAN_ITEMS[0]) {
+function SampleResultCard({ name, buy, sell, profit, rate, rating, source, platform, aiScore, trend, demand, soldPerMonth, competition, aiVerdict }: typeof SAMPLE_SCAN_ITEMS[0]) {
   const rt = RATING[rating as keyof typeof RATING] ?? RATING.ok;
   const stars = RATING_STARS[rating] ?? 3;
   const isProfit = profit >= 0;
   const profitColor = isProfit ? rt.color : "#ff4444";
   const profitBg = isProfit ? rt.bg : "rgba(255,68,68,0.08)";
+
+  const trendIcon = trend === "up" ? "↑" : trend === "down" ? "↓" : "→";
+  const trendColor = trend === "up" ? "#4ade80" : trend === "down" ? "#ff5555" : "#ffcc44";
+  const trendLabel = trend === "up" ? "上昇中" : trend === "down" ? "下落中" : "安定";
+
+  const aiVerdictColor = aiVerdict === "強く買い" ? "#4ade80" : aiVerdict === "買い" ? "var(--blue)" : aiVerdict === "様子見" ? "#ffcc44" : "#ff5555";
+  const aiVerdictBg   = aiVerdict === "強く買い" ? "rgba(74,222,128,0.12)" : aiVerdict === "買い" ? "rgba(0,111,230,0.1)" : aiVerdict === "様子見" ? "rgba(255,204,68,0.1)" : "rgba(255,85,85,0.1)";
+
+  const scoreColor = aiScore >= 80 ? "#4ade80" : aiScore >= 60 ? "var(--blue)" : aiScore >= 40 ? "#ffcc44" : "#ff5555";
+  const sg_r = 14; const sg_circ = 2 * Math.PI * sg_r;
+  const sg_dash = (aiScore / 100) * sg_circ;
+
+  const demandColor = demand === "高" ? "#4ade80" : demand === "中" ? "#ffcc44" : "#ff9944";
+  const compColor   = competition === "少" ? "#4ade80" : competition === "中" ? "#ffcc44" : "#ff9944";
+
   return (
-    <div style={{ background: "var(--surface)", border: `1px solid ${profitColor}30`, borderRadius: 14, overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: `1px solid ${isProfit ? profitColor + "28" : "#ff444428"}`, borderRadius: 16, overflow: "hidden", transition: "box-shadow 0.2s", boxShadow: aiScore >= 80 ? `0 2px 16px ${profitColor}12` : "none" }}>
       {/* 上部カラーバー */}
-      <div style={{ height: 4, background: isProfit ? `linear-gradient(90deg, ${profitColor}, ${profitColor}44)` : "linear-gradient(90deg, #ff4444, #ff444440)" }} />
+      <div style={{ height: 3, background: isProfit ? `linear-gradient(90deg, ${profitColor}, ${profitColor}44)` : "linear-gradient(90deg, #ff5555, #ff555540)" }} />
 
       <div style={{ padding: "14px 16px" }}>
-        {/* ヘッダー: 評価バッジ + 仕入れ元 */}
+        {/* AI判定 + 相場トレンド */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <span style={{ fontSize: 10, background: rt.bg, border: `1px solid ${rt.color}44`, borderRadius: 20, padding: "2px 10px", color: rt.color, fontWeight: 800 }}>{rt.label}</span>
-          <span style={{ fontSize: 10, color: "var(--text-3)" }}>{source} → {platform}</span>
+          <span style={{ fontSize: 10, background: aiVerdictBg, border: `1px solid ${aiVerdictColor}40`, borderRadius: 20, padding: "3px 11px", color: aiVerdictColor, fontWeight: 800, letterSpacing: "0.02em" }}>
+            🤖 {aiVerdict}
+          </span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: trendColor }}>
+            {trendIcon} 相場{trendLabel}
+          </span>
         </div>
 
-        {/* 商品名 */}
-        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 12, lineHeight: 1.5 }}>{name}</div>
+        {/* AIスコアゲージ + 商品名 */}
+        <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
+          <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+            <svg width={36} height={36}>
+              <circle cx={18} cy={18} r={sg_r} fill="none" stroke="var(--border)" strokeWidth={3} />
+              <circle cx={18} cy={18} r={sg_r} fill="none" stroke={scoreColor} strokeWidth={3}
+                strokeDasharray={`${sg_dash} ${sg_circ}`} strokeLinecap="round"
+                style={{ transform: "rotate(-90deg)", transformOrigin: "50% 50%" }} />
+              <text x={18} y={22} textAnchor="middle" fontSize={9} fontWeight={900} fill={scoreColor}>{aiScore}</text>
+            </svg>
+            <div style={{ fontSize: 8, color: "var(--text-4)", letterSpacing: "0.02em" }}>AIスコア</div>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", lineHeight: 1.5 }}>{name}</div>
+            <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 3 }}>{source} → {platform}</div>
+          </div>
+        </div>
 
-        {/* ★ 利益メインパネル ★ */}
+        {/* 利益メインパネル */}
         <div style={{ background: profitBg, border: `1px solid ${profitColor}30`, borderRadius: 10, padding: "10px 14px", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 2 }}>想定利益</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: profitColor, fontFamily: "monospace", lineHeight: 1 }}>
+            <div style={{ fontSize: 9, color: "var(--text-3)", marginBottom: 3 }}>想定利益</div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: profitColor, fontFamily: "monospace", lineHeight: 1 }}>
               {isProfit ? "+" : ""}¥{profit.toLocaleString()}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 2 }}>利益率</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: profitColor, fontFamily: "monospace", lineHeight: 1 }}>{rate}%</div>
+            <div style={{ fontSize: 9, color: "var(--text-3)", marginBottom: 3 }}>利益率</div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: profitColor, fontFamily: "monospace", lineHeight: 1 }}>{rate}%</div>
           </div>
         </div>
 
@@ -230,13 +273,27 @@ function SampleResultCard({ name, buy, sell, profit, rate, rating, source, platf
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
           <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: 8, padding: "7px 10px" }}>
             <div style={{ fontSize: 9, color: "var(--text-3)" }}>仕入れ</div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-2)", fontFamily: "monospace" }}>¥{buy.toLocaleString()}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-2)", fontFamily: "monospace" }}>¥{buy.toLocaleString()}</div>
           </div>
-          <TrendingUp size={14} color={profitColor} />
+          <TrendingUp size={13} color={profitColor} />
           <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: 8, padding: "7px 10px", textAlign: "right" }}>
             <div style={{ fontSize: 9, color: "var(--text-3)" }}>販売</div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-2)", fontFamily: "monospace" }}>¥{sell.toLocaleString()}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-2)", fontFamily: "monospace" }}>¥{sell.toLocaleString()}</div>
           </div>
+        </div>
+
+        {/* 需要・競合・月間販売数 */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
+          {[
+            { label: "需要", val: demand,                   color: demandColor },
+            { label: "競合", val: competition,              color: compColor },
+            { label: "月販", val: `${soldPerMonth}件`,      color: "var(--text-2)" },
+          ].map(({ label, val, color }) => (
+            <div key={label} style={{ background: "var(--surface-2)", borderRadius: 7, padding: "6px 8px", textAlign: "center" }}>
+              <div style={{ fontSize: 8, color: "var(--text-4)", marginBottom: 2 }}>{label}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color }}>{val}</div>
+            </div>
+          ))}
         </div>
 
         {/* おすすめ度 */}
@@ -623,11 +680,14 @@ function ScannerPageContent() {
 
       {/* ── クイック商品検索 ── */}
       <div style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: 14, padding: "18px 20px", marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text)", marginBottom: 10 }}>📦 商品名で利益を調べる</div>
-        <div className="scanner-quickbar" style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+          <Sparkles size={15} color="var(--blue)" />
+          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text)" }}>AI利益スキャン — 商品名を入れると瞬時に分析</span>
+        </div>
+        <div className="scanner-quickbar" style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           <input
             style={{ flex: 1, background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--text)", padding: "14px 16px", fontSize: 15, outline: "none", minHeight: 52 }}
-            placeholder="例：スニーカー、カメラ、フィギュア、ゲーム機..."
+            placeholder="例：セイコー腕時計、ポケモンカード、フィルムカメラ..."
             value={quickKw}
             onChange={e => setQuickKw(e.target.value)}
             onKeyDown={e => e.key === "Enter" && doQuickScan()}
@@ -646,6 +706,17 @@ function ScannerPageContent() {
           >
             <Radar size={16} /> 利益を調べる
           </button>
+        </div>
+        {/* AIが今週注目しているジャンル */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, flexShrink: 0 }}>🔥 AI注目:</span>
+          {AI_HOT_GENRES.map(g => (
+            <button key={g.label} onClick={() => { setQuickKw(g.label); }}
+              style={{ display: "flex", alignItems: "center", gap: 4, background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 600, color: "var(--text-2)", cursor: "pointer", transition: "all 0.15s" }}>
+              <span>{g.emoji}</span>
+              <span>{g.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -902,12 +973,46 @@ function ScannerPageContent() {
       {/* ── スキャン結果グリッド ── */}
       {processed.length === 0 && results.length === 0 && !scanning ? (
         <div>
+          {/* AIが選んだ今週のイチオシ TOP3 */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <Crown size={16} color="#D4AF37" />
+              <span style={{ fontSize: 16, fontWeight: 900, color: "var(--text)" }}>AIが選んだ今週のイチオシ</span>
+              <span style={{ fontSize: 10, color: "var(--text-4)", background: "rgba(212,175,55,0.08)", border: "1px solid var(--border)", borderRadius: 5, padding: "2px 8px", marginLeft: "auto" }}>SAMPLE</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              {SAMPLE_SCAN_ITEMS.filter(i => i.aiVerdict === "強く買い").slice(0, 3).map((item, idx) => {
+                const rc = ["#FFD700", "#C0C0C0", "#CD7F32"][idx];
+                const rankLabel = ["🥇 1位", "🥈 2位", "🥉 3位"][idx];
+                return (
+                  <div key={item.id} style={{ background: `linear-gradient(145deg, var(--surface) 60%, ${rc}06 100%)`, border: `1px solid ${rc}45`, borderRadius: 14, padding: "14px 16px", position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${rc}, ${rc}44)` }} />
+                    <div style={{ fontSize: 11, fontWeight: 900, color: rc, marginBottom: 6, letterSpacing: "0.04em" }}>{rankLabel}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", lineHeight: 1.4, marginBottom: 10, minHeight: 36 }}>{item.name}</div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                      <div>
+                        <div style={{ fontSize: 9, color: "var(--text-3)" }}>想定利益</div>
+                        <div style={{ fontSize: 20, fontWeight: 900, color: rc, fontFamily: "monospace", lineHeight: 1 }}>+¥{item.profit.toLocaleString()}</div>
+                        <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>利益率 {item.rate}%</div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 9, color: "var(--text-3)" }}>AIスコア</div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: rc, fontFamily: "monospace", lineHeight: 1 }}>{item.aiScore}</div>
+                        <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 2 }}>月販 {item.soldPerMonth}件</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 全件グリッド */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>利益候補サンプル</div>
-              <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>実際にスキャンした結果のサンプルです。上の検索欄に商品名を入れると実際の結果が表示されます</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>全スキャン結果（サンプル 10件）</div>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>上の検索欄に商品名を入れると実際の結果が表示されます</div>
             </div>
-            <span style={{ fontSize: 10, color: "var(--text-4)", background: "rgba(212,175,55,0.08)", border: "1px solid var(--border)", borderRadius: 5, padding: "2px 8px" }}>SAMPLE</span>
           </div>
           <div className="scanner-sample" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
             {SAMPLE_SCAN_ITEMS.map(item => <SampleResultCard key={item.id} {...item} />)}
