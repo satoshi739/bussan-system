@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { getCompetitionAnalysis, type CompetitionResult } from "@/lib/api";
 
-const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
 
 const STATUS_CONFIG = {
   high:         { label: "価格が高め",   color: "#ff9966", bg: "rgba(255,100,50,0.07)",  border: "rgba(255,100,50,0.3)"  },
-  competitive:  { label: "競争力あり",   color: "#D4AF37", bg: "rgba(212,175,55,0.06)",    border: "rgba(212,175,55,0.25)"   },
+  competitive:  { label: "競争力あり",   color: "var(--blue)", bg: "rgba(212,175,55,0.06)",    border: "rgba(212,175,55,0.25)"   },
   low:          { label: "価格が低め",   color: "#66ccff", bg: "rgba(100,180,255,0.06)", border: "rgba(100,180,255,0.25)" },
 };
 
@@ -40,13 +40,13 @@ export default function CompetitionPage() {
           .comp-detail-grid { grid-template-columns: repeat(2,1fr) !important; }
         }
       `}</style>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>競合セラー分析</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 24, marginTop: 3 }}>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>競合セラー分析</h1>
+      <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 24, marginTop: 3 }}>
         出品中の商品の市場相場をリアルタイムで取得して、あなたの価格の競争力を診断します
       </div>
 
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 16, lineHeight: 1.8 }}>
+        <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 16, lineHeight: 1.8 }}>
           現在「アクティブ」な出品（最大10件）の市場相場を自動で検索・比較します。<br />
           取得に30〜60秒程度かかります。
         </div>
@@ -78,7 +78,7 @@ export default function CompetitionPage() {
         <div style={{ ...card, textAlign: "center", padding: 48 }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>🎯</div>
           <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>分析結果がありません</div>
-          <div style={{ color: "#8A8278", fontSize: 13 }}>
+          <div style={{ color: "var(--text-3)", fontSize: 13 }}>
             アクティブな出品がないか、相場データを取得できませんでした
           </div>
         </div>
@@ -108,8 +108,8 @@ export default function CompetitionPage() {
                 <div key={i} style={{ ...card, background: cfg.bg, borderColor: cfg.border }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
                     <div>
-                      <div style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 15 }}>{r.product_name}</div>
-                      <div style={{ fontSize: 12, color: "#8A8278", marginTop: 3 }}>
+                      <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 15 }}>{r.product_name}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>
                         {r.selling_platform} · 市場 {r.market_items} 件
                       </div>
                     </div>
@@ -120,13 +120,13 @@ export default function CompetitionPage() {
 
                   <div className="comp-detail-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginTop: 14 }}>
                     {[
-                      { label: "自分の価格",   value: `¥${r.your_price.toLocaleString()}`,             color: "#F5F0E8" },
+                      { label: "自分の価格",   value: `¥${r.your_price.toLocaleString()}`,             color: "var(--text)" },
                       { label: "市場平均",     value: `¥${r.market_avg.toLocaleString()}`,             color: "#66ccff" },
                       { label: "市場最安",     value: `¥${r.market_min.toLocaleString()}`,             color: "#ffcc44" },
                       { label: "平均比",       value: `${r.diff_pct > 0 ? "+" : ""}${r.diff_pct}%`,   color: cfg.color },
                     ].map(({ label, value, color }) => (
                       <div key={label} style={{ background: "rgba(0,0,0,0.25)", borderRadius: 8, padding: "10px 12px" }}>
-                        <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>{label}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>{label}</div>
                         <div style={{ fontFamily: "monospace", fontWeight: 700, color, fontSize: 15 }}>{value}</div>
                       </div>
                     ))}

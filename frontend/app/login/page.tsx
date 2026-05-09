@@ -256,8 +256,8 @@ export default function LoginPage() {
   };
 
   const card: React.CSSProperties = {
-    background: "rgba(10,21,48,0.97)",
-    border: "1px solid rgba(201,169,107,0.20)",
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
     borderRadius: 18,
     padding: "48px 44px",
     maxWidth: 420,
@@ -267,10 +267,10 @@ export default function LoginPage() {
 
   const inp: React.CSSProperties = {
     width: "100%",
-    background: "rgba(10,10,11,0.9)",
-    border: "1px solid rgba(201,169,107,0.25)",
+    background: "var(--surface-2)",
+    border: "1px solid var(--border)",
     borderRadius: 10,
-    color: "#f5f1e8",
+    color: "var(--text)",
     padding: "12px 16px",
     fontSize: 14,
     outline: "none",
@@ -288,7 +288,7 @@ export default function LoginPage() {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "100vh",
-          background: "#07101f",
+          background: "var(--bg)",
           gap: 40,
           padding: "24px 16px",
         }}

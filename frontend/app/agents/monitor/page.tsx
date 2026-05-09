@@ -7,13 +7,13 @@ import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
 const C = {
-  bg0: "#0a0a0b", bg1: "#141414", bg2: "#1c1c1e", bg3: "#242424",
-  t1: "#F5F0E8", t2: "#D4CCBC", t3: "#A09488", t4: "#5A5248",
-  gold: "#D4AF37", goldLt: "#F0D060",
-  up: "#4ade80", dn: "#f87171", warn: "#fbbf24",
-  bd: "rgba(212,175,55,0.18)",
+  bg0: "var(--bg)", bg1: "var(--surface)", bg2: "var(--surface-2)", bg3: "var(--surface-2)",
+  t1: "var(--text)", t2: "var(--text-2)", t3: "var(--text-3)", t4: "var(--text-4)",
+  gold: "var(--blue)", goldLt: "var(--blue-lt)",
+  up: "#1E9C3C", dn: "#E02E24", warn: "#E88500",
+  bd: "var(--border)",
 };
-const card: React.CSSProperties = { background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 14, padding: "20px 24px" };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
 
 const TASK_LABELS: Record<string, { label: string; desc: string; icon: typeof Play }> = {
   daily_scan:    { label: "デイリースキャン今すぐ実行", desc: "全キーワードをスキャンして承認キューへ",  icon: Brain },

@@ -6,8 +6,8 @@ import { Plus, DollarSign, X, Tag, TrendingUp, Zap } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
-const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "8px 12px", fontSize: 14, width: "100%", outline: "none", boxSizing: "border-box" };
-const lbl: React.CSSProperties = { fontSize: 12, color: "#8A8278", fontWeight: 600, display: "block", marginBottom: 4 };
+const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "8px 12px", fontSize: 14, width: "100%", outline: "none", boxSizing: "border-box" };
+const lbl: React.CSSProperties = { fontSize: 12, color: "var(--text-3)", fontWeight: 600, display: "block", marginBottom: 4 };
 
 const SELL_PLATFORMS = [
   { key: "メルカリ",          flag: "🏪", fee: "10%",   area: "国内" },
@@ -148,13 +148,13 @@ export default function ListingsPage() {
       {/* ── ヘッダー ── */}
       <div className="listing-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>出品管理</h1>
-          <div style={{ fontSize: 12, color: "#8A8278", marginTop: 3 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>出品管理</h1>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>
             出品中 <span style={{ color: "#66ccff", fontWeight: 700 }}>{active.length}件</span>
-            　売却済 <span style={{ color: "#D4AF37", fontWeight: 700 }}>{sold.length}件</span>
+            　売却済 <span style={{ color: "var(--blue)", fontWeight: 700 }}>{sold.length}件</span>
           </div>
         </div>
-        <button onClick={() => { setShowForm(!showForm); setFormComparison(null); }} style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+        <button onClick={() => { setShowForm(!showForm); setFormComparison(null); }} style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "var(--blue)", padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
           <Plus size={16} /> 出品追加
         </button>
       </div>
@@ -214,7 +214,7 @@ export default function ListingsPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
                 <Zap size={13} color="#ffcc44" />
                 <span style={{ fontSize: 12, color: "#ffcc44", fontWeight: 700 }}>どのプラットフォームで売ると最も利益が出るか</span>
-                {compLoading && <span style={{ fontSize: 11, color: "#8A8278" }}>計算中...</span>}
+                {compLoading && <span style={{ fontSize: 11, color: "var(--text-3)" }}>計算中...</span>}
               </div>
               {!compLoading && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -226,14 +226,14 @@ export default function ListingsPage() {
                       <button key={name} onClick={() => setFormField("selling_platform", name)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 8, border: isSelected ? "1px solid rgba(212,175,55,0.5)" : isBest ? "1px solid rgba(255,204,68,0.3)" : "1px solid rgba(212,175,55,0.07)", background: isSelected ? "rgba(212,175,55,0.08)" : isBest ? "rgba(255,204,68,0.04)" : "transparent", cursor: "pointer", width: "100%", transition: "all 0.12s" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           {isSelected && <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#D4AF37", flexShrink: 0 }} />}
-                          <span style={{ fontSize: 13, color: "#F5F0E8" }}>{data.emoji} {name}</span>
+                          <span style={{ fontSize: 13, color: "var(--text)" }}>{data.emoji} {name}</span>
                           {isBest && <span style={{ fontSize: 10, background: "rgba(255,204,68,0.2)", border: "1px solid rgba(255,204,68,0.4)", borderRadius: 10, padding: "1px 6px", color: "#ffcc44" }}>最高利益</span>}
                         </div>
                         <div>
                           <span style={{ fontSize: 14, fontWeight: 700, color: profit >= 0 ? "#D4AF37" : "#ff6666", fontFamily: "monospace" }}>
                             {profit >= 0 ? "+" : ""}¥{profit.toLocaleString()}
                           </span>
-                          <span style={{ fontSize: 11, color: "#8A8278", marginLeft: 6 }}>{data.profit_rate.toFixed(1)}%</span>
+                          <span style={{ fontSize: 11, color: "var(--text-3)", marginLeft: 6 }}>{data.profit_rate.toFixed(1)}%</span>
                         </div>
                       </button>
                     );
@@ -241,24 +241,24 @@ export default function ListingsPage() {
                 </div>
               )}
               {bestPlatform && !compLoading && (
-                <div style={{ marginTop: 10, fontSize: 12, color: "#8A8278" }}>
-                  クリックでプラットフォームを選択できます。現在: <span style={{ color: "#D4AF37", fontWeight: 700 }}>{form.selling_platform}</span>
+                <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-3)" }}>
+                  クリックでプラットフォームを選択できます。現在: <span style={{ color: "var(--blue)", fontWeight: 700 }}>{form.selling_platform}</span>
                 </div>
               )}
             </div>
           )}
 
           {!formComparison && !compLoading && form.purchase_id && !form.listing_price && (
-            <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 14, padding: "10px 14px", background: "rgba(0,0,0,0.2)", borderRadius: 8 }}>
+            <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 14, padding: "10px 14px", background: "rgba(0,0,0,0.2)", borderRadius: 8 }}>
               出品価格を入力すると、プラットフォーム別の利益比較が表示されます
             </div>
           )}
 
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={handleList} disabled={listLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "10px 28px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+            <button onClick={handleList} disabled={listLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "10px 28px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
               {listLoading ? "保存中..." : `${form.selling_platform} に出品登録`}
             </button>
-            <button onClick={() => { setShowForm(false); setFormComparison(null); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "10px 16px", cursor: "pointer" }}>キャンセル</button>
+            <button onClick={() => { setShowForm(false); setFormComparison(null); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "10px 16px", cursor: "pointer" }}>キャンセル</button>
           </div>
         </div>
       )}
@@ -267,11 +267,11 @@ export default function ListingsPage() {
       {sellModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={e => e.target === e.currentTarget && setSellModal(null)}>
           <div style={{ background: "#0a0a0b", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 16, padding: 28, width: 520, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
-            <button onClick={() => setSellModal(null)} style={{ position: "absolute", top: 14, right: 14, background: "transparent", border: "none", color: "#8A8278", cursor: "pointer" }}><X size={18} /></button>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F0E8", marginBottom: 4 }}>売却記録</div>
+            <button onClick={() => setSellModal(null)} style={{ position: "absolute", top: 14, right: 14, background: "transparent", border: "none", color: "var(--text-3)", cursor: "pointer" }}><X size={18} /></button>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", marginBottom: 4 }}>売却記録</div>
             <div style={{ background: "rgba(10,10,11,0.8)", borderRadius: 8, padding: "10px 14px", marginBottom: 16, border: "1px solid rgba(212,175,55,0.1)" }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#F5F0E8" }}>{sellModal.product_name}</div>
-              <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>出品価格 ¥{sellModal.listing_price.toLocaleString()} · {sellModal.selling_platform}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{sellModal.product_name}</div>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>出品価格 ¥{sellModal.listing_price.toLocaleString()} · {sellModal.selling_platform}</div>
             </div>
             <div style={{ marginBottom: 14 }}>
               <label style={lbl}>実際の売却価格 (円)</label>
@@ -279,7 +279,7 @@ export default function ListingsPage() {
             </div>
             {sortedComp(sellComparison).length > 0 && (
               <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, color: "#8A8278", fontWeight: 700, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ fontSize: 12, color: "var(--text-3)", fontWeight: 700, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
                   <TrendingUp size={12} /> プラットフォーム別利益
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -290,11 +290,11 @@ export default function ListingsPage() {
                     return (
                       <button key={name} onClick={() => setSellPlatform(name)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 8, border: isSelected ? "1px solid rgba(212,175,55,0.5)" : "1px solid rgba(212,175,55,0.07)", background: isSelected ? "rgba(212,175,55,0.08)" : "transparent", cursor: "pointer", width: "100%" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ fontSize: 13, color: "#F5F0E8" }}>{data.emoji} {name}</span>
-                          {isBest && <span style={{ fontSize: 10, background: "rgba(212,175,55,0.15)", borderRadius: 10, padding: "1px 6px", color: "#D4AF37" }}>最高</span>}
+                          <span style={{ fontSize: 13, color: "var(--text)" }}>{data.emoji} {name}</span>
+                          {isBest && <span style={{ fontSize: 10, background: "rgba(212,175,55,0.15)", borderRadius: 10, padding: "1px 6px", color: "var(--blue)" }}>最高</span>}
                         </div>
                         <span style={{ fontSize: 14, fontWeight: 700, color: profit >= 0 ? "#D4AF37" : "#ff6666", fontFamily: "monospace" }}>
-                          {profit >= 0 ? "+" : ""}¥{profit.toLocaleString()} <span style={{ fontSize: 11, color: "#8A8278" }}>({data.profit_rate.toFixed(1)}%)</span>
+                          {profit >= 0 ? "+" : ""}¥{profit.toLocaleString()} <span style={{ fontSize: 11, color: "var(--text-3)" }}>({data.profit_rate.toFixed(1)}%)</span>
                         </span>
                       </button>
                     );
@@ -303,10 +303,10 @@ export default function ListingsPage() {
               </div>
             )}
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={handleSell} disabled={sellLoading || !sellPrice} style={{ flex: 1, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "12px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: (!sellPrice || sellLoading) ? 0.5 : 1 }}>
+              <button onClick={handleSell} disabled={sellLoading || !sellPrice} style={{ flex: 1, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "12px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: (!sellPrice || sellLoading) ? 0.5 : 1 }}>
                 {sellLoading ? "記録中..." : "売却を記録する"}
               </button>
-              <button onClick={() => setSellModal(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "12px 16px", cursor: "pointer" }}>キャンセル</button>
+              <button onClick={() => setSellModal(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "12px 16px", cursor: "pointer" }}>キャンセル</button>
             </div>
           </div>
         </div>
@@ -324,8 +324,8 @@ export default function ListingsPage() {
               return (
                 <div key={item.id} className="listing-row" style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(100,200,255,0.12)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.product_name}</div>
-                    <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2, display: "flex", gap: 8 }}>
+                    <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.product_name}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2, display: "flex", gap: 8 }}>
                       <span>{item.platform} → {pf?.flag ?? ""} {item.selling_platform}</span>
                       {pf && <span style={{ color: "#4a6a7a" }}>手数料 {pf.fee}</span>}
                       {item.listed_date && <span>出品日 {item.listed_date}</span>}
@@ -333,7 +333,7 @@ export default function ListingsPage() {
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ fontFamily: "monospace", fontWeight: 700, color: "#66ccff", fontSize: 15 }}>¥{item.listing_price.toLocaleString()}</div>
-                    <div style={{ fontSize: 10, color: "#8A8278" }}>出品価格</div>
+                    <div style={{ fontSize: 10, color: "var(--text-3)" }}>出品価格</div>
                   </div>
                   <button onClick={() => openSell(item)} style={{ background: "rgba(0,80,30,0.7)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#9A7D25", cursor: "pointer", padding: "7px 14px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                     <DollarSign size={12} /> 売れた
@@ -348,7 +348,7 @@ export default function ListingsPage() {
       {/* ── 売却済み ── */}
       {sold.length > 0 && (
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#8A8278", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
             <TrendingUp size={13} /> 売却済み ({sold.length}件)
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -358,8 +358,8 @@ export default function ListingsPage() {
                   <div style={{ fontWeight: 600, color: "#a8d8b8", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.product_name}</div>
                   <div style={{ fontSize: 11, color: "#3a6a4a" }}>{item.platform} → {item.selling_platform}</div>
                 </div>
-                <div style={{ fontFamily: "monospace", color: "#8A8278", fontSize: 13 }}>¥{item.listing_price.toLocaleString()}</div>
-                <span style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 20, padding: "2px 10px", fontSize: 11, color: "#8A8278", flexShrink: 0 }}>売却済</span>
+                <div style={{ fontFamily: "monospace", color: "var(--text-3)", fontSize: 13 }}>¥{item.listing_price.toLocaleString()}</div>
+                <span style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 20, padding: "2px 10px", fontSize: 11, color: "var(--text-3)", flexShrink: 0 }}>売却済</span>
               </div>
             ))}
           </div>
@@ -370,8 +370,8 @@ export default function ListingsPage() {
         <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, textAlign: "center", padding: 48 }}>
           <Tag size={36} color="rgba(212,175,55,0.25)" style={{ margin: "0 auto 16px", display: "block" }} />
           <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>出品データがありません</div>
-          <div style={{ color: "#8A8278", fontSize: 13, marginBottom: 16 }}>仕入れた商品をどのプラットフォームに出品するか登録できます</div>
-          <button onClick={() => setShowForm(true)} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: "#D4AF37", padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+          <div style={{ color: "var(--text-3)", fontSize: 13, marginBottom: 16 }}>仕入れた商品をどのプラットフォームに出品するか登録できます</div>
+          <button onClick={() => setShowForm(true)} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: "var(--blue)", padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
             出品を登録する →
           </button>
         </div>

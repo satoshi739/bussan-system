@@ -169,7 +169,7 @@ export default function AdminPage() {
   };
 
   if (status === "loading" || loading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", color: "#8A8278" }}>読み込み中...</div>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", color: "var(--text-3)" }}>読み込み中...</div>
   );
   if (error) return <div style={{ color: "#ff6666", padding: 40 }}>{error}</div>;
   if (!stats) return null;
@@ -184,7 +184,7 @@ export default function AdminPage() {
   const filteredContents = platformFilter === "all" ? contents : contents.filter(c => c.platform === platformFilter);
 
   const card = (children: React.ReactNode, style?: React.CSSProperties) => (
-    <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 14, padding: "20px 24px", ...style }}>
+    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px", ...style }}>
       {children}
     </div>
   );
@@ -194,10 +194,10 @@ export default function AdminPage() {
       {/* ヘッダー */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#D4AF37", margin: 0 }}>👑 管理者ダッシュボード</h1>
-          <div style={{ fontSize: 12, color: "#8A8278", marginTop: 3 }}>全ユーザーの状態・MRR・チャーン分析・コンテンツ管理</div>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--blue)", margin: 0 }}>👑 管理者ダッシュボード</h1>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>全ユーザーの状態・MRR・チャーン分析・コンテンツ管理</div>
         </div>
-        <button onClick={fetchStats} style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 8, color: "#8A8278", padding: "8px 14px", fontSize: 12, cursor: "pointer" }}>
+        <button onClick={fetchStats} style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 8, color: "var(--text-3)", padding: "8px 14px", fontSize: 12, cursor: "pointer" }}>
           <RefreshCw size={13} /> 更新
         </button>
       </div>
@@ -205,29 +205,29 @@ export default function AdminPage() {
       {/* KPIカード */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 20 }}>
         {[
-          { icon: <TrendingUp size={18} />, color: "#D4AF37", label: "MRR", value: `¥${stats.mrr.toLocaleString()}`, sub: `有料 ${payingUsers}人` },
+          { icon: <TrendingUp size={18} />, color: "var(--blue)", label: "MRR", value: `¥${stats.mrr.toLocaleString()}`, sub: `有料 ${payingUsers}人` },
           { icon: <Users size={18} />, color: "#66ccff", label: "総ユーザー", value: stats.totalUsers, sub: `直近30日 +${stats.newUsersLast30}` },
           { icon: <Activity size={18} />, color: "#44ccaa", label: "アクティブ", value: stats.activeUsers, sub: "仕入れ1件以上" },
           { icon: <Crown size={18} />, color: "#aa88ff", label: "転換率", value: `${conversionRate}%`, sub: "有料化率" },
           { icon: <AlertTriangle size={18} />, color: "#ff6666", label: "離脱危険", value: stats.churnSummary.high, sub: "14日超フリー" },
         ].map(({ icon, color, label, value, sub }) => (
-          <div key={label} style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 14, padding: "16px 18px" }}>
+          <div key={label} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "16px 18px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5, color, marginBottom: 8 }}>{icon}<span style={{ fontSize: 10, fontWeight: 700 }}>{label}</span></div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: "#F5F0E8", fontFamily: "monospace" }}>{value}</div>
-            <div style={{ fontSize: 10, color: "#8A8278", marginTop: 3 }}>{sub}</div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: "var(--text)", fontFamily: "monospace" }}>{value}</div>
+            <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 3 }}>{sub}</div>
           </div>
         ))}
       </div>
 
       {/* タブ */}
-      <div style={{ display: "flex", gap: 0, marginBottom: 20, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(212,175,55,0.15)", width: "fit-content" }}>
+      <div style={{ display: "flex", gap: 0, marginBottom: 20, borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)", width: "fit-content" }}>
         {([
           ["overview", "概要"],
           ["churn", `チャーン分析 (${stats.churnSummary.high + stats.churnSummary.medium})`],
           ["users", `全ユーザー (${stats.totalUsers})`],
           ["content", `コンテンツ管理 (${contents.length})`],
         ] as [Tab, string][]).map(([t, label]) => (
-          <button key={t} onClick={() => setTab(t)} style={{ padding: "9px 18px", background: tab === t ? "rgba(212,175,55,0.12)" : "transparent", border: "none", borderRight: "1px solid rgba(212,175,55,0.15)", color: tab === t ? "#D4AF37" : "#8A8278", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+          <button key={t} onClick={() => setTab(t)} style={{ padding: "9px 18px", background: tab === t ? "var(--nav-active)" : "transparent", border: "none", borderRight: "1px solid var(--border)", color: tab === t ? "var(--blue)" : "var(--text-3)", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
             {label}
           </button>
         ))}
@@ -245,7 +245,7 @@ export default function AdminPage() {
                 <div key={plan} style={{ marginBottom: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                     <span style={{ fontSize: 12, color: PLAN_COLOR[plan], fontWeight: 700 }}>{PLAN_LABEL[plan]}</span>
-                    <span style={{ fontSize: 12, color: "#F5F0E8", fontFamily: "monospace" }}>{count}人 ({pct.toFixed(0)}%)</span>
+                    <span style={{ fontSize: 12, color: "var(--text)", fontFamily: "monospace" }}>{count}人 ({pct.toFixed(0)}%)</span>
                   </div>
                   <div style={{ height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
                     <div style={{ width: `${pct}%`, height: "100%", background: PLAN_COLOR[plan], borderRadius: 3, opacity: plan === "FREE" ? 0.4 : 0.85 }} />
@@ -254,8 +254,8 @@ export default function AdminPage() {
               );
             })}
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(212,175,55,0.08)", display: "flex", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 12, color: "#8A8278" }}>月次収益（MRR）</span>
-              <span style={{ fontSize: 16, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>¥{stats.mrr.toLocaleString()}</span>
+              <span style={{ fontSize: 12, color: "var(--text-3)" }}>月次収益（MRR）</span>
+              <span style={{ fontSize: 16, fontWeight: 900, color: "var(--blue)", fontFamily: "monospace" }}>¥{stats.mrr.toLocaleString()}</span>
             </div>
           </>)}
 
@@ -264,7 +264,7 @@ export default function AdminPage() {
             {(["high", "medium", "low", "safe"] as const).map(risk => (
               <div key={risk} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(212,175,55,0.05)" }}>
                 <span style={{ fontSize: 12, color: RISK_COLOR[risk] }}>{RISK_LABEL[risk]}</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8", fontFamily: "monospace" }}>{stats.churnSummary[risk]}人</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", fontFamily: "monospace" }}>{stats.churnSummary[risk]}人</span>
               </div>
             ))}
             <div style={{ marginTop: 14, fontSize: 11, color: "#5A5248", lineHeight: 1.7 }}>
@@ -278,8 +278,8 @@ export default function AdminPage() {
             {stats.users.slice(0, 5).map(u => (
               <div key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(212,175,55,0.05)" }}>
                 <div>
-                  <div style={{ fontSize: 13, color: "#F5F0E8" }}>{u.email}</div>
-                  <div style={{ fontSize: 11, color: "#8A8278" }}>{u.daysSinceSignup}日前に登録</div>
+                  <div style={{ fontSize: 13, color: "var(--text)" }}>{u.email}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)" }}>{u.daysSinceSignup}日前に登録</div>
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 700, color: PLAN_COLOR[u.plan], background: `${PLAN_COLOR[u.plan]}18`, border: `1px solid ${PLAN_COLOR[u.plan]}33`, borderRadius: 20, padding: "2px 8px" }}>
                   {PLAN_LABEL[u.plan] ?? u.plan}
@@ -298,19 +298,19 @@ export default function AdminPage() {
             このリストに対して <strong>LINE/メールでのフォロー</strong> や <strong>限定割引</strong> を送ると有料転換率が上がります。
           </div>
           {churnUsers.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 60, color: "#8A8278" }}>チャーンリスクユーザーはいません 🎉</div>
+            <div style={{ textAlign: "center", padding: 60, color: "var(--text-3)" }}>チャーンリスクユーザーはいません 🎉</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {churnUsers.map(u => (
                 <div key={u.id} style={{ background: "rgba(20,20,22,0.9)", border: `1px solid ${RISK_COLOR[u.churnRisk]}22`, borderRadius: 12, padding: "14px 18px", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: 12, alignItems: "center" }}>
                   <div>
-                    <div style={{ fontSize: 13, color: "#F5F0E8", fontWeight: 600 }}>{u.email}</div>
-                    <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>登録 {u.daysSinceSignup}日前</div>
+                    <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>{u.email}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>登録 {u.daysSinceSignup}日前</div>
                   </div>
                   <span style={{ fontSize: 11, color: RISK_COLOR[u.churnRisk], fontWeight: 700 }}>{RISK_LABEL[u.churnRisk]}</span>
-                  <div style={{ fontSize: 12, color: "#C8C0B0" }}>仕入れ <span style={{ color: "#F5F0E8", fontWeight: 700 }}>{u.purchaseCount}</span>件</div>
+                  <div style={{ fontSize: 12, color: "#C8C0B0" }}>仕入れ <span style={{ color: "var(--text)", fontWeight: 700 }}>{u.purchaseCount}</span>件</div>
                   <div style={{ fontSize: 12, color: "#C8C0B0" }}>売却 <span style={{ color: u.soldCount > 0 ? "#44ccaa" : "#8A8278", fontWeight: 700 }}>{u.soldCount}</span>件</div>
-                  <div style={{ fontSize: 11, color: "#8A8278" }}>{u.lastPurchaseDate ? `最終: ${u.lastPurchaseDate}` : "未使用"}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)" }}>{u.lastPurchaseDate ? `最終: ${u.lastPurchaseDate}` : "未使用"}</div>
                 </div>
               ))}
             </div>
@@ -325,7 +325,7 @@ export default function AdminPage() {
             value={userFilter}
             onChange={e => setUserFilter(e.target.value)}
             placeholder="メール・名前で検索..."
-            style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10, color: "#F5F0E8", padding: "10px 14px", fontSize: 13, outline: "none", marginBottom: 14, boxSizing: "border-box" }}
+            style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10, color: "var(--text)", padding: "10px 14px", fontSize: 13, outline: "none", marginBottom: 14, boxSizing: "border-box" }}
           />
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <div style={{ display: "grid", gridTemplateColumns: "2fr 0.8fr 0.8fr 0.6fr 0.6fr 0.6fr 0.8fr", gap: 10, padding: "4px 14px", fontSize: 10, color: "#3A3830", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
@@ -334,17 +334,17 @@ export default function AdminPage() {
             {filteredUsers.map(u => (
               <div key={u.id} style={{ display: "grid", gridTemplateColumns: "2fr 0.8fr 0.8fr 0.6fr 0.6fr 0.6fr 0.8fr", gap: 10, padding: "10px 14px", borderRadius: 8, background: "rgba(10,10,11,0.5)", alignItems: "center" }}>
                 <div>
-                  <div style={{ fontSize: 12, color: "#F5F0E8", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</div>
+                  <div style={{ fontSize: 12, color: "var(--text)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</div>
                   {!u.isActive && <span style={{ fontSize: 10, color: "#5A5248" }}>未使用</span>}
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 700, color: PLAN_COLOR[u.plan], background: `${PLAN_COLOR[u.plan]}18`, borderRadius: 20, padding: "2px 8px", width: "fit-content" }}>
                   {PLAN_LABEL[u.plan] ?? u.plan}
                 </span>
                 <span style={{ fontSize: 10, color: RISK_COLOR[u.churnRisk] }}>{RISK_LABEL[u.churnRisk]}</span>
-                <div style={{ fontSize: 12, color: "#F5F0E8", fontFamily: "monospace", textAlign: "center" }}>{u.purchaseCount}</div>
+                <div style={{ fontSize: 12, color: "var(--text)", fontFamily: "monospace", textAlign: "center" }}>{u.purchaseCount}</div>
                 <div style={{ fontSize: 12, color: u.soldCount > 0 ? "#44ccaa" : "#8A8278", fontFamily: "monospace", textAlign: "center" }}>{u.soldCount}</div>
                 <div style={{ fontSize: 11, color: "#C8C0B0", fontFamily: "monospace" }}>{u.totalInvested > 0 ? `¥${Math.round(u.totalInvested / 1000)}k` : "—"}</div>
-                <div style={{ fontSize: 11, color: "#8A8278" }}>{new Date(u.createdAt).toLocaleDateString("ja-JP")}</div>
+                <div style={{ fontSize: 11, color: "var(--text-3)" }}>{new Date(u.createdAt).toLocaleDateString("ja-JP")}</div>
               </div>
             ))}
           </div>
@@ -363,7 +363,7 @@ export default function AdminPage() {
                 </button>
               ))}
             </div>
-            <button onClick={() => setShowForm(true)} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 8, color: "#D4AF37", padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            <button onClick={() => setShowForm(true)} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 8, color: "var(--blue)", padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
               <Plus size={14} /> 新規作成
             </button>
           </div>
@@ -371,46 +371,46 @@ export default function AdminPage() {
           {/* 作成フォーム */}
           {showForm && (
             <div style={{ background: "rgba(20,20,22,0.95)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 14, padding: 24, marginBottom: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#D4AF37", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--blue)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
                 <FileText size={16} /> コンテンツ作成
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 6, fontWeight: 700 }}>プラットフォーム</div>
-                  <select value={form.platform} onChange={e => setForm(f => ({ ...f, platform: e.target.value }))} style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 13, outline: "none" }}>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6, fontWeight: 700 }}>プラットフォーム</div>
+                  <select value={form.platform} onChange={e => setForm(f => ({ ...f, platform: e.target.value }))} style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 13, outline: "none" }}>
                     {["tiktok", "instagram", "x", "dm"].map(p => (
                       <option key={p} value={p}>{PLATFORM_ICON[p]} {PLATFORM_LABEL[p]}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 6, fontWeight: 700 }}>テーマ（任意）</div>
-                  <input value={form.theme} onChange={e => setForm(f => ({ ...f, theme: e.target.value }))} placeholder="例: 国内転売・利益率30%の商品の見つけ方" style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                  <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6, fontWeight: 700 }}>テーマ（任意）</div>
+                  <input value={form.theme} onChange={e => setForm(f => ({ ...f, theme: e.target.value }))} placeholder="例: 国内転売・利益率30%の商品の見つけ方" style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
                 </div>
               </div>
               <button onClick={handleGenerate} disabled={generating} style={{ display: "flex", alignItems: "center", gap: 6, background: generating ? "rgba(100,100,100,0.2)" : "rgba(170,136,255,0.15)", border: "1px solid rgba(170,136,255,0.4)", borderRadius: 8, color: generating ? "#8A8278" : "#aa88ff", padding: "9px 16px", fontSize: 12, fontWeight: 700, cursor: generating ? "not-allowed" : "pointer", marginBottom: 16 }}>
                 <Sparkles size={14} /> {generating ? "AI生成中..." : "AIで生成する"}
               </button>
               <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 6, fontWeight: 700 }}>タイトル</div>
-                <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="タイトルを入力" style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+                <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6, fontWeight: 700 }}>タイトル</div>
+                <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="タイトルを入力" style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
               </div>
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 6, fontWeight: 700 }}>本文</div>
-                <textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} placeholder="本文を入力（AIで生成またはここに直接書く）" rows={8} style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit" }} />
+                <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6, fontWeight: 700 }}>本文</div>
+                <textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} placeholder="本文を入力（AIで生成またはここに直接書く）" rows={8} style={{ width: "100%", background: "rgba(10,10,11,0.9)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit" }} />
               </div>
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={handleSave} style={{ background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "9px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>保存</button>
-                <button onClick={() => { setShowForm(false); setForm({ platform: "tiktok", theme: "", title: "", body: "" }); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "9px 20px", fontSize: 13, cursor: "pointer" }}>キャンセル</button>
+                <button onClick={handleSave} style={{ background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "9px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>保存</button>
+                <button onClick={() => { setShowForm(false); setForm({ platform: "tiktok", theme: "", title: "", body: "" }); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "9px 20px", fontSize: 13, cursor: "pointer" }}>キャンセル</button>
               </div>
             </div>
           )}
 
           {/* コンテンツ一覧 */}
           {contentLoading ? (
-            <div style={{ textAlign: "center", padding: 40, color: "#8A8278" }}>読み込み中...</div>
+            <div style={{ textAlign: "center", padding: 40, color: "var(--text-3)" }}>読み込み中...</div>
           ) : filteredContents.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 60, color: "#8A8278" }}>
+            <div style={{ textAlign: "center", padding: 60, color: "var(--text-3)" }}>
               <div style={{ fontSize: 32, marginBottom: 12 }}>📝</div>
               <div>コンテンツがまだありません</div>
               <div style={{ fontSize: 12, marginTop: 6, color: "#5A5248" }}>「新規作成」からAIで台本を生成できます</div>
@@ -426,7 +426,7 @@ export default function AdminPage() {
                       {PLATFORM_LABEL[item.platform]}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#F5F0E8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.title}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.title}</div>
                       {item.theme && <div style={{ fontSize: 11, color: "#5A5248", marginTop: 2 }}>#{item.theme}</div>}
                     </div>
                     <span style={{ fontSize: 10, fontWeight: 700, color: item.status === "published" ? "#44ccaa" : "#8A8278", background: item.status === "published" ? "rgba(68,204,170,0.1)" : "rgba(255,255,255,0.04)", borderRadius: 20, padding: "2px 8px", flexShrink: 0 }}>
@@ -444,7 +444,7 @@ export default function AdminPage() {
                         <div style={{ marginTop: 16, background: "rgba(0,0,0,0.4)", borderRadius: 10, padding: 12, display: "flex", gap: 16, alignItems: "flex-start" }}>
                           <video src={videoUrls[item.id]} controls style={{ width: 160, borderRadius: 8, background: "#000" }} />
                           <div style={{ display: "flex", flexDirection: "column", gap: 8, justifyContent: "center" }}>
-                            <a href={videoUrls[item.id]} download={`${item.platform}_content.mp4`} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 7, color: "#D4AF37", padding: "8px 14px", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+                            <a href={videoUrls[item.id]} download={`${item.platform}_content.mp4`} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 7, color: "var(--blue)", padding: "8px 14px", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
                               <Download size={12} /> ダウンロード
                             </a>
                             {item.platform === "tiktok" && (

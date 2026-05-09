@@ -16,23 +16,23 @@ import { TrendingUp, ShoppingCart, Award, AlertCircle } from "lucide-react";
 // ─── スタイル定数 ──────────────────────────────────────────
 
 const C = {
-  gold:  "#D4AF37",
-  goldD: "#9A7D25",
-  t1:    "#F5F0E8",
-  t2:    "#C8C0B0",
-  t3:    "#8A8278",
-  t4:    "#504840",
-  bg1:   "rgba(20,20,22,0.9)",
-  bd:    "rgba(212,175,55,0.15)",
-  up:    "#D4AF37",
-  dn:    "#ff6666",
-  ok:    "#ffcc44",
-  info:  "#66ccff",
+  gold:  "var(--blue)",
+  goldD: "var(--blue-dm)",
+  t1:    "var(--text)",
+  t2:    "var(--text-2)",
+  t3:    "var(--text-3)",
+  t4:    "var(--text-4)",
+  bg1:   "var(--surface)",
+  bd:    "var(--border)",
+  up:    "#1E9C3C",
+  dn:    "#E02E24",
+  ok:    "#E88500",
+  info:  "var(--blue-lt)",
 };
 
 const card: React.CSSProperties = {
-  background: C.bg1,
-  border: `1px solid ${C.bd}`,
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
   borderRadius: 14,
   padding: "20px 24px",
 };

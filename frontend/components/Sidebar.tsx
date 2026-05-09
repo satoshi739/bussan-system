@@ -7,6 +7,7 @@ import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, 
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
+import { useTheme, THEMES } from "@/components/ThemeProvider";
 
 const GROUP_LABEL = "var(--text-3)";
 
@@ -81,6 +82,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { plan, error: planError } = usePlan();
+  const { theme, setTheme } = useTheme();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(
     () => new Set(navGroups.filter(g => g.defaultCollapsed).map(g => g.label))
@@ -255,6 +257,45 @@ export default function Sidebar() {
             <span style={{ fontSize: 11, fontWeight: 700, color: "#c9a96b", letterSpacing: "0.05em" }}>管理者ダッシュボード</span>
           </Link>
         )}
+
+        {/* ── テーマスイッチャー ── */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-4)", letterSpacing: "0.12em", textTransform: "uppercase", paddingLeft: 4, marginBottom: 6 }}>
+            テーマ
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4 }}>
+            {THEMES.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setTheme(t.id)}
+                title={t.label}
+                style={{
+                  background: t.bg,
+                  border: theme === t.id ? `2px solid ${t.color}` : "2px solid transparent",
+                  borderRadius: 8,
+                  height: 24,
+                  cursor: "pointer",
+                  boxShadow: theme === t.id ? `0 0 8px ${t.color}60` : "none",
+                  transition: "border-color 0.2s, box-shadow 0.2s",
+                  padding: 0,
+                  minHeight: "unset",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                <div style={{
+                  position: "absolute",
+                  bottom: 2,
+                  right: 2,
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: t.color,
+                }} />
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* ── マスコット ── */}
         <div style={{ display: "flex", justifyContent: "center", padding: "4px 0 8px" }}>

@@ -7,16 +7,16 @@ import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
 const C = {
-  bg0: "#07101f", bg1: "#0a1530", bg2: "#111e44", bg3: "#1a2956",
-  t1: "#f5f1e8", t2: "#e5d9bc", t3: "#8a9ab8", t4: "#4d6080",
-  gold: "#c9a96b", goldLt: "#e6c87a", goldDm: "#8a6d35",
-  azure: "#4a7fc1",
-  up: "#4ade80", dn: "#c46060", warn: "#c9993a",
-  bd: "rgba(201,169,107,0.18)", bdSt: "rgba(201,169,107,0.38)",
+  bg0: "var(--bg)", bg1: "var(--surface)", bg2: "var(--surface-2)", bg3: "var(--surface-2)",
+  t1: "var(--text)", t2: "var(--text-2)", t3: "var(--text-3)", t4: "var(--text-4)",
+  gold: "var(--blue)", goldLt: "var(--blue-lt)", goldDm: "var(--blue-dm)",
+  azure: "var(--blue-lt)",
+  up: "#1E9C3C", dn: "#E02E24", warn: "#E88500",
+  bd: "var(--border)", bdSt: "var(--border-strong)",
 };
 
 const card: React.CSSProperties = {
-  background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 14, padding: "20px 24px",
+  background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px",
 };
 
 const PLATFORM_META: Record<string, { color: string; label: string; icon: string }> = {

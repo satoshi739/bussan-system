@@ -4,18 +4,18 @@ import Link from "next/link";
 import { TrendingUp, ArrowUpRight, Star, Zap } from "lucide-react";
 
 const C = {
-  bg0:    "#0a0a0b",
-  bg1:    "#141414",
-  bg2:    "#1c1c1e",
-  t1:     "#F5F0E8",
-  t2:     "#D4CCBC",
-  t3:     "#A09488",
-  t4:     "#5A5248",
-  gold:   "#D4AF37",
-  goldLt: "#F0D060",
-  up:     "#4ade80",
-  bd:     "rgba(212,175,55,0.18)",
-  bdSt:   "rgba(212,175,55,0.38)",
+  bg0:    "var(--bg)",
+  bg1:    "var(--surface)",
+  bg2:    "var(--surface-2)",
+  t1:     "var(--text)",
+  t2:     "var(--text-2)",
+  t3:     "var(--text-3)",
+  t4:     "var(--text-4)",
+  gold:   "var(--blue)",
+  goldLt: "var(--blue-lt)",
+  up:     "#1E9C3C",
+  bd:     "var(--border)",
+  bdSt:   "var(--border-strong)",
 };
 
 const CASES = [

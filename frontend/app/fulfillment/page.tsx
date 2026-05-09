@@ -26,8 +26,8 @@ const SHIPPING_METHODS = [
 
 const PREFECTURES = ["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
 
-const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 14, width: "100%", outline: "none", boxSizing: "border-box" };
-const lbl: React.CSSProperties = { fontSize: 12, color: "#8A8278", fontWeight: 600, display: "block", marginBottom: 4 };
+const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 14, width: "100%", outline: "none", boxSizing: "border-box" };
+const lbl: React.CSSProperties = { fontSize: 12, color: "var(--text-3)", fontWeight: 600, display: "block", marginBottom: 4 };
 
 const STATUS = {
   waiting:   { label: "集荷待ち",  color: "#ffcc44", bg: "rgba(255,204,68,0.12)" },
@@ -35,7 +35,7 @@ const STATUS = {
   packing:   { label: "梱包中",    color: "#ff9944", bg: "rgba(255,153,68,0.12)" },
   packed:    { label: "梱包済み",  color: "#aa88ff", bg: "rgba(170,136,255,0.12)" },
   shipped:   { label: "発送済み",  color: "#44ccaa", bg: "rgba(68,204,170,0.12)" },
-  delivered: { label: "配達完了",  color: "#D4AF37", bg: "rgba(212,175,55,0.12)" },
+  delivered: { label: "配達完了",  color: "var(--blue)", bg: "rgba(212,175,55,0.12)" },
 } as const;
 
 const SHIPPING_COMPANIES = ["ヤマト運輸", "佐川急便", "日本郵便", "西濃運輸", "その他"];
@@ -210,13 +210,13 @@ export default function FulfillmentPage() {
       {/* ── ヘッダー ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>外注・発送管理</h1>
-          <div style={{ fontSize: 12, color: "#8A8278", marginTop: 3 }}>落札商品の集荷・梱包・発送ステータスを一元管理</div>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>外注・発送管理</h1>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>落札商品の集荷・梱包・発送ステータスを一元管理</div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <Link
             href="/fulfillment/vendors"
-            style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid rgba(212,175,55,0.22)", borderRadius: 10, color: "#8A8278", padding: "10px 16px", fontWeight: 700, fontSize: 13, textDecoration: "none" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid rgba(212,175,55,0.22)", borderRadius: 10, color: "var(--text-3)", padding: "10px 16px", fontWeight: 700, fontSize: 13, textDecoration: "none" }}
           >
             <Settings size={14} /> 発送代行業者
             {vendors.length > 0 && (
@@ -225,7 +225,7 @@ export default function FulfillmentPage() {
           </Link>
           <button
             onClick={openCreate}
-            style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "var(--blue)", padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}
           >
             <Plus size={16} /> タスク追加
           </button>
@@ -292,10 +292,10 @@ export default function FulfillmentPage() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={handleSubmit} disabled={loading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "10px 28px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+            <button onClick={handleSubmit} disabled={loading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "10px 28px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
               {loading ? "保存中..." : editItem ? "更新する" : "登録する"}
             </button>
-            <button onClick={() => { setShowForm(false); setEditItem(null); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "10px 16px", cursor: "pointer" }}>
+            <button onClick={() => { setShowForm(false); setEditItem(null); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "10px 16px", cursor: "pointer" }}>
               キャンセル
             </button>
           </div>
@@ -305,7 +305,7 @@ export default function FulfillmentPage() {
       {/* ── 検索バー ── */}
       <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center" }}>
         <div style={{ position: "relative", flex: 1 }}>
-          <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#8A8278" }} />
+          <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)" }} />
           <input style={{ ...inp, paddingLeft: 32 }} placeholder="商品名・スタッフ名・追跡番号で検索..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <button
@@ -320,11 +320,11 @@ export default function FulfillmentPage() {
       {filtered.length === 0 ? (
         <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 14, textAlign: "center", padding: 60 }}>
           <Truck size={36} color="rgba(212,175,55,0.2)" style={{ margin: "0 auto 12px", display: "block" }} />
-          <div style={{ color: "#8A8278", fontSize: 14, marginBottom: 16 }}>
+          <div style={{ color: "var(--text-3)", fontSize: 14, marginBottom: 16 }}>
             {search || filter ? "該当するタスクがありません" : "まだ発送タスクがありません"}
           </div>
           {!search && !filter && (
-            <button onClick={openCreate} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: "#D4AF37", padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            <button onClick={openCreate} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: "var(--blue)", padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
               最初のタスクを登録する →
             </button>
           )}
@@ -356,8 +356,8 @@ export default function FulfillmentPage() {
 
                 {/* 商品名・仕入れ元 */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.product_name}</div>
-                  <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2, display: "flex", gap: 8 }}>
+                  <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.product_name}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2, display: "flex", gap: 8 }}>
                     <span>{item.platform}</span>
                     <span style={{ opacity: 0.6 }}>·</span>
                     <span>{item.purchase_date}</span>
@@ -396,12 +396,12 @@ export default function FulfillmentPage() {
                   )}
                   <button
                     onClick={() => openEdit(item)}
-                    style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "#8A8278", cursor: "pointer", padding: "6px 10px", display: "flex", alignItems: "center" }}
+                    style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "var(--text-3)", cursor: "pointer", padding: "6px 10px", display: "flex", alignItems: "center" }}
                   >
                     <Edit2 size={12} />
                   </button>
                   {item.purchase_url && (
-                    <a href={item.purchase_url} target="_blank" rel="noreferrer" style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, color: "#8A8278", padding: "6px 10px", display: "flex", alignItems: "center" }}>
+                    <a href={item.purchase_url} target="_blank" rel="noreferrer" style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, color: "var(--text-3)", padding: "6px 10px", display: "flex", alignItems: "center" }}>
                       <ExternalLink size={12} />
                     </a>
                   )}
@@ -434,10 +434,10 @@ export default function FulfillmentPage() {
             {/* モーダルヘッダー */}
             <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid rgba(212,175,55,0.1)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F0E8", marginBottom: 3 }}>発送代行に依頼</div>
-                <div style={{ fontSize: 12, color: "#8A8278" }}>{requestTask.product_name}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", marginBottom: 3 }}>発送代行に依頼</div>
+                <div style={{ fontSize: 12, color: "var(--text-3)" }}>{requestTask.product_name}</div>
               </div>
-              <button onClick={() => setRequestTask(null)} style={{ background: "transparent", border: "none", color: "#8A8278", cursor: "pointer", padding: 4 }}>
+              <button onClick={() => setRequestTask(null)} style={{ background: "transparent", border: "none", color: "var(--text-3)", cursor: "pointer", padding: 4 }}>
                 <X size={18} />
               </button>
             </div>
@@ -451,7 +451,7 @@ export default function FulfillmentPage() {
                     <label style={lbl}>発送代行業者 *</label>
                     {vendors.length === 0 ? (
                       <div style={{ background: "rgba(255,170,0,0.08)", border: "1px solid rgba(255,170,0,0.25)", borderRadius: 8, padding: "12px 14px", fontSize: 12, color: "#ffaa44" }}>
-                        有効な業者が登録されていません。<Link href="/fulfillment/vendors" style={{ color: "#D4AF37", marginLeft: 6 }}>業者を追加 →</Link>
+                        有効な業者が登録されていません。<Link href="/fulfillment/vendors" style={{ color: "var(--blue)", marginLeft: 6 }}>業者を追加 →</Link>
                       </div>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -463,11 +463,11 @@ export default function FulfillmentPage() {
                           >
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               {reqForm.vendor_id === String(v.id) && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />}
-                              <span style={{ fontSize: 13, color: "#F5F0E8", fontWeight: 600 }}>{v.name}</span>
-                              <span style={{ fontSize: 10, color: "#8A8278", background: "rgba(255,255,255,0.04)", borderRadius: 20, padding: "1px 6px" }}>{v.connection_type}</span>
+                              <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>{v.name}</span>
+                              <span style={{ fontSize: 10, color: "var(--text-3)", background: "rgba(255,255,255,0.04)", borderRadius: 20, padding: "1px 6px" }}>{v.connection_type}</span>
                             </div>
                             {(v.base_fee > 0 || v.per_item_fee > 0) && (
-                              <span style={{ fontSize: 11, color: "#8A8278" }}>¥{(v.base_fee + v.per_item_fee).toLocaleString()}</span>
+                              <span style={{ fontSize: 11, color: "var(--text-3)" }}>¥{(v.base_fee + v.per_item_fee).toLocaleString()}</span>
                             )}
                           </button>
                         ))}
@@ -486,7 +486,7 @@ export default function FulfillmentPage() {
                           style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 8, border: reqForm.shipping_method === m.key ? "1px solid rgba(212,175,55,0.5)" : "1px solid rgba(212,175,55,0.08)", background: reqForm.shipping_method === m.key ? "rgba(212,175,55,0.08)" : "rgba(10,10,11,0.5)", cursor: "pointer", width: "100%" }}
                         >
                           <span style={{ fontSize: 11, color: "#C8C0B0" }}>{m.label}</span>
-                          <span style={{ fontSize: 12, fontFamily: "monospace", color: "#D4AF37" }}>¥{m.price}</span>
+                          <span style={{ fontSize: 12, fontFamily: "monospace", color: "var(--blue)" }}>¥{m.price}</span>
                         </button>
                       ))}
                     </div>
@@ -495,7 +495,7 @@ export default function FulfillmentPage() {
                   <button
                     onClick={() => setReqStep(2)}
                     disabled={!reqForm.vendor_id}
-                    style={{ width: "100%", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "12px", fontWeight: 700, cursor: !reqForm.vendor_id ? "not-allowed" : "pointer", fontSize: 14, opacity: !reqForm.vendor_id ? 0.5 : 1 }}
+                    style={{ width: "100%", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "12px", fontWeight: 700, cursor: !reqForm.vendor_id ? "not-allowed" : "pointer", fontSize: 14, opacity: !reqForm.vendor_id ? 0.5 : 1 }}
                   >
                     次へ：配送先を入力 →
                   </button>
@@ -505,8 +505,8 @@ export default function FulfillmentPage() {
               {/* ステップ2: 配送先・オプション */}
               {reqStep === 2 && (
                 <>
-                  <div style={{ background: "rgba(212,175,55,0.05)", borderRadius: 9, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#8A8278" }}>
-                    業者: <span style={{ color: "#D4AF37", fontWeight: 700 }}>{selectedVendor?.name}</span>
+                  <div style={{ background: "rgba(212,175,55,0.05)", borderRadius: 9, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "var(--text-3)" }}>
+                    業者: <span style={{ color: "var(--blue)", fontWeight: 700 }}>{selectedVendor?.name}</span>
                     &nbsp;·&nbsp;{selectedMethod.label}
                     &nbsp;·&nbsp;¥{selectedMethod.price}
                   </div>
@@ -538,7 +538,7 @@ export default function FulfillmentPage() {
 
                   {/* オプション */}
                   <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 9, padding: "12px 14px", marginBottom: 14 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#8A8278", marginBottom: 8 }}>オプション</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8 }}>オプション</div>
                     {[
                       { key: "option_thanks", label: "サンクスカード同梱", price: 30 },
                       { key: "option_gift", label: "ギフトラッピング", price: 150 },
@@ -552,7 +552,7 @@ export default function FulfillmentPage() {
                           style={{ accentColor: "#D4AF37", width: 14, height: 14 }}
                         />
                         <span style={{ fontSize: 12, color: "#C8C0B0" }}>{opt.label}</span>
-                        <span style={{ fontSize: 11, color: "#8A8278", marginLeft: "auto" }}>{opt.price > 0 ? `+¥${opt.price}` : "無料"}</span>
+                        <span style={{ fontSize: 11, color: "var(--text-3)", marginLeft: "auto" }}>{opt.price > 0 ? `+¥${opt.price}` : "無料"}</span>
                       </label>
                     ))}
                   </div>
@@ -564,7 +564,7 @@ export default function FulfillmentPage() {
 
                   {/* 料金内訳 */}
                   <div style={{ background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 9, padding: "12px 16px", marginBottom: 16 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#8A8278", marginBottom: 8 }}>概算料金</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8 }}>概算料金</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", color: "#C8C0B0" }}>
                         <span>{selectedMethod.label}</span><span>¥{selectedMethod.price.toLocaleString()}</span>
@@ -579,7 +579,7 @@ export default function FulfillmentPage() {
                           <span>オプション</span><span>¥{optionTotal.toLocaleString()}</span>
                         </div>
                       )}
-                      <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(212,175,55,0.15)", paddingTop: 6, marginTop: 2, color: "#D4AF37", fontWeight: 800, fontSize: 14 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(212,175,55,0.15)", paddingTop: 6, marginTop: 2, color: "var(--blue)", fontWeight: 800, fontSize: 14 }}>
                         <span>合計</span><span>¥{totalFee.toLocaleString()}</span>
                       </div>
                     </div>
@@ -592,7 +592,7 @@ export default function FulfillmentPage() {
                     >
                       <Send size={15} /> {reqLoading ? "送信中..." : `${selectedVendor?.name ?? "業者"} に依頼を送信`}
                     </button>
-                    <button onClick={() => setReqStep(1)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "12px 14px", cursor: "pointer", fontSize: 13 }}>戻る</button>
+                    <button onClick={() => setReqStep(1)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "12px 14px", cursor: "pointer", fontSize: 13 }}>戻る</button>
                   </div>
                 </>
               )}

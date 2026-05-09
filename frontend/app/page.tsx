@@ -450,7 +450,7 @@ export default function DashboardPage() {
 
   // ── Render ──────────────────────────────────────────────
   return (
-    <div style={{ color: C.t1, minHeight: "100vh" }}>
+    <div className="anim-fadeInUp" style={{ color: C.t1, minHeight: "100vh" }}>
       {/* Onboarding modal — ログイン済み・初回のみ表示 */}
       {!isGuest && showOnboarding && <OnboardingModal onComplete={completeOnboarding} />}
       <style>{`
@@ -764,7 +764,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Grid — デスクトップ表示 */}
-      <div className="kg" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12, marginBottom: 10 }}>
+      <div className="kg stagger" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12, marginBottom: 10 }}>
         <div className="kcard" style={{ transition: "border-color .2s, box-shadow .2s" }}>
           <KpiCard label="今月の純利益" value={`¥${Math.round(thisM).toLocaleString()}`} diff={pDiff} sub="当月累計 純利益額" icon={TrendingUp} accent={thisM >= 0 ? C.gold : C.dn} loading={loading} />
         </div>

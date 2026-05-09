@@ -10,9 +10,9 @@ import {
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
-const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
-const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "10px 12px", fontSize: 15, width: "100%", outline: "none", fontFamily: "monospace" };
-const lbl: React.CSSProperties = { fontSize: 12, color: "#8A8278", fontWeight: 600, display: "block", marginBottom: 4 };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
+const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "10px 12px", fontSize: 15, width: "100%", outline: "none", fontFamily: "monospace" };
+const lbl: React.CSSProperties = { fontSize: 12, color: "var(--text-3)", fontWeight: 600, display: "block", marginBottom: 4 };
 
 type Tab = "profit" | "reverse" | "compare" | "bulk";
 
@@ -41,8 +41,8 @@ export default function CalculatorPage() {
           .calc-form-3col { grid-template-columns: 1fr 1fr !important; }
         }
       `}</style>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>利益計算</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20, marginTop: 3 }}>仕入れ価格・手数料から利益を自動計算します</div>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>利益計算</h1>
+      <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 20, marginTop: 3 }}>仕入れ価格・手数料から利益を自動計算します</div>
       {apiError && (
         <div style={{ background: "rgba(255,120,50,0.08)", border: "1px solid rgba(255,120,50,0.3)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
           <span style={{ fontSize: 18 }}>⚠️</span>
@@ -134,7 +134,7 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
             {importShipping !== null && (
               <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, fontSize: 12 }}>
                 <span style={{ color: "#7aaa8a" }}>推定送料: ¥{importShipping.toLocaleString()}（eBay→日本）</span>
-                <button onClick={() => { upd("purchase_shipping", String(importShipping)); }} style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 5, color: "#D4AF37", padding: "3px 10px", fontSize: 11, cursor: "pointer" }}>自動入力</button>
+                <button onClick={() => { upd("purchase_shipping", String(importShipping)); }} style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 5, color: "var(--blue)", padding: "3px 10px", fontSize: 11, cursor: "pointer" }}>自動入力</button>
               </div>
             )}
           </div>
@@ -153,7 +153,7 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
             <label style={{ ...lbl, marginBottom: 6 }}>eBay落札相場を検索</label>
             <div style={{ display: "flex", gap: 8 }}>
               <input style={{ ...inp, flex: 1, fontSize: 13 }} value={form.ebay_keyword} onChange={e => upd("ebay_keyword", e.target.value)} onKeyDown={e => e.key === "Enter" && handleEbaySearch()} placeholder="商品名（英語推奨）" />
-              <button onClick={handleEbaySearch} disabled={ebayLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 7, color: "#D4AF37", padding: "0 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+              <button onClick={handleEbaySearch} disabled={ebayLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 7, color: "var(--blue)", padding: "0 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
                 {ebayLoading ? "検索中..." : "eBay相場を検索"}
               </button>
             </div>
@@ -175,19 +175,19 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
             </div>
           )}
         </div>
-        <div style={{ ...card, fontSize: 12, color: "#8A8278" }}>入力するたびに自動計算されます</div>
+        <div style={{ ...card, fontSize: 12, color: "var(--text-3)" }}>入力するたびに自動計算されます</div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {result ? (
           <>
             <div style={{ ...card, textAlign: "center", padding: "28px 24px" }}>
-              <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 6 }}>純利益</div>
+              <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 6 }}>純利益</div>
               <div style={{ fontSize: 52, fontWeight: 900, color: profitColor, fontFamily: "monospace", lineHeight: 1 }}>¥{Math.round(result.gross_profit).toLocaleString()}</div>
               <div style={{ display: "flex", justifyContent: "center", gap: 28, marginTop: 16 }}>
-                <div><div style={{ fontSize: 11, color: "#8A8278" }}>利益率</div><div style={{ fontSize: 22, fontWeight: 800, color: profitColor, fontFamily: "monospace" }}>{result.profit_rate.toFixed(1)}%</div></div>
+                <div><div style={{ fontSize: 11, color: "var(--text-3)" }}>利益率</div><div style={{ fontSize: 22, fontWeight: 800, color: profitColor, fontFamily: "monospace" }}>{result.profit_rate.toFixed(1)}%</div></div>
                 <div style={{ width: 1, background: "rgba(212,175,55,0.1)" }} />
-                <div><div style={{ fontSize: 11, color: "#8A8278" }}>ROI</div><div style={{ fontSize: 22, fontWeight: 800, color: profitColor, fontFamily: "monospace" }}>{result.roi.toFixed(1)}%</div></div>
+                <div><div style={{ fontSize: 11, color: "var(--text-3)" }}>ROI</div><div style={{ fontSize: 22, fontWeight: 800, color: profitColor, fontFamily: "monospace" }}>{result.roi.toFixed(1)}%</div></div>
               </div>
             </div>
             <div style={card}>
@@ -204,7 +204,7 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
                 </div>
               ))}
               <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 0", fontSize: 15, fontWeight: 800 }}>
-                <span style={{ color: "#F5F0E8" }}>純利益</span>
+                <span style={{ color: "var(--text)" }}>純利益</span>
                 <span style={{ color: profitColor, fontFamily: "monospace" }}>¥{Math.round(result.gross_profit).toLocaleString()}</span>
               </div>
             </div>
@@ -240,7 +240,7 @@ function ReverseTab({ domestic, overseas, categories }: { domestic: [string, Pla
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={card}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>🔁 最大仕入れ価格を逆算</div>
-          <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>「この値段で売りたい」→「いくらまで仕入れていい？」を計算します</div>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16 }}>「この値段で売りたい」→「いくらまで仕入れていい？」を計算します</div>
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>販売プラットフォーム</label>
             <select style={{ ...inp, fontSize: 13 }} value={form.selling_platform} onChange={e => upd("selling_platform", e.target.value)}>
@@ -264,23 +264,23 @@ function ReverseTab({ domestic, overseas, categories }: { domestic: [string, Pla
       <div>
         {result !== null ? (
           <div style={{ ...card, textAlign: "center", padding: "36px 24px" }}>
-            <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 8 }}>最大仕入れ価格</div>
-            <div style={{ fontSize: 56, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace", lineHeight: 1 }}>
+            <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 8 }}>最大仕入れ価格</div>
+            <div style={{ fontSize: 56, fontWeight: 900, color: "var(--blue)", fontFamily: "monospace", lineHeight: 1 }}>
               ¥{Math.floor(result).toLocaleString()}
             </div>
-            <div style={{ marginTop: 16, fontSize: 13, color: "#8A8278" }}>
+            <div style={{ marginTop: 16, fontSize: 13, color: "var(--text-3)" }}>
               これより安く仕入れれば<br />利益率 {form.target_profit_rate}% 以上を確保できます
             </div>
             {form.selling_price && (
               <div style={{ marginTop: 20, display: "flex", gap: 16, justifyContent: "center" }}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: "#8A8278" }}>販売価格</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)" }}>販売価格</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: "#66ccff", fontFamily: "monospace" }}>¥{Number(form.selling_price).toLocaleString()}</div>
                 </div>
-                <div style={{ color: "#8A8278", alignSelf: "center" }}>→</div>
+                <div style={{ color: "var(--text-3)", alignSelf: "center" }}>→</div>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: "#8A8278" }}>目標利益率</div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "#D4AF37", fontFamily: "monospace" }}>{form.target_profit_rate}%</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)" }}>目標利益率</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "var(--blue)", fontFamily: "monospace" }}>{form.target_profit_rate}%</div>
                 </div>
               </div>
             )}
@@ -322,7 +322,7 @@ function CompareTab() {
     <div>
       <div style={{ ...card, marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>全プラットフォームで比較</div>
-        <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>同じ商品をどこで売ると一番儲かるか一覧で確認できます</div>
+        <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16 }}>同じ商品をどこで売ると一番儲かるか一覧で確認できます</div>
         <div className="calc-form-3col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div><label style={lbl}>仕入れ価格 (円)</label><input type="number" style={inp} value={form.purchase_price} onChange={e => upd("purchase_price", e.target.value)} placeholder="例: 2000" autoFocus /></div>
           <div><label style={lbl}>仕入れ送料 (円)</label><input type="number" style={inp} value={form.purchase_shipping} onChange={e => upd("purchase_shipping", e.target.value)} placeholder="0" /></div>
@@ -330,25 +330,25 @@ function CompareTab() {
         </div>
       </div>
 
-      {loading && <div style={{ color: "#8A8278", textAlign: "center", padding: 20 }}>計算中...</div>}
+      {loading && <div style={{ color: "var(--text-3)", textAlign: "center", padding: 20 }}>計算中...</div>}
 
       {sorted.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {/* 国内 */}
-          <div style={{ fontSize: 12, color: "#8A8278", fontWeight: 700, padding: "4px 0" }}>🏯 国内プラットフォーム</div>
+          <div style={{ fontSize: 12, color: "var(--text-3)", fontWeight: 700, padding: "4px 0" }}>🏯 国内プラットフォーム</div>
           {sorted.filter(([, v]) => v.area === "国内").map(([name, data]) => {
             const isTop = data.gross_profit === maxProfit && data.gross_profit > 0;
             const barWidth = maxProfit > 0 ? Math.max(0, (data.gross_profit / maxProfit) * 100) : 0;
             return (
               <div key={name} style={{ ...card, padding: "14px 18px", border: isTop ? "1px solid rgba(212,175,55,0.5)" : "1px solid rgba(212,175,55,0.12)", position: "relative", overflow: "hidden" }}>
-                {isTop && <div style={{ position: "absolute", top: 8, right: 12, fontSize: 11, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37", fontWeight: 700 }}>最高利益</div>}
+                {isTop && <div style={{ position: "absolute", top: 8, right: 12, fontSize: 11, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)", fontWeight: 700 }}>最高利益</div>}
                 <div style={{ position: "absolute", bottom: 0, left: 0, height: 3, width: `${barWidth}%`, background: data.gross_profit >= 0 ? "rgba(212,175,55,0.3)" : "rgba(255,80,80,0.3)", transition: "width 0.3s" }} />
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 18 }}>{data.emoji}</span>
                     <div>
-                      <div style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 14 }}>{name}</div>
-                      <div style={{ fontSize: 11, color: "#8A8278" }}>手数料 ¥{Math.round(data.platform_fees).toLocaleString()}</div>
+                      <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 14 }}>{name}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-3)" }}>手数料 ¥{Math.round(data.platform_fees).toLocaleString()}</div>
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
@@ -362,20 +362,20 @@ function CompareTab() {
             );
           })}
           {/* 海外 */}
-          <div style={{ fontSize: 12, color: "#8A8278", fontWeight: 700, padding: "8px 0 4px" }}>🌏 海外プラットフォーム</div>
+          <div style={{ fontSize: 12, color: "var(--text-3)", fontWeight: 700, padding: "8px 0 4px" }}>🌏 海外プラットフォーム</div>
           {sorted.filter(([, v]) => v.area === "海外").map(([name, data]) => {
             const isTop = data.gross_profit === maxProfit && data.gross_profit > 0;
             const barWidth = maxProfit > 0 ? Math.max(0, (data.gross_profit / maxProfit) * 100) : 0;
             return (
               <div key={name} style={{ ...card, padding: "14px 18px", border: isTop ? "1px solid rgba(212,175,55,0.5)" : "1px solid rgba(212,175,55,0.12)", position: "relative", overflow: "hidden" }}>
-                {isTop && <div style={{ position: "absolute", top: 8, right: 12, fontSize: 11, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37", fontWeight: 700 }}>最高利益</div>}
+                {isTop && <div style={{ position: "absolute", top: 8, right: 12, fontSize: 11, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)", fontWeight: 700 }}>最高利益</div>}
                 <div style={{ position: "absolute", bottom: 0, left: 0, height: 3, width: `${barWidth}%`, background: data.gross_profit >= 0 ? "rgba(212,175,55,0.3)" : "rgba(255,80,80,0.3)" }} />
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 18 }}>{data.emoji}</span>
                     <div>
-                      <div style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 14 }}>{name}</div>
-                      <div style={{ fontSize: 11, color: "#8A8278" }}>手数料 ¥{Math.round(data.platform_fees).toLocaleString()}</div>
+                      <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 14 }}>{name}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-3)" }}>手数料 ¥{Math.round(data.platform_fees).toLocaleString()}</div>
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
@@ -441,7 +441,7 @@ function BulkSimTab({ domestic, overseas }: { domestic: [string, PlatformInfo][]
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={card}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 4 }}>数量シミュレーション</div>
-          <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>N個仕入れて何%売れた場合の利益を試算します</div>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16 }}>N個仕入れて何%売れた場合の利益を試算します</div>
           <div style={{ marginBottom: 12 }}>
             <label style={lbl}>販売プラットフォーム</label>
             <select style={{ ...inp, fontSize: 13 }} value={form.selling_platform} onChange={e => upd("selling_platform", e.target.value)}>
@@ -487,7 +487,7 @@ function BulkSimTab({ domestic, overseas }: { domestic: [string, PlatformInfo][]
       </div>
 
       <div>
-        {loading && <div style={{ ...card, textAlign: "center", padding: 40, color: "#8A8278" }}>計算中...</div>}
+        {loading && <div style={{ ...card, textAlign: "center", padding: 40, color: "var(--text-3)" }}>計算中...</div>}
 
         {perItem && !loading && (
           <div style={card}>
@@ -506,19 +506,19 @@ function BulkSimTab({ domestic, overseas }: { domestic: [string, PlatformInfo][]
                     padding: "12px 16px",
                     position: "relative",
                   }}>
-                    {pct === 100 && <div style={{ position: "absolute", top: 8, right: 10, fontSize: 11, color: "#D4AF37", fontWeight: 700 }}>全量売却</div>}
+                    {pct === 100 && <div style={{ position: "absolute", top: 8, right: 10, fontSize: 11, color: "var(--blue)", fontWeight: 700 }}>全量売却</div>}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>{pct}% 売れた場合</div>
-                        <div style={{ fontSize: 12, color: "#8A8278", marginTop: 2 }}>
-                          {sold}個販売 {isBreakEven ? <span style={{ color: "#D4AF37" }}>✓ 黒字</span> : breakEvenQty && sold < breakEvenQty ? <span style={{ color: "#ff9966" }}>あと{breakEvenQty - sold}個で黒字</span> : ""}
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{pct}% 売れた場合</div>
+                        <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>
+                          {sold}個販売 {isBreakEven ? <span style={{ color: "var(--blue)" }}>✓ 黒字</span> : breakEvenQty && sold < breakEvenQty ? <span style={{ color: "#ff9966" }}>あと{breakEvenQty - sold}個で黒字</span> : ""}
                         </div>
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <div style={{ fontSize: 20, fontWeight: 900, fontFamily: "monospace", color: profit >= 0 ? "#D4AF37" : "#ff6666" }}>
                           ¥{Math.round(profit).toLocaleString()}
                         </div>
-                        <div style={{ fontSize: 11, color: "#8A8278" }}>ROI {roi.toFixed(1)}%</div>
+                        <div style={{ fontSize: 11, color: "var(--text-3)" }}>ROI {roi.toFixed(1)}%</div>
                       </div>
                     </div>
                     <div style={{ marginTop: 8, background: "rgba(0,0,0,0.2)", borderRadius: 4, height: 6, overflow: "hidden" }}>
@@ -529,7 +529,7 @@ function BulkSimTab({ domestic, overseas }: { domestic: [string, PlatformInfo][]
               })}
             </div>
             {breakEvenQty && breakEvenQty <= qty && (
-              <div style={{ marginTop: 12, fontSize: 12, color: "#8A8278", background: "rgba(212,175,55,0.04)", borderRadius: 8, padding: "8px 12px" }}>
+              <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-3)", background: "rgba(212,175,55,0.04)", borderRadius: 8, padding: "8px 12px" }}>
                 {qty}個中{breakEvenQty}個（{Math.ceil(breakEvenQty / qty * 100)}%）売れれば黒字になります
               </div>
             )}

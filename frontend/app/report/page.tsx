@@ -10,7 +10,7 @@ import {
   type MonthlyReport, type SalesTrends, type RouteMatrixRow,
 } from "@/lib/api";
 
-const card: React.CSSProperties = { background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.13)", borderRadius: 14, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px", boxShadow: "var(--card-shadow)" };
 type Tab = "analytics" | "trends" | "monthly" | "route";
 
 type BestProduct = { product_name: string; buy_platform: string; selling_platform: string; purchase_price: number; sale_price: number; net_profit: number; sale_date: string; profit_rate: number };
@@ -32,11 +32,11 @@ function ReportPageContent() {
           .report-monthly-ctrl > div { width: 100% !important; }
         }
       `}</style>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#080D1C", margin: 0 }}>レポート</h1>
-      <div style={{ fontSize: 12, color: "rgba(8,13,28,0.70)", marginBottom: 20, marginTop: 3 }}>売上分析・トレンド予測・月次レポートを確認できます</div>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>レポート</h1>
+      <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 20, marginTop: 3 }}>売上分析・トレンド予測・月次レポートを確認できます</div>
 
       {/* タブ */}
-      <div className="report-tab-group" style={{ display: "flex", gap: 6, marginBottom: 24, background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.13)", borderRadius: 12, padding: 5, width: "fit-content", flexWrap: "wrap", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+      <div className="report-tab-group" style={{ display: "flex", gap: 6, marginBottom: 24, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 5, width: "fit-content", flexWrap: "wrap", boxShadow: "var(--card-shadow)" }}>
         {([
           { id: "analytics", label: "売上分析" },
           { id: "trends",    label: "トレンド予測" },
@@ -381,7 +381,7 @@ function MonthlyTab() {
         </div>
       </div>
 
-      {loading && <div style={{ ...card, textAlign: "center", padding: 60, color: "#8A8278" }}>読み込み中...</div>}
+      {loading && <div style={{ ...card, textAlign: "center", padding: 60, color: "var(--text-3)" }}>読み込み中...</div>}
 
       {report && !loading && (
         <>

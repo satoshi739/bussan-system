@@ -47,13 +47,14 @@ export default function ClientShell({ children }: { children: React.ReactNode })
     <div style={{ display: "flex", minHeight: "100vh" }}>
       {showSidebar && <Sidebar />}
       <main
+        key={pathname}
         style={{
           flex: 1,
           padding: showSidebar ? "32px 28px" : "0",
           overflowY: "auto",
           minWidth: 0,
         }}
-        className={showSidebar ? "main-with-sidebar" : ""}
+        className={`anim-fadeInUp${showSidebar ? " main-with-sidebar" : ""}`}
       >
         {children}
       </main>

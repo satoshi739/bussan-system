@@ -6,7 +6,7 @@ import Link from "next/link";
 type Product = { name: string; price: number; url: string };
 type LookupResult = { found: boolean; code: string; name?: string; price?: number; products: Product[] };
 
-const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
 
 export default function BarcodePage() {
   const [scanning, setScanning] = useState(false);
@@ -73,15 +73,15 @@ export default function BarcodePage() {
   };
 
   return (
-    <div style={{ color: "#F5F0E8" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 6 }}>バーコードスキャン</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20 }}>商品のバーコードをカメラで読み取って即座に利益計算</div>
+    <div style={{ color: "var(--text)" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", marginBottom: 6 }}>バーコードスキャン</h1>
+      <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 20 }}>商品のバーコードをカメラで読み取って即座に利益計算</div>
 
       {/* 使い方 */}
       {!scanning && !code && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 480 }}>
           <div style={card}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#D4AF37", marginBottom: 12 }}>使い方</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--blue)", marginBottom: 12 }}>使い方</div>
             {[
               ["📷", "「カメラを起動する」をタップ"],
               ["🔍", "商品のバーコード（JAN/EAN）にカメラを向ける"],
@@ -96,14 +96,14 @@ export default function BarcodePage() {
 
           <button
             onClick={startScan}
-            style={{ background: "linear-gradient(135deg,#1E1608,#2A1E08)", border: "1px solid rgba(212,175,55,0.6)", borderRadius: 12, color: "#D4AF37", padding: "18px 24px", fontSize: 16, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}
+            style={{ background: "linear-gradient(135deg,#1E1608,#2A1E08)", border: "1px solid rgba(212,175,55,0.6)", borderRadius: 12, color: "var(--blue)", padding: "18px 24px", fontSize: 16, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}
           >
             <span style={{ fontSize: 24 }}>📷</span>
             カメラを起動する
           </button>
 
-          <div style={{ ...card, fontSize: 12, color: "#8A8278" }}>
-            <span style={{ color: "#D4AF37", fontWeight: 700 }}>対応バーコード:</span> JANコード (EAN-13/8)、UPC、QRコード
+          <div style={{ ...card, fontSize: 12, color: "var(--text-3)" }}>
+            <span style={{ color: "var(--blue)", fontWeight: 700 }}>対応バーコード:</span> JANコード (EAN-13/8)、UPC、QRコード
           </div>
         </div>
       )}
@@ -112,7 +112,7 @@ export default function BarcodePage() {
       {scanning && (
         <div style={{ maxWidth: 480 }}>
           <div style={{ ...card, marginBottom: 12 }}>
-            <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 12, textAlign: "center" }}>
+            <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 12, textAlign: "center" }}>
               バーコードをフレーム内に合わせてください
             </div>
             <div id="barcode-reader" style={{ borderRadius: 8, overflow: "hidden" }} />
@@ -130,8 +130,8 @@ export default function BarcodePage() {
       {loading && (
         <div style={{ ...card, maxWidth: 480, textAlign: "center", padding: 40 }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>🔍</div>
-          <div style={{ color: "#D4AF37", fontWeight: 700 }}>商品情報を検索中...</div>
-          <div style={{ fontSize: 12, color: "#8A8278", marginTop: 8 }}>バーコード: {code}</div>
+          <div style={{ color: "var(--blue)", fontWeight: 700 }}>商品情報を検索中...</div>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 8 }}>バーコード: {code}</div>
         </div>
       )}
 
@@ -140,9 +140,9 @@ export default function BarcodePage() {
         <div style={{ maxWidth: 480 }}>
           <div style={{ ...card, borderColor: "rgba(255,100,100,0.3)", marginBottom: 12 }}>
             <div style={{ color: "#ff8888", fontWeight: 700, marginBottom: 8 }}>⚠️ {error}</div>
-            {code && <div style={{ fontSize: 12, color: "#8A8278" }}>読み取ったコード: {code}</div>}
+            {code && <div style={{ fontSize: 12, color: "var(--text-3)" }}>読み取ったコード: {code}</div>}
           </div>
-          <button onClick={reset} style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, color: "#D4AF37", padding: "12px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+          <button onClick={reset} style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, color: "var(--blue)", padding: "12px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
             もう一度スキャン
           </button>
         </div>
@@ -152,22 +152,22 @@ export default function BarcodePage() {
       {result && !loading && (
         <div style={{ maxWidth: 480, display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={card}>
-            <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>読み取りコード</div>
-            <div style={{ fontSize: 14, fontFamily: "monospace", color: "#D4AF37", marginBottom: 16 }}>{result.code}</div>
+            <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>読み取りコード</div>
+            <div style={{ fontSize: 14, fontFamily: "monospace", color: "var(--blue)", marginBottom: 16 }}>{result.code}</div>
 
             {result.found ? (
               <>
-                <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>商品名</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#F5F0E8", marginBottom: 12, lineHeight: 1.5 }}>{result.name}</div>
+                <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>商品名</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 12, lineHeight: 1.5 }}>{result.name}</div>
                 {result.price && result.price > 0 && (
                   <>
-                    <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>参考価格（Amazon）</div>
+                    <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>参考価格（Amazon）</div>
                     <div style={{ fontSize: 24, fontWeight: 900, color: "#66ccff", fontFamily: "monospace", marginBottom: 16 }}>¥{result.price.toLocaleString()}</div>
                   </>
                 )}
                 <Link
                   href={`/calculator${result.price ? `?selling_price=${result.price}` : ""}`}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "linear-gradient(135deg,#1E1608,#2A1E08)", border: "1px solid rgba(212,175,55,0.6)", borderRadius: 10, color: "#D4AF37", padding: "14px 20px", fontSize: 14, fontWeight: 800, textDecoration: "none" }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "linear-gradient(135deg,#1E1608,#2A1E08)", border: "1px solid rgba(212,175,55,0.6)", borderRadius: 10, color: "var(--blue)", padding: "14px 20px", fontSize: 14, fontWeight: 800, textDecoration: "none" }}
                 >
                   利益計算へ →
                 </Link>
@@ -191,7 +191,7 @@ export default function BarcodePage() {
             </div>
           )}
 
-          <button onClick={reset} style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 10, color: "#8A8278", padding: "12px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+          <button onClick={reset} style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 10, color: "var(--text-3)", padding: "12px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
             別の商品をスキャン
           </button>
         </div>

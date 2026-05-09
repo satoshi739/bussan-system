@@ -17,8 +17,8 @@ const req = async <T,>(path: string, opts?: RequestInit): Promise<T> => {
   return r.json();
 };
 
-const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
-const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "10px 14px", fontSize: 15, width: "100%", outline: "none", boxSizing: "border-box" as const };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
+const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "10px 14px", fontSize: 15, width: "100%", outline: "none", boxSizing: "border-box" as const };
 
 // ─── 国内相場 型定義 ─────────────────────────────────────────
 type MarketResult = { source: string; name: string; price: number; url: string; image: string; condition: string };
@@ -76,12 +76,12 @@ function ImageUploadArea({
           <div style={{ flex: 1 }}>
             {imgLoading && <div style={{ fontSize: 12, color: "#66ccff" }}>AI識別中...</div>}
             {imgError && <div style={{ fontSize: 12, color: "#ff6666" }}>{imgError}</div>}
-            {!imgLoading && !imgError && keyword && <div style={{ fontSize: 12, color: "#D4AF37" }}>識別完了: {keyword}</div>}
+            {!imgLoading && !imgError && keyword && <div style={{ fontSize: 12, color: "var(--blue)" }}>識別完了: {keyword}</div>}
           </div>
-          <button onClick={e => { e.stopPropagation(); onClear(); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#8A8278", padding: 4 }}><X size={16} /></button>
+          <button onClick={e => { e.stopPropagation(); onClear(); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-3)", padding: 4 }}><X size={16} /></button>
         </div>
       ) : (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#8A8278" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--text-3)" }}>
           <Camera size={18} />
           <span style={{ fontSize: 12 }}>商品画像をドロップ、またはクリックしてアップロード（AIが商品名を識別します）</span>
         </div>
@@ -110,19 +110,19 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 18 }}>{p.flag}</span>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>{p.name}</div>
-              <div style={{ fontSize: 11, color: "#8A8278" }}>{p.area} · {(p.fee_rate * 100).toFixed(1)}%手数料</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{p.name}</div>
+              <div style={{ fontSize: 11, color: "var(--text-3)" }}>{p.area} · {(p.fee_rate * 100).toFixed(1)}%手数料</div>
             </div>
           </div>
         </td>
         <td style={{ padding: "14px 10px", textAlign: "right" }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: "#66aaff" }}>{fmtPrice(p.min_price_local, p.currency)}</div>
-          {p.currency !== "JPY" && <div style={{ fontSize: 11, color: "#8A8278" }}>≈ ¥{Math.round(p.items.find(i => i.price_local === p.min_price_local)?.price_jpy ?? 0).toLocaleString()}</div>}
+          {p.currency !== "JPY" && <div style={{ fontSize: 11, color: "var(--text-3)" }}>≈ ¥{Math.round(p.items.find(i => i.price_local === p.min_price_local)?.price_jpy ?? 0).toLocaleString()}</div>}
         </td>
         <td style={{ padding: "14px 10px", textAlign: "right" }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#F5F0E8" }}>{fmtPrice(p.avg_price_local, p.currency)}</div>
-          {p.currency !== "JPY" && <div style={{ fontSize: 11, color: "#8A8278" }}>≈ ¥{p.avg_price_jpy.toLocaleString()}</div>}
-          <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>{p.item_count}件</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text)" }}>{fmtPrice(p.avg_price_local, p.currency)}</div>
+          {p.currency !== "JPY" && <div style={{ fontSize: 11, color: "var(--text-3)" }}>≈ ¥{p.avg_price_jpy.toLocaleString()}</div>}
+          <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{p.item_count}件</div>
         </td>
         <td style={{ padding: "14px 10px", textAlign: "right", color: "#ff9944", fontSize: 14 }}>
           {fmtPrice(p.max_price_local, p.currency)}
@@ -153,12 +153,12 @@ function PlatformRow({ p, rank, hasBuyPrice }: { p: PlatformData; rank: number; 
                 <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(10,10,11,0.7)", borderRadius: 8, padding: "8px 12px", textDecoration: "none", border: "1px solid rgba(212,175,55,0.08)" }}>
                   {item.image && <Image src={item.image} alt="" width={44} height={44} unoptimized style={{ objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, color: "#F5F0E8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
-                    {item.condition && <div style={{ fontSize: 11, color: "#8A8278" }}>{item.condition}</div>}
+                    <div style={{ fontSize: 13, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+                    {item.condition && <div style={{ fontSize: 11, color: "var(--text-3)" }}>{item.condition}</div>}
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 700, color: "#66aaff" }}>{fmtPrice(item.price_local, p.currency)}</div>
-                    {p.currency !== "JPY" && <div style={{ fontSize: 11, color: "#8A8278" }}>≈ ¥{Math.round(item.price_jpy).toLocaleString()}</div>}
+                    {p.currency !== "JPY" && <div style={{ fontSize: 11, color: "var(--text-3)" }}>≈ ¥{Math.round(item.price_jpy).toLocaleString()}</div>}
                   </div>
                   <ExternalLink size={12} color="#3a6a4a" style={{ flexShrink: 0 }} />
                 </a>
@@ -321,9 +321,9 @@ function SearchPageContent() {
         }
       `}</style>
       <div className="search-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>相場検索</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>相場検索</h1>
       </div>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20, marginTop: 3 }}>国内・海外プラットフォームの現在価格を一括取得します</div>
+      <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 20, marginTop: 3 }}>国内・海外プラットフォームの現在価格を一括取得します</div>
 
       {/* タブ */}
       <div style={{ display: "flex", gap: 6, marginBottom: 20, borderBottom: "1px solid rgba(212,175,55,0.12)", paddingBottom: 0 }}>
@@ -355,7 +355,7 @@ function SearchPageContent() {
       {/* 検索バー */}
       <div className="search-bar" style={{ display: "flex", gap: 10, marginBottom: tab === "global" ? 12 : 24, flexWrap: "wrap" }}>
         <div style={{ position: "relative", flex: 2, minWidth: 200 }}>
-          <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#8A8278" }} />
+          <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)" }} />
           <input
             style={{ ...inp, paddingLeft: 38 }}
             value={keyword}
@@ -380,7 +380,7 @@ function SearchPageContent() {
         <button
           onClick={handleSearch}
           disabled={loading || !keyword}
-          style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "10px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer", opacity: loading || !keyword ? 0.5 : 1, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 8 }}
+          style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "var(--blue)", padding: "10px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer", opacity: loading || !keyword ? 0.5 : 1, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 8 }}
         >
           {loading
             ? <><RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} /> 検索中...</>
@@ -388,7 +388,7 @@ function SearchPageContent() {
         </button>
       </div>
       {tab === "global" && buyPrice && (
-        <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20 }}>
+        <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 20 }}>
           ✦ 仕入れ価格 ¥{parseInt(buyPrice).toLocaleString()} を入力中 — 各プラットフォームでの利益も計算します
         </div>
       )}
@@ -400,13 +400,13 @@ function SearchPageContent() {
           {stats && (
             <div className="search-stats-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 20 }}>
               {[
-                { label: "最安値",  value: `¥${stats.min.toLocaleString()}`, color: "#D4AF37" },
+                { label: "最安値",  value: `¥${stats.min.toLocaleString()}`, color: "var(--blue)" },
                 { label: "最高値",  value: `¥${stats.max.toLocaleString()}`, color: "#ff9966" },
                 { label: "平均価格", value: `¥${stats.avg.toLocaleString()}`, color: "#66ccff" },
-                { label: "取得件数", value: `${stats.count} 件`,             color: "#F5F0E8" },
+                { label: "取得件数", value: `${stats.count} 件`,             color: "var(--text)" },
               ].map(({ label, value, color }) => (
                 <div key={label} style={card}>
-                  <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>{label}</div>
                   <div style={{ fontSize: 22, fontWeight: 900, color, fontFamily: "monospace" }}>{value}</div>
                 </div>
               ))}
@@ -419,13 +419,13 @@ function SearchPageContent() {
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0", marginBottom: 12 }}>最大仕入れ価格（相場から逆算）</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
                   <div>
-                    <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>販売プラットフォーム</div>
+                    <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>販売プラットフォーム</div>
                     <select style={{ ...inp, fontSize: 13, padding: "7px 10px" }} value={sellPlatform} onChange={e => setSellPlatform(e.target.value)}>
                       {SELL_PLATFORMS.map(p => <option key={p}>{p}</option>)}
                     </select>
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>目標利益率 (%)</div>
+                    <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>目標利益率 (%)</div>
                     <input type="number" style={{ ...inp, fontSize: 13, padding: "7px 10px" }} value={targetRate} onChange={e => setTargetRate(e.target.value)} />
                   </div>
                 </div>
@@ -434,8 +434,8 @@ function SearchPageContent() {
                 </button>
                 {maxPrice !== null && (
                   <div style={{ marginTop: 14, textAlign: "center" }}>
-                    <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 4 }}>これより安く仕入れればOK</div>
-                    <div style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace" }}>¥{Math.floor(maxPrice).toLocaleString()}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 4 }}>これより安く仕入れればOK</div>
+                    <div style={{ fontSize: 36, fontWeight: 900, color: "var(--blue)", fontFamily: "monospace" }}>¥{Math.floor(maxPrice).toLocaleString()}</div>
                   </div>
                 )}
               </div>
@@ -453,13 +453,13 @@ function SearchPageContent() {
                   )}
                 </div>
                 {history.length === 0 ? (
-                  <div style={{ color: "#8A8278", textAlign: "center", padding: 30, fontSize: 12 }}>検索するたびに価格が記録されます<br />履歴が溜まるとグラフが表示されます</div>
+                  <div style={{ color: "var(--text-3)", textAlign: "center", padding: 30, fontSize: 12 }}>検索するたびに価格が記録されます<br />履歴が溜まるとグラフが表示されます</div>
                 ) : (
                   <ResponsiveContainer width="100%" height={160}>
                     <LineChart data={[...history].reverse()}>
                       <XAxis dataKey="date" tick={{ fill: "#8A8278", fontSize: 10 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: "#8A8278", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `¥${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip contentStyle={{ background: "#0a0a0b", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", fontSize: 12 }} formatter={(v) => [`¥${Number(v).toLocaleString()}`, "平均"]} />
+                      <Tooltip contentStyle={{ background: "#0a0a0b", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "var(--text)", fontSize: 12 }} formatter={(v) => [`¥${Number(v).toLocaleString()}`, "平均"]} />
                       <Line type="monotone" dataKey="avg_price" stroke="#D4AF37" strokeWidth={2} dot={{ fill: "#D4AF37", r: 3 }} />
                       <Line type="monotone" dataKey="min_price" stroke="#9A7D25" strokeWidth={1} strokeDasharray="3 3" dot={false} />
                     </LineChart>
@@ -477,11 +477,11 @@ function SearchPageContent() {
                   <div key={i} className="search-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", background: i === 0 ? "rgba(212,175,55,0.05)" : "transparent", borderRadius: 8, border: i === 0 ? "1px solid rgba(212,175,55,0.15)" : "1px solid transparent" }}>
                     {r.image && <Image src={r.image} alt="" width={44} height={44} unoptimized style={{ objectFit: "cover", borderRadius: 6, flexShrink: 0 }} onError={e => (e.currentTarget.style.display = "none")} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: "#F5F0E8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
-                      <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>{r.source}{r.condition && ` · ${r.condition}`}</div>
+                      <div style={{ fontSize: 13, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{r.source}{r.condition && ` · ${r.condition}`}</div>
                     </div>
                     <div style={{ fontFamily: "monospace", fontWeight: 800, fontSize: 16, color: i === 0 ? "#D4AF37" : "#F5F0E8", flexShrink: 0 }}>¥{r.price.toLocaleString()}</div>
-                    {r.url && <a href={r.url} target="_blank" rel="noreferrer" style={{ color: "#8A8278", flexShrink: 0 }}><ExternalLink size={14} /></a>}
+                    {r.url && <a href={r.url} target="_blank" rel="noreferrer" style={{ color: "var(--text-3)", flexShrink: 0 }}><ExternalLink size={14} /></a>}
                   </div>
                 ))}
               </div>
@@ -492,14 +492,14 @@ function SearchPageContent() {
             <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: 48, textAlign: "center" }}>
               <Search size={28} color="rgba(212,175,55,0.25)" style={{ margin: "0 auto 12px", display: "block" }} />
               <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>検索結果が見つかりませんでした</div>
-              <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 16 }}>別のキーワードで試してください</div>
+              <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 16 }}>別のキーワードで試してください</div>
             </div>
           )}
           {!keyword && (
             <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: 48, textAlign: "center" }}>
               <Search size={36} color="rgba(212,175,55,0.2)" style={{ margin: "0 auto 16px", display: "block" }} />
               <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>商品名を入力して相場を調べましょう</div>
-              <div style={{ fontSize: 13, color: "#8A8278" }}>メルカリ・ラクマ・Yahoo!オークションの現在価格を一括取得します</div>
+              <div style={{ fontSize: 13, color: "var(--text-3)" }}>メルカリ・ラクマ・Yahoo!オークションの現在価格を一括取得します</div>
             </div>
           )}
         </>
@@ -513,8 +513,8 @@ function SearchPageContent() {
           {globLoading && (
             <div style={{ ...card, textAlign: "center", padding: "48px 24px" }}>
               <RefreshCw size={32} color="#D4AF37" style={{ animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
-              <div style={{ color: "#F5F0E8", fontWeight: 700, fontSize: 16, marginBottom: 6 }}>全プラットフォームを検索中...</div>
-              <div style={{ color: "#8A8278", fontSize: 13 }}>メルカリ・ヤフオク・ラクマ・eBay・Shopee・Lazada を同時に検索しています</div>
+              <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 16, marginBottom: 6 }}>全プラットフォームを検索中...</div>
+              <div style={{ color: "var(--text-3)", fontSize: 13 }}>メルカリ・ヤフオク・ラクマ・eBay・Shopee・Lazada を同時に検索しています</div>
             </div>
           )}
 
@@ -522,27 +522,27 @@ function SearchPageContent() {
             <>
               <div style={{ display: "flex", gap: 14, marginBottom: 20, flexWrap: "wrap" }}>
                 <div style={{ ...card, flex: 1, minWidth: 180, padding: "14px 20px" }}>
-                  <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>検索キーワード</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#F5F0E8" }}>「{globResult.keyword}」</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>検索キーワード</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text)" }}>「{globResult.keyword}」</div>
                 </div>
                 <div style={{ ...card, flex: 1, minWidth: 160, padding: "14px 20px" }}>
-                  <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>データ取得プラットフォーム</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "#D4AF37" }}>{globResult.platforms.length} サイト</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>データ取得プラットフォーム</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "var(--blue)" }}>{globResult.platforms.length} サイト</div>
                 </div>
                 {bestPlatform && (
                   <div style={{ ...card, flex: 2, minWidth: 260, padding: "14px 20px", borderColor: "rgba(212,175,55,0.4)" }}>
-                    <div style={{ fontSize: 11, color: "#8A8278", marginBottom: 4 }}>
+                    <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>
                       {hasBuyPrice ? "🥇 最も利益が出るプラットフォーム" : "最も高く売れるプラットフォーム"}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 24 }}>{bestPlatform.flag}</span>
                       <div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: "#D4AF37" }}>{bestPlatform.name}</div>
-                        <div style={{ fontSize: 13, color: "#F5F0E8" }}>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: "var(--blue)" }}>{bestPlatform.name}</div>
+                        <div style={{ fontSize: 13, color: "var(--text)" }}>
                           平均 {fmtPrice(bestPlatform.avg_price_local, bestPlatform.currency)}
                           {bestPlatform.currency !== "JPY" && ` ≈ ¥${bestPlatform.avg_price_jpy.toLocaleString()}`}
                           {hasBuyPrice && bestPlatform.profit && (
-                            <span style={{ color: "#D4AF37", fontWeight: 700, marginLeft: 10 }}>
+                            <span style={{ color: "var(--blue)", fontWeight: 700, marginLeft: 10 }}>
                               利益 +¥{bestPlatform.profit.net_profit_jpy.toLocaleString()} ({bestPlatform.profit.profit_rate}%)
                             </span>
                           )}
@@ -556,10 +556,10 @@ function SearchPageContent() {
               <div style={card}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                   <TrendingUp size={16} color="#D4AF37" />
-                  <span style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 15 }}>
+                  <span style={{ fontWeight: 700, color: "var(--text)", fontSize: 15 }}>
                     {hasBuyPrice ? "利益ランキング" : "販売相場一覧"}
                   </span>
-                  <span style={{ fontSize: 12, color: "#8A8278" }}>
+                  <span style={{ fontSize: 12, color: "var(--text-3)" }}>
                     {hasBuyPrice ? `仕入れ ¥${parseInt(String(globResult.buy_price)).toLocaleString()} ベースで計算` : "行をクリックで実際の商品を確認"}
                   </span>
                 </div>
@@ -567,12 +567,12 @@ function SearchPageContent() {
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                     <thead>
                       <tr style={{ borderBottom: "1px solid rgba(212,175,55,0.2)" }}>
-                        <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "center", width: 40 }}>#</th>
-                        <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "left" }}>プラットフォーム</th>
-                        <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "right" }}>最安値</th>
-                        <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "right" }}>平均価格</th>
-                        <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "right" }}>最高値</th>
-                        {hasBuyPrice && <th style={{ padding: "8px 10px", color: "#8A8278", fontWeight: 600, textAlign: "right" }}>利益（推定）</th>}
+                        <th style={{ padding: "8px 10px", color: "var(--text-3)", fontWeight: 600, textAlign: "center", width: 40 }}>#</th>
+                        <th style={{ padding: "8px 10px", color: "var(--text-3)", fontWeight: 600, textAlign: "left" }}>プラットフォーム</th>
+                        <th style={{ padding: "8px 10px", color: "var(--text-3)", fontWeight: 600, textAlign: "right" }}>最安値</th>
+                        <th style={{ padding: "8px 10px", color: "var(--text-3)", fontWeight: 600, textAlign: "right" }}>平均価格</th>
+                        <th style={{ padding: "8px 10px", color: "var(--text-3)", fontWeight: 600, textAlign: "right" }}>最高値</th>
+                        {hasBuyPrice && <th style={{ padding: "8px 10px", color: "var(--text-3)", fontWeight: 600, textAlign: "right" }}>利益（推定）</th>}
                         <th style={{ width: 32 }} />
                       </tr>
                     </thead>
@@ -594,13 +594,13 @@ function SearchPageContent() {
             <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, textAlign: "center", padding: "56px 24px", borderStyle: "dashed" }}>
               <Globe size={40} color="rgba(212,175,55,0.25)" style={{ margin: "0 auto 16px" }} />
               <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>商品名を入力して検索してください</div>
-              <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 20 }}>
+              <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 20 }}>
                 日本（メルカリ・ヤフオク・ラクマ）と海外（eBay・Shopee・Lazada）の<br />現在の販売価格を同時に取得して比較します
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
                 {["Nintendo Switch", "ポケモンカード", "AirPods Pro", "LEGO"].map(kw => (
                   <button key={kw} onClick={() => { setKeyword(kw); doGlobSearch(kw, buyPrice); }}
-                    style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 20, color: "#8A8278", padding: "6px 16px", fontSize: 13, cursor: "pointer" }}>
+                    style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 20, color: "var(--text-3)", padding: "6px 16px", fontSize: 13, cursor: "pointer" }}>
                     {kw}
                   </button>
                 ))}

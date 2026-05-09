@@ -6,15 +6,15 @@ import { Mail, Loader, ArrowLeft, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 const C = {
-  bg0:  "#0a0a0b",
-  bg1:  "rgba(20,20,22,0.95)",
-  t1:   "#F5F0E8",
-  t2:   "#D4CCBC",
-  t3:   "#8A8278",
-  t4:   "#6A6058",
-  gold: "#D4AF37",
-  bd:   "rgba(212,175,55,0.2)",
-  bdSt: "rgba(212,175,55,0.4)",
+  bg0:  "var(--bg)",
+  bg1:  "var(--surface)",
+  t1:   "var(--text)",
+  t2:   "var(--text-2)",
+  t3:   "var(--text-3)",
+  t4:   "var(--text-4)",
+  gold: "var(--blue)",
+  bd:   "var(--border)",
+  bdSt: "var(--border-strong)",
   err:  "#ff6666",
 };
 

@@ -12,13 +12,13 @@ import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
 const S = {
-  bg:       "#0f0f10",
-  surface:  "rgba(20,20,22,0.95)",
-  border:   "rgba(212,175,55,0.14)",
-  brass:    "#D4AF37",
-  text:     "#F5F0E8",
-  muted:    "#8A8278",
-  faint:    "#3A3830",
+  bg:       "var(--bg)",
+  surface:  "var(--surface)",
+  border:   "var(--border)",
+  brass:    "var(--blue)",
+  text:     "var(--text)",
+  muted:    "var(--text-3)",
+  faint:    "var(--text-4)",
   green:    "#44ccaa",
   blue:     "#66aaff",
   purple:   "#aa88ff",

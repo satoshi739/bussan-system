@@ -22,19 +22,19 @@ const LS_PLATFORM  = "bussan_last_platform";
 const LS_SHIPPING  = "bussan_last_shipping";
 
 const inp: React.CSSProperties = {
-  background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)",
-  borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 14,
+  background: "var(--surface-2)", border: "1px solid var(--border)",
+  borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 14,
   width: "100%", outline: "none", boxSizing: "border-box",
 };
 const inpSm: React.CSSProperties = { ...inp, padding: "6px 8px", fontSize: 13 };
 const lbl: React.CSSProperties = {
-  fontSize: 12, color: "#8A8278", fontWeight: 600, display: "block", marginBottom: 4,
+  fontSize: 12, color: "var(--text-3)", fontWeight: 600, display: "block", marginBottom: 4,
 };
 
 const STATUS = {
   purchased: { label: "仕入済み",  color: "#ffcc44", bg: "rgba(255,204,68,0.12)" },
   listed:    { label: "出品中",    color: "#66ccff", bg: "rgba(102,204,255,0.12)" },
-  sold:      { label: "売却済み",  color: "#D4AF37", bg: "rgba(212,175,55,0.12)" },
+  sold:      { label: "売却済み",  color: "var(--blue)", bg: "rgba(212,175,55,0.12)" },
   cancelled: { label: "キャンセル", color: "#ff6666", bg: "rgba(255,102,102,0.1)" },
 };
 const PLATFORMS = ["メルカリ", "eBay", "ヤフオク", "Amazon", "楽天", "ラクマ", "その他"];
@@ -408,8 +408,8 @@ export default function PurchasesPage() {
       {/* ── ヘッダー ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>仕入れ管理</h1>
-          <div style={{ fontSize: 12, color: "#8A8278", marginTop: 3 }}>仕入れた商品の一覧・ステータス管理</div>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>仕入れ管理</h1>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>仕入れた商品の一覧・ステータス管理</div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button
@@ -424,7 +424,7 @@ export default function PurchasesPage() {
                 URL.revokeObjectURL(url);
               } catch (e) { toast(errMsg(e), "error"); }
             }}
-            style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,40,15,0.8)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10, color: "#8A8278", padding: "10px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,40,15,0.8)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10, color: "var(--text-3)", padding: "10px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
           >
             <Download size={14} /> CSV出力
           </button>
@@ -456,7 +456,7 @@ export default function PurchasesPage() {
               {allItemsCount >= FREE_PLAN_LIMIT ? `フリープランの上限（${FREE_PLAN_LIMIT}件）に達しました` : `フリープラン：${allItemsCount} / ${FREE_PLAN_LIMIT} 件使用中`}
             </span>
           </div>
-          <Link href="/pricing" style={{ fontSize: 12, color: "#D4AF37", fontWeight: 700, textDecoration: "none", background: "rgba(0,60,20,0.8)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 6, padding: "5px 12px", flexShrink: 0 }}>
+          <Link href="/pricing" style={{ fontSize: 12, color: "var(--blue)", fontWeight: 700, textDecoration: "none", background: "rgba(0,60,20,0.8)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 6, padding: "5px 12px", flexShrink: 0 }}>
             Standardプランへアップグレード →
           </Link>
         </div>
@@ -467,12 +467,12 @@ export default function PurchasesPage() {
         {[
           { key: "purchased", label: "仕入済み", icon: <Package size={18} />, color: "#ffcc44", extra: `合計 ¥${byStatus("purchased").reduce((s,i)=>s+i.purchase_price+i.purchase_shipping,0).toLocaleString()}` },
           { key: "listed",    label: "出品中",   icon: <ShoppingCart size={18} />, color: "#66ccff", extra: `${byStatus("listed").length}件` },
-          { key: "sold",      label: "売却済み", icon: <CheckCircle size={18} />, color: "#D4AF37", extra: `${byStatus("sold").length}件` },
+          { key: "sold",      label: "売却済み", icon: <CheckCircle size={18} />, color: "var(--blue)", extra: `${byStatus("sold").length}件` },
           { key: "",          label: "総仕入れコスト", icon: <TrendingUp size={18} />, color: "#aa88ff", extra: `¥${Math.round(totalCostAll).toLocaleString()}` },
         ].map(({ key, label, icon, color, extra }) => (
           <button key={key} onClick={() => setFilter(key)} style={{ background: filter === key ? `${color}18` : "rgba(20,20,22,0.9)", border: `1px solid ${filter === key ? color + "55" : "rgba(212,175,55,0.1)"}`, borderRadius: 12, padding: "14px 16px", cursor: key ? "pointer" : "default", textAlign: "left", transition: "all 0.15s" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, color, marginBottom: 6 }}>{icon}<span style={{ fontSize: 11, fontWeight: 700 }}>{label}</span></div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", fontFamily: "monospace" }}>{key ? byStatus(key).length : ""}<span style={{ fontSize: 11, color: "#8A8278", marginLeft: 2 }}>{key ? "件" : ""}</span></div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", fontFamily: "monospace" }}>{key ? byStatus(key).length : ""}<span style={{ fontSize: 11, color: "var(--text-3)", marginLeft: 2 }}>{key ? "件" : ""}</span></div>
             <div style={{ fontSize: 11, color, marginTop: 2 }}>{extra}</div>
           </button>
         ))}
@@ -550,10 +550,10 @@ export default function PurchasesPage() {
             />
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button onClick={handleSubmit} disabled={loading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "10px 28px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+            <button onClick={handleSubmit} disabled={loading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "10px 28px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
               {loading ? "保存中..." : "保存する"}
             </button>
-            <button onClick={() => setShowForm(false)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "10px 16px", cursor: "pointer" }}>
+            <button onClick={() => setShowForm(false)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "10px 16px", cursor: "pointer" }}>
               キャンセル
             </button>
             <span style={{ fontSize: 11, color: "#3A3830", marginLeft: 4 }}>Enter で保存 · Tab で次へ</span>
@@ -564,7 +564,7 @@ export default function PurchasesPage() {
       {/* ── 検索バー ── */}
       <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center" }}>
         <div style={{ position: "relative", flex: 1 }}>
-          <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#8A8278" }} />
+          <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)" }} />
           <input style={{ ...inp, paddingLeft: 32 }} placeholder="商品名・仕入れ元で検索..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
@@ -579,18 +579,18 @@ export default function PurchasesPage() {
       {/* ── 一括操作バー（選択中のみ表示） ── */}
       {selectedIds.size > 0 && (
         <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 500, background: "#0a0a0b", border: "1px solid rgba(212,175,55,0.5)", borderRadius: 14, padding: "12px 20px", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.7)", minWidth: 400 }}>
-          <span style={{ fontSize: 13, color: "#D4AF37", fontWeight: 700, flexShrink: 0 }}>{selectedIds.size}件選択中</span>
+          <span style={{ fontSize: 13, color: "var(--blue)", fontWeight: 700, flexShrink: 0 }}>{selectedIds.size}件選択中</span>
           <div style={{ height: 20, width: 1, background: "rgba(212,175,55,0.2)" }} />
-          <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)} style={{ background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "6px 10px", fontSize: 12, cursor: "pointer" }}>
+          <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)} style={{ background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "var(--text)", padding: "6px 10px", fontSize: 12, cursor: "pointer" }}>
             {Object.entries(STATUS).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
           </select>
-          <button onClick={handleBulkStatus} disabled={bulkLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", opacity: bulkLoading ? 0.6 : 1 }}>
+          <button onClick={handleBulkStatus} disabled={bulkLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", opacity: bulkLoading ? 0.6 : 1 }}>
             {bulkLoading ? "処理中..." : "一括変更"}
           </button>
           <button onClick={handleBulkDelete} disabled={bulkLoading} style={{ background: "rgba(255,50,50,0.08)", border: "1px solid rgba(255,80,80,0.3)", borderRadius: 8, color: "#ff6666", padding: "7px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, opacity: bulkLoading ? 0.6 : 1 }}>
             <Trash2 size={12} /> 一括削除
           </button>
-          <button onClick={() => setSelectedIds(new Set())} style={{ background: "transparent", border: "none", color: "#8A8278", cursor: "pointer", padding: "4px", marginLeft: 4 }}>
+          <button onClick={() => setSelectedIds(new Set())} style={{ background: "transparent", border: "none", color: "var(--text-3)", cursor: "pointer", padding: "4px", marginLeft: 4 }}>
             <X size={16} />
           </button>
         </div>
@@ -603,13 +603,13 @@ export default function PurchasesPage() {
           onClick={e => e.target === e.currentTarget && setListingModal(null)}
         >
           <div style={{ background: "#0a0a0b", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 18, padding: 28, width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
-            <button onClick={() => setListingModal(null)} style={{ position: "absolute", top: 14, right: 14, background: "transparent", border: "none", color: "#8A8278", cursor: "pointer" }}>
+            <button onClick={() => setListingModal(null)} style={{ position: "absolute", top: 14, right: 14, background: "transparent", border: "none", color: "var(--text-3)", cursor: "pointer" }}>
               <X size={18} />
             </button>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F0E8", marginBottom: 4 }}>🏪 出品する</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", marginBottom: 4 }}>🏪 出品する</div>
             <div style={{ fontSize: 13, color: "#C8C0B0", marginBottom: 4 }}>{listingModal.product_name}</div>
-            <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20 }}>
-              仕入れコスト ¥{listingModal.cost_jpy.toLocaleString()} · 推奨売価 <span style={{ color: "#D4AF37", fontWeight: 700 }}>¥{listingModal.suggested_price_jpy.toLocaleString()}</span>（利益率30%目安）
+            <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 20 }}>
+              仕入れコスト ¥{listingModal.cost_jpy.toLocaleString()} · 推奨売価 <span style={{ color: "var(--blue)", fontWeight: 700 }}>¥{listingModal.suggested_price_jpy.toLocaleString()}</span>（利益率30%目安）
             </div>
 
             {(["国内", "海外"] as const).map(cat => {
@@ -617,22 +617,22 @@ export default function PurchasesPage() {
               if (!entries.length) return null;
               return (
                 <div key={cat} style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, color: "#8A8278", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>{cat}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>{cat}</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {entries.map(([key, link]) => (
                       <a key={key} href={link.url} target="_blank" rel="noreferrer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 14px", borderRadius: 10, border: link.recommended ? "1px solid rgba(212,175,55,0.4)" : "1px solid rgba(212,175,55,0.1)", background: link.recommended ? "rgba(212,175,55,0.06)" : "rgba(10,10,11,0.6)", textDecoration: "none", cursor: "pointer" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <span style={{ fontSize: 18 }}>{link.flag}</span>
                           <div>
-                            <div style={{ fontSize: 13, color: "#F5F0E8", fontWeight: 600 }}>
+                            <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>
                               {link.label}
-                              {link.recommended && <span style={{ marginLeft: 6, fontSize: 10, background: "rgba(212,175,55,0.2)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: "1px 6px", color: "#D4AF37" }}>おすすめ</span>}
+                              {link.recommended && <span style={{ marginLeft: 6, fontSize: 10, background: "rgba(212,175,55,0.2)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: "1px 6px", color: "var(--blue)" }}>おすすめ</span>}
                             </div>
-                            <div style={{ fontSize: 11, color: "#8A8278", marginTop: 1 }}>{link.note}</div>
+                            <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 1 }}>{link.note}</div>
                           </div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          {link.price_display && <span style={{ fontSize: 13, color: "#D4AF37", fontWeight: 700, fontFamily: "monospace" }}>{link.price_display}</span>}
+                          {link.price_display && <span style={{ fontSize: 13, color: "var(--blue)", fontWeight: 700, fontFamily: "monospace" }}>{link.price_display}</span>}
                           <ExternalLink size={13} color="#8A8278" />
                         </div>
                       </a>
@@ -661,8 +661,8 @@ export default function PurchasesPage() {
           onClick={e => e.target === e.currentTarget && setBulkDeleteConfirm(false)}
         >
           <div style={{ background: "#0a0a0b", border: "1px solid rgba(255,80,80,0.3)", borderRadius: 16, padding: 28, width: 420 }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#F5F0E8", marginBottom: 8 }}>一括削除の確認</div>
-            <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 20, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text)", marginBottom: 8 }}>一括削除の確認</div>
+            <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 20, lineHeight: 1.6 }}>
               選択した <span style={{ color: "#ff6666", fontWeight: 700 }}>{selectedIds.size}件</span> を削除しますか？<br />
               この操作は取り消せません。
             </div>
@@ -675,7 +675,7 @@ export default function PurchasesPage() {
               </button>
               <button
                 onClick={() => setBulkDeleteConfirm(false)}
-                style={{ flex: 1, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "10px", cursor: "pointer" }}
+                style={{ flex: 1, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "10px", cursor: "pointer" }}
               >
                 キャンセル
               </button>
@@ -691,9 +691,9 @@ export default function PurchasesPage() {
           onClick={e => e.target === e.currentTarget && setDeleteConfirm(null)}
         >
           <div style={{ background: "#0a0a0b", border: "1px solid rgba(255,80,80,0.3)", borderRadius: 16, padding: 28, width: 420 }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#F5F0E8", marginBottom: 8 }}>削除の確認</div>
-            <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 20, lineHeight: 1.6 }}>
-              <span style={{ color: "#F5F0E8", fontWeight: 600 }}>「{deleteConfirm.name}」</span>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text)", marginBottom: 8 }}>削除の確認</div>
+            <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 20, lineHeight: 1.6 }}>
+              <span style={{ color: "var(--text)", fontWeight: 600 }}>「{deleteConfirm.name}」</span>
               を削除しますか？<br />
               この操作は取り消せません。
             </div>
@@ -706,7 +706,7 @@ export default function PurchasesPage() {
               </button>
               <button
                 onClick={() => setDeleteConfirm(null)}
-                style={{ flex: 1, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "10px", cursor: "pointer" }}
+                style={{ flex: 1, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "10px", cursor: "pointer" }}
               >
                 キャンセル
               </button>
@@ -722,7 +722,7 @@ export default function PurchasesPage() {
           onClick={e => e.target === e.currentTarget && setQuickSell(null)}
         >
           <div style={{ background: "#0a0a0b", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 16, padding: 28, width: 560, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
-            <button onClick={() => setQuickSell(null)} style={{ position: "absolute", top: 14, right: 14, background: "transparent", border: "none", color: "#8A8278", cursor: "pointer" }}>
+            <button onClick={() => setQuickSell(null)} style={{ position: "absolute", top: 14, right: 14, background: "transparent", border: "none", color: "var(--text-3)", cursor: "pointer" }}>
               <X size={18} />
             </button>
 
@@ -733,14 +733,14 @@ export default function PurchasesPage() {
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0", marginBottom: 20 }}>売却完了！</div>
 
                 <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 12, padding: "20px 24px", marginBottom: 14 }}>
-                  <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 6 }}>この取引の純利益</div>
+                  <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 6 }}>この取引の純利益</div>
                   <div style={{ fontSize: 38, fontWeight: 900, color: sellResult.net_profit >= 0 ? "#D4AF37" : "#ff6666", fontFamily: "monospace", letterSpacing: "-0.02em" }}>
                     {sellResult.net_profit >= 0 ? "+" : ""}¥{Math.round(sellResult.net_profit).toLocaleString()}
                   </div>
                 </div>
 
                 <div style={{ background: "rgba(68,204,170,0.06)", border: "1px solid rgba(68,204,170,0.2)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: "#8A8278" }}>今月の累計利益</span>
+                  <span style={{ fontSize: 12, color: "var(--text-3)" }}>今月の累計利益</span>
                   <span style={{ fontSize: 18, fontWeight: 800, color: "#44ccaa", fontFamily: "monospace" }}>
                     ¥{Math.round(sellResult.monthly_profit).toLocaleString()}
                   </span>
@@ -750,21 +750,21 @@ export default function PurchasesPage() {
                   {/* リストに戻って別の商品を選ぶ */}
                   <button
                     onClick={() => setQuickSell(null)}
-                    style={{ flex: 1, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "#D4AF37", padding: "10px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                    style={{ flex: 1, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "var(--blue)", padding: "10px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
                   >
                     別の商品を売る
                   </button>
-                  <button onClick={() => setQuickSell(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "10px 16px", cursor: "pointer" }}>
+                  <button onClick={() => setQuickSell(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "10px 16px", cursor: "pointer" }}>
                     閉じる
                   </button>
                 </div>
               </div>
             ) : (
               <>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F0E8", marginBottom: 4 }}>💰 売却記録</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", marginBottom: 4 }}>💰 売却記録</div>
                 <div style={{ background: "rgba(10,10,11,0.8)", borderRadius: 8, padding: "10px 14px", marginBottom: 16, border: "1px solid rgba(212,175,55,0.1)" }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#F5F0E8" }}>{quickSell.product_name}</div>
-                  <div style={{ fontSize: 12, color: "#8A8278", marginTop: 2 }}>仕入れ: {quickSell.platform} · コスト ¥{(quickSell.purchase_price + quickSell.purchase_shipping).toLocaleString()}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{quickSell.product_name}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>仕入れ: {quickSell.platform} · コスト ¥{(quickSell.purchase_price + quickSell.purchase_shipping).toLocaleString()}</div>
                 </div>
 
                 <div style={{ marginBottom: 14 }}>
@@ -782,7 +782,7 @@ export default function PurchasesPage() {
 
                 {sortedComparison.length > 0 ? (
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, color: "#8A8278", fontWeight: 700, marginBottom: 8 }}>どこで売ると一番儲かるか</div>
+                    <div style={{ fontSize: 12, color: "var(--text-3)", fontWeight: 700, marginBottom: 8 }}>どこで売ると一番儲かるか</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                       {sortedComparison.map(([name, data], i) => {
                         const isBest = i === 0 && data.gross_profit > 0;
@@ -792,14 +792,14 @@ export default function PurchasesPage() {
                           <button key={name} onClick={() => setSellPlatform(name)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 14px", borderRadius: 9, border: isSelected ? "1px solid rgba(212,175,55,0.5)" : isBest ? "1px solid rgba(212,175,55,0.2)" : "1px solid rgba(212,175,55,0.07)", background: isSelected ? "rgba(212,175,55,0.08)" : isBest ? "rgba(212,175,55,0.04)" : "rgba(10,10,11,0.5)", cursor: "pointer", width: "100%" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               {isSelected && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />}
-                              <span style={{ fontSize: 13, color: "#F5F0E8" }}>{data.emoji} {name}</span>
-                              {isBest && <span style={{ fontSize: 10, background: "rgba(212,175,55,0.2)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: "1px 6px", color: "#D4AF37" }}>最高</span>}
+                              <span style={{ fontSize: 13, color: "var(--text)" }}>{data.emoji} {name}</span>
+                              {isBest && <span style={{ fontSize: 10, background: "rgba(212,175,55,0.2)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: "1px 6px", color: "var(--blue)" }}>最高</span>}
                             </div>
                             <div style={{ textAlign: "right" }}>
                               <span style={{ fontSize: 15, fontWeight: 700, color: profit >= 0 ? "#D4AF37" : "#ff6666", fontFamily: "monospace" }}>
                                 {profit >= 0 ? "+" : ""}¥{profit.toLocaleString()}
                               </span>
-                              <span style={{ fontSize: 11, color: "#8A8278", marginLeft: 6 }}>({data.profit_rate.toFixed(1)}%)</span>
+                              <span style={{ fontSize: 11, color: "var(--text-3)", marginLeft: 6 }}>({data.profit_rate.toFixed(1)}%)</span>
                             </div>
                           </button>
                         );
@@ -807,23 +807,23 @@ export default function PurchasesPage() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ textAlign: "center", fontSize: 12, color: "#8A8278", marginBottom: 14, padding: "16px 0" }}>
+                  <div style={{ textAlign: "center", fontSize: 12, color: "var(--text-3)", marginBottom: 14, padding: "16px 0" }}>
                     売却価格を入力するとプラットフォーム別利益が表示されます
                   </div>
                 )}
 
                 {sellPrice && (
-                  <div style={{ marginBottom: 14, padding: "8px 12px", background: "rgba(212,175,55,0.06)", borderRadius: 8, border: "1px solid rgba(212,175,55,0.2)", fontSize: 12, color: "#8A8278" }}>
-                    選択中: <span style={{ color: "#D4AF37", fontWeight: 700 }}>{sellPlatform}</span>
+                  <div style={{ marginBottom: 14, padding: "8px 12px", background: "rgba(212,175,55,0.06)", borderRadius: 8, border: "1px solid rgba(212,175,55,0.2)", fontSize: 12, color: "var(--text-3)" }}>
+                    選択中: <span style={{ color: "var(--blue)", fontWeight: 700 }}>{sellPlatform}</span>
                     <span style={{ float: "right", fontSize: 10, color: "#3A3830" }}>Enter で記録</span>
                   </div>
                 )}
 
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={handleQuickSell} disabled={loading || !sellPrice} style={{ flex: 1, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "12px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: (!sellPrice || loading) ? 0.5 : 1 }}>
+                  <button onClick={handleQuickSell} disabled={loading || !sellPrice} style={{ flex: 1, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "12px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: (!sellPrice || loading) ? 0.5 : 1 }}>
                     {loading ? "記録中..." : "売却を記録する"}
                   </button>
-                  <button onClick={() => setQuickSell(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "12px 16px", cursor: "pointer" }}>
+                  <button onClick={() => setQuickSell(null)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "12px 16px", cursor: "pointer" }}>
                     キャンセル
                   </button>
                 </div>
@@ -842,14 +842,14 @@ export default function PurchasesPage() {
           <div style={{ background: "#0a0a0b", border: "1px solid rgba(100,170,255,0.3)", borderRadius: 18, width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
             <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid rgba(212,175,55,0.1)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F0E8" }}>CSV一括取込</div>
-                <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)" }}>CSV一括取込</div>
+                <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>
                   {csvStep === "upload" && "CSVファイルを選択してください"}
                   {csvStep === "preview" && `プレビュー（先頭${csvRows.length}行）— 問題なければ取込を実行`}
                   {csvStep === "done" && "取込完了"}
                 </div>
               </div>
-              <button onClick={resetCsvModal} style={{ background: "transparent", border: "none", color: "#8A8278", cursor: "pointer" }}>
+              <button onClick={resetCsvModal} style={{ background: "transparent", border: "none", color: "var(--text-3)", cursor: "pointer" }}>
                 <X size={18} />
               </button>
             </div>
@@ -863,13 +863,13 @@ export default function PurchasesPage() {
                   >
                     <Upload size={28} color="#66aaff" style={{ margin: "0 auto 10px", display: "block" }} />
                     <div style={{ fontSize: 14, color: "#C8C0B0", fontWeight: 600, marginBottom: 6 }}>クリックしてファイルを選択</div>
-                    <div style={{ fontSize: 11, color: "#8A8278" }}>.csv（UTF-8 / Shift-JIS 対応・カンマ含む商品名も対応）</div>
+                    <div style={{ fontSize: 11, color: "var(--text-3)" }}>.csv（UTF-8 / Shift-JIS 対応・カンマ含む商品名も対応）</div>
                     <input ref={fileInputRef} type="file" accept=".csv" style={{ display: "none" }} onChange={handleCsvFileChange} />
                   </div>
 
                   <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", fontSize: 12 }}>
                     <div style={{ color: "#66aaff", fontWeight: 700, marginBottom: 8 }}>対応カラム名</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, color: "#8A8278" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, color: "var(--text-3)" }}>
                       {[
                         ["商品名（必須）",   "商品名 / product_name"],
                         ["仕入れ価格（必須）", "仕入れ価格 / price"],
@@ -916,14 +916,14 @@ export default function PurchasesPage() {
                       </tbody>
                     </table>
                   </div>
-                  <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16 }}>
                     ファイル: <span style={{ color: "#C8C0B0" }}>{csvFile?.name}</span>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={handleCsvImport} disabled={csvImporting} style={{ flex: 1, background: "linear-gradient(135deg,#003d5f,#00508a)", border: "1px solid rgba(100,170,255,0.4)", borderRadius: 8, color: "#66aaff", padding: "12px", fontWeight: 700, cursor: csvImporting ? "not-allowed" : "pointer", fontSize: 14, opacity: csvImporting ? 0.7 : 1 }}>
                       {csvImporting ? "取込中..." : "取込を実行する"}
                     </button>
-                    <button onClick={() => { setCsvStep("upload"); setCsvFile(null); setCsvRows([]); if (fileInputRef.current) fileInputRef.current.value = ""; }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "12px 16px", cursor: "pointer" }}>
+                    <button onClick={() => { setCsvStep("upload"); setCsvFile(null); setCsvRows([]); if (fileInputRef.current) fileInputRef.current.value = ""; }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "12px 16px", cursor: "pointer" }}>
                       戻る
                     </button>
                   </div>
@@ -934,7 +934,7 @@ export default function PurchasesPage() {
                 <>
                   <div style={{ textAlign: "center", padding: "16px 0 24px" }}>
                     <div style={{ fontSize: 32, marginBottom: 12 }}>{csvResult.imported > 0 ? "✅" : "⚠️"}</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: "#D4AF37", fontFamily: "monospace", marginBottom: 8 }}>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: "var(--blue)", fontFamily: "monospace", marginBottom: 8 }}>
                       {csvResult.imported} 件取込完了
                     </div>
                   </div>
@@ -950,7 +950,7 @@ export default function PurchasesPage() {
                     </div>
                   )}
 
-                  <button onClick={resetCsvModal} style={{ width: "100%", background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 8, color: "#D4AF37", padding: "12px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+                  <button onClick={resetCsvModal} style={{ width: "100%", background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 8, color: "var(--blue)", padding: "12px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
                     閉じる
                   </button>
                 </>
@@ -971,11 +971,11 @@ export default function PurchasesPage() {
       {filtered.length === 0 ? (
         <div style={{ background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 14, textAlign: "center", padding: 60 }}>
           <Package size={36} color="rgba(212,175,55,0.2)" style={{ margin: "0 auto 12px", display: "block" }} />
-          <div style={{ color: "#8A8278", fontSize: 14, marginBottom: 16 }}>
+          <div style={{ color: "var(--text-3)", fontSize: 14, marginBottom: 16 }}>
             {search || filter ? "該当する商品がありません" : "まだ仕入れがありません"}
           </div>
           {!search && !filter && (
-            <button onClick={() => setShowForm(true)} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: "#D4AF37", padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            <button onClick={() => setShowForm(true)} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 9, color: "var(--blue)", padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
               まずはこれから：仕入れを登録する →
             </button>
           )}
@@ -1009,7 +1009,7 @@ export default function PurchasesPage() {
               >
                 {isEditing ? (
                   <>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#D4AF37", marginBottom: 4 }}>編集中: {item.product_name}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--blue)", marginBottom: 4 }}>編集中: {item.product_name}</div>
                     <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
                       <div>
                         <label style={lbl}>商品名</label>
@@ -1046,10 +1046,10 @@ export default function PurchasesPage() {
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button onClick={() => saveEdit(item.id)} style={{ display: "flex", alignItems: "center", gap: 4, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 7, color: "#D4AF37", padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                      <button onClick={() => saveEdit(item.id)} style={{ display: "flex", alignItems: "center", gap: 4, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 7, color: "var(--blue)", padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                         <Save size={12} /> 保存
                       </button>
-                      <button onClick={cancelEdit} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 7, color: "#8A8278", padding: "7px 12px", fontSize: 12, cursor: "pointer" }}>
+                      <button onClick={cancelEdit} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 7, color: "var(--text-3)", padding: "7px 12px", fontSize: 12, cursor: "pointer" }}>
                         Esc / キャンセル
                       </button>
                     </div>
@@ -1075,8 +1075,8 @@ export default function PurchasesPage() {
 
                     {/* 商品名・仕入れ元 */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, color: "#F5F0E8", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.product_name}</div>
-                      <div style={{ fontSize: 11, color: "#8A8278", marginTop: 2, display: "flex", gap: 8 }}>
+                      <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.product_name}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2, display: "flex", gap: 8 }}>
                         <span>{item.platform}</span>
                         <span style={{ opacity: 0.6 }}>·</span>
                         <span>{item.purchase_date}</span>
@@ -1086,8 +1086,8 @@ export default function PurchasesPage() {
 
                     {/* コスト */}
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ fontFamily: "monospace", fontWeight: 700, color: "#F5F0E8", fontSize: 15 }}>¥{cost.toLocaleString()}</div>
-                      {item.purchase_shipping > 0 && <div style={{ fontSize: 10, color: "#8A8278" }}>+送料¥{item.purchase_shipping.toLocaleString()}</div>}
+                      <div style={{ fontFamily: "monospace", fontWeight: 700, color: "var(--text)", fontSize: 15 }}>¥{cost.toLocaleString()}</div>
+                      {item.purchase_shipping > 0 && <div style={{ fontSize: 10, color: "var(--text-3)" }}>+送料¥{item.purchase_shipping.toLocaleString()}</div>}
                     </div>
 
                     {/* アクション */}
@@ -1116,11 +1116,11 @@ export default function PurchasesPage() {
                           <Truck size={12} /> 発送
                         </button>
                       )}
-                      <button onClick={() => startEdit(item)} title="編集" style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "#8A8278", cursor: "pointer", padding: "6px 8px", display: "flex", alignItems: "center" }}>
+                      <button onClick={() => startEdit(item)} title="編集" style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8, color: "var(--text-3)", cursor: "pointer", padding: "6px 8px", display: "flex", alignItems: "center" }}>
                         <Pencil size={12} />
                       </button>
                       {item.purchase_url && (
-                        <a href={item.purchase_url} target="_blank" rel="noreferrer" style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, color: "#8A8278", padding: "6px 8px", display: "flex", alignItems: "center" }}>
+                        <a href={item.purchase_url} target="_blank" rel="noreferrer" style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, color: "var(--text-3)", padding: "6px 8px", display: "flex", alignItems: "center" }}>
                           <ExternalLink size={12} />
                         </a>
                       )}

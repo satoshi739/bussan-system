@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { aiResearch } from "@/lib/api";
 
-const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
-const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "10px 12px", fontSize: 14, width: "100%", outline: "none", resize: "vertical", fontFamily: "inherit", lineHeight: 1.6 };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
+const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "10px 12px", fontSize: 14, width: "100%", outline: "none", resize: "vertical", fontFamily: "inherit", lineHeight: 1.6 };
 
 interface Message { role: "user" | "assistant"; text: string; }
 
@@ -50,8 +50,8 @@ export default function AIPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)", gap: 16 }}>
       <div>
-        <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", marginBottom: 6 }}>AIリサーチアシスタント</h1>
-        <div style={{ fontSize: 12, color: "#8A8278" }}>
+        <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", marginBottom: 6 }}>AIリサーチアシスタント</h1>
+        <div style={{ fontSize: 12, color: "var(--text-3)" }}>
           あなたの売上データをもとに、物販戦略・仕入れ判断・価格設定をAIがアドバイスします
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function AIPage() {
                 <button
                   key={i}
                   onClick={() => send(s)}
-                  style={{ background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, padding: "11px 14px", color: "#8A8278", fontSize: 13, cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}
+                  style={{ background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, padding: "11px 14px", color: "var(--text-3)", fontSize: 13, cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}
                 >
                   {s}
                 </button>
@@ -77,17 +77,17 @@ export default function AIPage() {
             <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
               <div style={{
                 maxWidth: "82%",
-                background: m.role === "user" ? "rgba(30,25,10,0.9)" : "rgba(20,20,22,0.95)",
-                border: m.role === "user" ? "1px solid rgba(212,175,55,0.3)" : "1px solid rgba(212,175,55,0.15)",
+                background: m.role === "user" ? "var(--nav-active)" : "var(--surface)",
+                border: m.role === "user" ? "1px solid var(--border-strong)" : "1px solid var(--border)",
                 borderRadius: m.role === "user" ? "12px 12px 4px 12px" : "12px 12px 12px 4px",
                 padding: "12px 16px",
                 fontSize: 14,
-                color: "#F5F0E8",
+                color: "var(--text)",
                 lineHeight: 1.75,
                 whiteSpace: "pre-wrap",
               }}>
                 {m.role === "assistant" && (
-                  <div style={{ fontSize: 11, color: "#D4AF37", marginBottom: 6, fontWeight: 700 }}>AI アシスタント</div>
+                  <div style={{ fontSize: 11, color: "var(--blue)", marginBottom: 6, fontWeight: 700 }}>AI アシスタント</div>
                 )}
                 {m.text}
               </div>
@@ -97,7 +97,7 @@ export default function AIPage() {
 
         {loading && (
           <div style={{ display: "flex", justifyContent: "flex-start" }}>
-            <div style={{ background: "rgba(20,20,22,0.95)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: "12px 12px 12px 4px", padding: "12px 18px", color: "#8A8278", fontSize: 14 }}>
+            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px 12px 12px 4px", padding: "12px 18px", color: "var(--text-3)", fontSize: 14 }}>
               考えています...
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function AIPage() {
           {messages.length > 0 && (
             <button
               onClick={() => setMessages([])}
-              style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, color: "#8A8278", padding: "8px 14px", fontSize: 12, cursor: "pointer" }}
+              style={{ background: "transparent", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, color: "var(--text-3)", padding: "8px 14px", fontSize: 12, cursor: "pointer" }}
             >
               会話をリセット
             </button>

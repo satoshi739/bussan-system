@@ -8,8 +8,8 @@ import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
 const card: React.CSSProperties = {
-  background: "rgba(20,20,22,0.9)",
-  border: "1px solid rgba(212,175,55,0.15)",
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
   borderRadius: 14,
   padding: "24px 28px",
 };
@@ -21,8 +21,8 @@ const PLAN_ICONS: Record<string, React.ElementType> = {
 };
 
 const PLAN_COLORS: Record<string, string> = {
-  FREE: "#8A8278",
-  STANDARD: "#D4AF37",
+  FREE: "var(--text-3)",
+  STANDARD: "var(--blue)",
   PRO: "#66aaff",
 };
 
@@ -54,7 +54,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
   }, []);
 
   const PlanIcon = PLAN_ICONS[plan] ?? Gift;
-  const planColor = PLAN_COLORS[plan] ?? "#8A8278";
+  const planColor = PLAN_COLORS[plan] ?? "var(--text-3)";
   const currentPlan = plans[plan];
 
   const handlePortal = async () => {
@@ -107,22 +107,22 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
           .billing-plan-inner { flex-direction: column !important; align-items: flex-start !important; gap: 8px; }
         }
       `}</style>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0, marginBottom: 4 }}>課金・プラン管理</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 20, marginTop: 3 }}>現在のプランと請求情報を管理できます</div>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0, marginBottom: 4 }}>課金・プラン管理</h1>
+      <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 20, marginTop: 3 }}>現在のプランと請求情報を管理できます</div>
 
       {successMsg && (
         <div style={{ ...card, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(0,40,15,0.9)", marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 12 }}>
           <Check size={18} color="#D4AF37" style={{ marginTop: 2, flexShrink: 0 }} />
           <div>
-            <div style={{ color: "#D4AF37", fontWeight: 700, fontSize: 14 }}>プランのアップグレードが完了しました！</div>
-            <div style={{ color: "#8A8278", fontSize: 12, marginTop: 4 }}>反映まで数分かかる場合があります。しばらく待ってもプランが変わらない場合は、ページを再読み込みしてください。</div>
+            <div style={{ color: "var(--blue)", fontWeight: 700, fontSize: 14 }}>プランのアップグレードが完了しました！</div>
+            <div style={{ color: "var(--text-3)", fontSize: 12, marginTop: 4 }}>反映まで数分かかる場合があります。しばらく待ってもプランが変わらない場合は、ページを再読み込みしてください。</div>
           </div>
         </div>
       )}
 
       {/* Current Plan */}
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontSize: 13, color: "#8A8278", fontWeight: 600, marginBottom: 16 }}>現在のプラン</div>
+        <div style={{ fontSize: 13, color: "var(--text-3)", fontWeight: 600, marginBottom: 16 }}>現在のプラン</div>
         <div className="billing-current-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ background: `${planColor}14`, border: `1px solid ${planColor}30`, borderRadius: 12, padding: 12 }}>
@@ -130,10 +130,10 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
             </div>
             <div>
               <div style={{ fontSize: 20, fontWeight: 900, color: planColor }}>{currentPlan.name}</div>
-              <div style={{ fontSize: 13, color: "#8A8278", marginTop: 2 }}>
+              <div style={{ fontSize: 13, color: "var(--text-3)", marginTop: 2 }}>
                 {plan === "FREE" ? "¥0/月" : `¥${currentPlan.price.toLocaleString()}/月`}
                 {currentPeriodEnd && (
-                  <span style={{ marginLeft: 12, color: "#8A8278" }}>
+                  <span style={{ marginLeft: 12, color: "var(--text-3)" }}>
                     更新日: {new Date(currentPeriodEnd).toLocaleDateString("ja-JP")}
                   </span>
                 )}
@@ -163,7 +163,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
                   background: "transparent",
                   border: "1px solid rgba(212,175,55,0.2)",
                   borderRadius: 8,
-                  color: "#8A8278",
+                  color: "var(--text-3)",
                   padding: "8px 14px",
                   fontSize: 13,
                   cursor: "pointer",
@@ -188,7 +188,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
 
       {/* Plan Comparison */}
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontSize: 13, color: "#8A8278", fontWeight: 600, marginBottom: 16 }}>プランの変更</div>
+        <div style={{ fontSize: 13, color: "var(--text-3)", fontWeight: 600, marginBottom: 16 }}>プランの変更</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {(Object.entries(plans) as [PlanKey, typeof PLANS[PlanKey]][]).map(([key, p]) => {
             const isCurrent = key === plan;
@@ -208,7 +208,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
                   <Icon size={18} color={isCurrent ? color : "#8A8278"} />
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: isCurrent ? color : "#8A8278" }}>{p.name}</div>
-                    <div style={{ fontSize: 12, color: "#8A8278" }}>
+                    <div style={{ fontSize: 12, color: "var(--text-3)" }}>
                       {key === "FREE" ? "無料" : `¥${p.price.toLocaleString()}/月`}
                       {" — "}
                       {p.features[0]}
@@ -237,7 +237,7 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
                     {upgradeLoading === key ? "処理中..." : "このプランへ"}
                   </button>
                 ) : (
-                  <Link href="/pricing" style={{ fontSize: 13, color: "#8A8278", textDecoration: "none" }}>
+                  <Link href="/pricing" style={{ fontSize: 13, color: "var(--text-3)", textDecoration: "none" }}>
                     詳細を見る →
                   </Link>
                 )}
@@ -249,9 +249,9 @@ export default function BillingClient({ plan, status, currentPeriodEnd, hasStrip
 
       {/* Account */}
       <div style={card}>
-        <div style={{ fontSize: 13, color: "#8A8278", fontWeight: 600, marginBottom: 12 }}>アカウント</div>
+        <div style={{ fontSize: 13, color: "var(--text-3)", fontWeight: 600, marginBottom: 12 }}>アカウント</div>
         <div style={{ fontSize: 14, color: "#a8d8b8" }}>
-          メールアドレス: <span style={{ color: "#F5F0E8", fontFamily: "monospace" }}>{email}</span>
+          メールアドレス: <span style={{ color: "var(--text)", fontFamily: "monospace" }}>{email}</span>
         </div>
       </div>
     </div>

@@ -8,9 +8,9 @@ import { Plus, Trash2, Target, Search } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
-const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
-const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 14, width: "100%", outline: "none" };
-const lbl: React.CSSProperties = { fontSize: 12, color: "#8A8278", fontWeight: 600, display: "block", marginBottom: 4 };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
+const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 14, width: "100%", outline: "none" };
+const lbl: React.CSSProperties = { fontSize: 12, color: "var(--text-3)", fontWeight: 600, display: "block", marginBottom: 4 };
 
 const SELL_PLATFORMS = ["メルカリ", "Amazon", "ラクマ", "PayPayフリマ", "Yahoo!オークション", "Lazada", "eBay（輸出）"];
 
@@ -74,10 +74,10 @@ function WatchlistPageContent() {
       <style>{watchlistStyles}</style>
       <div className="wl-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>ウォッチリスト</h1>
-          <div style={{ fontSize: 12, color: "#8A8278", marginTop: 3 }}>仕入れたい商品キーワードを登録して、見つけた時の目標仕入れ価格を確認できます</div>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>ウォッチリスト</h1>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>仕入れたい商品キーワードを登録して、見つけた時の目標仕入れ価格を確認できます</div>
         </div>
-        <button onClick={() => setShowForm(!showForm)} style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", minHeight: 44 }}>
+        <button onClick={() => setShowForm(!showForm)} style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "var(--blue)", padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", minHeight: 44 }}>
           <Plus size={16} /> 追加
         </button>
       </div>
@@ -96,8 +96,8 @@ function WatchlistPageContent() {
           </div>
           <div style={{ marginBottom: 14 }}><label style={lbl}>メモ</label><input style={inp} value={form.memo} onChange={e => setForm({ ...form, memo: e.target.value })} placeholder="相場感・注意点など" /></div>
           <div className="wl-btn-group" style={{ display: "flex", gap: 8 }}>
-            <button onClick={handleAdd} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "10px 24px", fontWeight: 700, cursor: "pointer", minHeight: 44 }}>追加</button>
-            <button onClick={() => setShowForm(false)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8A8278", padding: "10px 16px", cursor: "pointer", minHeight: 44 }}>キャンセル</button>
+            <button onClick={handleAdd} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "10px 24px", fontWeight: 700, cursor: "pointer", minHeight: 44 }}>追加</button>
+            <button onClick={() => setShowForm(false)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "10px 16px", cursor: "pointer", minHeight: 44 }}>キャンセル</button>
           </div>
         </div>
       )}
@@ -108,10 +108,10 @@ function WatchlistPageContent() {
             <Search size={28} color="rgba(212,175,55,0.5)" />
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, color: "#C8C0B0", marginBottom: 8 }}>ウォッチリストが空です</div>
-          <div style={{ fontSize: 13, color: "#8A8278", marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 16 }}>
             仕入れたい商品を登録すると、<br />「いくらまでなら仕入れていいか」をすぐ確認できます
           </div>
-          <button onClick={() => setShowForm(true)} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "#D4AF37", padding: "12px 24px", fontWeight: 700, cursor: "pointer" }}>
+          <button onClick={() => setShowForm(true)} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 10, color: "var(--blue)", padding: "12px 24px", fontWeight: 700, cursor: "pointer" }}>
             最初の商品を登録する
           </button>
         </div>
@@ -125,21 +125,21 @@ function WatchlistPageContent() {
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                      <span style={{ fontSize: 16, fontWeight: 800, color: "#F5F0E8" }}>{item.keyword}</span>
-                      <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>{item.sell_platform}</span>
-                      <span style={{ fontSize: 11, color: "#8A8278" }}>目標利益率 {item.target_rate}%</span>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: "var(--text)" }}>{item.keyword}</span>
+                      <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>{item.sell_platform}</span>
+                      <span style={{ fontSize: 11, color: "var(--text-3)" }}>目標利益率 {item.target_rate}%</span>
                     </div>
-                    {item.memo && <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 8 }}>📝 {item.memo}</div>}
+                    {item.memo && <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 8 }}>📝 {item.memo}</div>}
 
                     {/* 仕入れ価格逆算 */}
                     <div className="wl-inline-row" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                      <span style={{ fontSize: 12, color: "#8A8278", flexShrink: 0 }}>相場価格:</span>
+                      <span style={{ fontSize: 12, color: "var(--text-3)", flexShrink: 0 }}>相場価格:</span>
                       <input type="number" value={sellInput} onChange={e => { setSellPriceInputs(prev => ({ ...prev, [item.keyword]: e.target.value })); calcMax(item, e.target.value); }} style={{ ...inp, width: 120, padding: "5px 10px", fontSize: 13 }} placeholder="¥0" />
-                      <span style={{ fontSize: 12, color: "#8A8278" }}>円で売れるなら</span>
+                      <span style={{ fontSize: 12, color: "var(--text-3)" }}>円で売れるなら</span>
                       {maxP !== undefined && sellInput ? (
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <Target size={14} color="#D4AF37" />
-                          <span style={{ fontSize: 14, fontWeight: 800, color: "#D4AF37", fontFamily: "monospace" }}>
+                          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--blue)", fontFamily: "monospace" }}>
                             ¥{Math.floor(maxP).toLocaleString()} まで仕入れOK
                           </span>
                         </div>

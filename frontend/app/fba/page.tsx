@@ -16,23 +16,23 @@ import RequirePlan from "@/components/RequirePlan";
 
 // ── Design tokens ──────────────────────────────────────────────
 const C = {
-  bg0: "#0a0a0b", bg1: "#141414", bg2: "#1c1c1e",
-  t1: "#F5F0E8", t2: "#C8C0B0", t3: "#8A8278", t4: "#5A5248",
-  gold: "#D4AF37", goldDm: "#9A7D25",
-  bd: "rgba(212,175,55,0.15)", bdSt: "rgba(212,175,55,0.4)",
-  up: "#22c55e", dn: "#ef4444", blue: "#66ccff", warn: "#ff9966",
+  bg0: "var(--bg)", bg1: "var(--surface)", bg2: "var(--surface-2)",
+  t1: "var(--text)", t2: "var(--text-2)", t3: "var(--text-3)", t4: "var(--text-4)",
+  gold: "var(--blue)", goldDm: "var(--blue-dm)",
+  bd: "var(--border)", bdSt: "var(--border-strong)",
+  up: "#1E9C3C", dn: "#E02E24", blue: "var(--blue-lt)", warn: "#E88500",
 };
 
 const inp: React.CSSProperties = {
-  background: "rgba(10,10,11,0.95)", border: `1px solid rgba(212,175,55,0.3)`,
-  borderRadius: 8, color: C.t1, padding: "8px 12px", fontSize: 13,
+  background: "var(--surface-2)", border: "1px solid var(--border)",
+  borderRadius: 8, color: "var(--text)", padding: "8px 12px", fontSize: 13,
   width: "100%", outline: "none", boxSizing: "border-box",
 };
 const lbl: React.CSSProperties = {
-  fontSize: 11, color: C.t3, fontWeight: 700, display: "block", marginBottom: 4,
+  fontSize: 11, color: "var(--text-3)", fontWeight: 700, display: "block", marginBottom: 4,
 };
 const card: React.CSSProperties = {
-  background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 14,
+  background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14,
 };
 
 // ── Status config ──────────────────────────────────────────────

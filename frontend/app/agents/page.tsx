@@ -8,16 +8,16 @@ import { getAgentSessions, getApprovalQueue, type AgentSession } from "@/lib/api
 import { toast } from "@/components/Toast";
 
 const C = {
-  bg0: "#0a0a0b", bg1: "#141414", bg2: "#1c1c1e", bg3: "#242424",
-  t1: "#F5F0E8", t2: "#D4CCBC", t3: "#A09488", t4: "#5A5248",
-  gold: "#D4AF37", goldLt: "#F0D060", goldDm: "#9A7D25",
-  up: "#4ade80", dn: "#f87171", warn: "#fbbf24",
-  bd: "rgba(212,175,55,0.18)", bdSt: "rgba(212,175,55,0.38)",
+  bg0: "var(--bg)", bg1: "var(--surface)", bg2: "var(--surface-2)", bg3: "var(--surface-2)",
+  t1: "var(--text)", t2: "var(--text-2)", t3: "var(--text-3)", t4: "var(--text-4)",
+  gold: "var(--blue)", goldLt: "var(--blue-lt)", goldDm: "var(--blue-dm)",
+  up: "#1E9C3C", dn: "#E02E24", warn: "#E88500",
+  bd: "var(--border)", bdSt: "var(--border-strong)",
 };
 
 const card: React.CSSProperties = {
-  background: C.bg1,
-  border: `1px solid ${C.bd}`,
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
   borderRadius: 14,
   padding: "20px 24px",
 };

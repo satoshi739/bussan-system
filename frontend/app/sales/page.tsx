@@ -6,21 +6,21 @@ import { TrendingUp, TrendingDown, BarChart2, Download, Search, X, ArrowUpDown, 
 import Link from "next/link";
 
 const C = {
-  bg1:    "rgba(20,20,22,0.9)",
-  bd:     "rgba(212,175,55,0.15)",
-  gold:   "#D4AF37",
-  goldDm: "#9A7D25",
-  t1:     "#F5F0E8",
-  t2:     "#C8C0B0",
-  t3:     "#8A8278",
-  up:     "#D4AF37",
-  dn:     "#ff6666",
-  blue:   "#66ccff",
-  warn:   "#ff9966",
+  bg1:    "var(--surface)",
+  bd:     "var(--border)",
+  gold:   "var(--blue)",
+  goldDm: "var(--blue-dm)",
+  t1:     "var(--text)",
+  t2:     "var(--text-2)",
+  t3:     "var(--text-3)",
+  up:     "#1E9C3C",
+  dn:     "#E02E24",
+  blue:   "var(--blue-lt)",
+  warn:   "#E88500",
 };
 
-const card: React.CSSProperties = { background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 14, padding: "20px 24px" };
-const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: `1px solid rgba(212,175,55,0.3)`, borderRadius: 8, color: C.t1, padding: "9px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
+const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" };
 
 function Sk({ w = "100%", h = 16 }: { w?: string | number; h?: number }) {
   return <div style={{ width: w, height: h, borderRadius: 6, background: "rgba(212,175,55,0.07)", animation: "sk 1.6s ease-in-out infinite" }} />;

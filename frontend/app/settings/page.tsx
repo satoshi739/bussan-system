@@ -7,9 +7,9 @@ import { errMsg } from "@/lib/errors";
 import { Bell, Send, AlertTriangle, Key, Globe, RefreshCw, Sparkles, Truck, ChevronDown, ChevronUp, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
-const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
-const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 14, width: "100%", outline: "none", fontFamily: "monospace", boxSizing: "border-box" };
-const lbl: React.CSSProperties = { fontSize: 12, color: "#8A8278", fontWeight: 600, display: "block", marginBottom: 6 };
+const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
+const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 14, width: "100%", outline: "none", fontFamily: "monospace", boxSizing: "border-box" };
+const lbl: React.CSSProperties = { fontSize: 12, color: "var(--text-3)", fontWeight: 600, display: "block", marginBottom: 6 };
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -202,8 +202,8 @@ export default function SettingsPage() {
           .settings-btn-group button { width: 100% !important; min-height: 44px; }
         }
       `}</style>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>設定</h1>
-      <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16, marginTop: 3 }}>通知・連携の設定</div>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>設定</h1>
+      <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16, marginTop: 3 }}>通知・連携の設定</div>
 
       {/* ── テーマ切り替え ── */}
       <div style={{ ...card, marginBottom: 20 }}>
@@ -230,12 +230,12 @@ export default function SettingsPage() {
       {/* ── まずはサンプルで試せます ── */}
       <div style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 12, padding: "14px 18px", marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#4ade80", marginBottom: 6 }}>設定しなくてもサンプルで試せます</div>
-        <div style={{ fontSize: 12, color: "#8A8278", lineHeight: 1.6 }}>設定は任意です。まずは下の手順でツールを試してみてください。</div>
+        <div style={{ fontSize: 12, color: "var(--text-3)", lineHeight: 1.6 }}>設定は任意です。まずは下の手順でツールを試してみてください。</div>
       </div>
 
       {/* ── まずやること ── */}
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: "#F5F0E8", marginBottom: 14 }}>まずやること</div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text)", marginBottom: 14 }}>まずやること</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {([
             ["①", "商品を検索する",   "利益スキャナーで気になる商品名を入力する", "/scanner"],
@@ -243,10 +243,10 @@ export default function SettingsPage() {
             ["③", "良ければ保存する", "「仕入れ＆出品」ボタンで仕入れ管理に登録する", "/purchases"],
           ] as [string, string, string, string][]).map(([step, title, desc, href]) => (
             <a key={step} href={href} className="settings-step" style={{ textDecoration: "none", display: "flex", gap: 14, alignItems: "flex-start", background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ fontSize: 20, fontWeight: 900, color: "#D4AF37", lineHeight: 1, flexShrink: 0, minWidth: 26 }}>{step}</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "var(--blue)", lineHeight: 1, flexShrink: 0, minWidth: 26 }}>{step}</div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#F5F0E8", marginBottom: 2 }}>{title}</div>
-                <div style={{ fontSize: 11, color: "#8A8278" }}>{desc}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>{title}</div>
+                <div style={{ fontSize: 11, color: "var(--text-3)" }}>{desc}</div>
               </div>
             </a>
           ))}
@@ -260,15 +260,15 @@ export default function SettingsPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <Bell size={16} color="#D4AF37" />
             <span style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0" }}>LINE通知</span>
-            {savedToken && <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>接続済み</span>}
+            {savedToken && <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>接続済み</span>}
           </div>
-          <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16 }}>
             LINE Notifyのトークンを設定すると、売れ残り警告や日次レポートをLINEで受け取れます。
           </div>
 
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 12 }}>
             <div style={{ color: "#7deeaa", fontWeight: 700, marginBottom: 8 }}>トークンの取得方法</div>
-            <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
+            <div style={{ color: "var(--text-3)", lineHeight: 1.8 }}>
               1. <span style={{ color: "#66ccff" }}>notify-bot.line.me</span> にアクセス<br />
               2. LINEでログイン<br />
               3.「トークン生成」→ トークン名を入力<br />
@@ -281,7 +281,7 @@ export default function SettingsPage() {
             <label style={lbl}>LINE Notify トークン</label>
             <input type="password" style={inp} value={lineToken} onChange={e => setLineToken(e.target.value)} placeholder="トークンを貼り付け..." />
           </div>
-          <button onClick={handleTest} disabled={testing || !lineToken} style={{ width: "100%", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "#D4AF37", padding: "11px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: testing || !lineToken ? 0.5 : 1 }}>
+          <button onClick={handleTest} disabled={testing || !lineToken} style={{ width: "100%", background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 8, color: "var(--blue)", padding: "11px", fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: testing || !lineToken ? 0.5 : 1 }}>
             {testing ? "送信中..." : "接続テスト（テストメッセージ送信）"}
           </button>
         </div>
@@ -316,7 +316,7 @@ export default function SettingsPage() {
         <div>
           <button
             onClick={() => setShowAdvanced(v => !v)}
-            style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 10, color: "#8A8278", padding: "12px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: showAdvanced ? 14 : 0 }}
+            style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 10, color: "var(--text-3)", padding: "12px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: showAdvanced ? 14 : 0 }}
           >
             {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             詳細設定（プラットフォームAPI連携）
@@ -333,7 +333,7 @@ export default function SettingsPage() {
               <span style={{ fontSize: 11, background: "rgba(68,204,170,0.1)", border: "1px solid rgba(68,204,170,0.3)", borderRadius: 20, padding: "2px 8px", color: "#44ccaa" }}>保存済み</span>
             )}
           </div>
-          <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16 }}>
             APIを設定すると、一方のプラットフォームで売れた際に他プラットフォームの出品を自動取り下げできます。
           </div>
 
@@ -341,9 +341,9 @@ export default function SettingsPage() {
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 16 }}>🔨</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>ヤフオク API</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>ヤフオク API</span>
               {yahooAppId && yahooSecret && yahooAccessToken ? (
-                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>設定済み</span>
+                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>設定済み</span>
               ) : (
                 <span style={{ fontSize: 11, background: "rgba(255,100,0,0.1)", border: "1px solid rgba(255,100,0,0.3)", borderRadius: 20, padding: "2px 8px", color: "#ff8844" }}>未設定</span>
               )}
@@ -351,7 +351,7 @@ export default function SettingsPage() {
             </div>
             <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 10, fontSize: 12 }}>
               <div style={{ color: "#7deeaa", fontWeight: 700, marginBottom: 6 }}>認証情報の取得方法</div>
-              <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
+              <div style={{ color: "var(--text-3)", lineHeight: 1.8 }}>
                 1. <span style={{ color: "#66ccff" }}>developer.yahoo.co.jp</span> にアクセス<br />
                 2. Yahoo! JAPAN ID でログイン →「アプリケーション管理」<br />
                 3.「新しいアプリケーションを作成」→ アプリ種別「サーバーサイド」<br />
@@ -381,13 +381,13 @@ export default function SettingsPage() {
               <span style={{ fontSize: 16 }}>📦</span>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#C8C0B0" }}>Amazon SP-API</span>
               {amazonRefreshToken ? (
-                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>設定済み</span>
+                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>設定済み</span>
               ) : (
                 <span style={{ fontSize: 11, background: "rgba(255,100,0,0.1)", border: "1px solid rgba(255,100,0,0.3)", borderRadius: 20, padding: "2px 8px", color: "#ff8844" }}>未設定</span>
               )}
               <span style={{ fontSize: 11, background: "rgba(68,204,170,0.1)", border: "1px solid rgba(68,204,170,0.3)", borderRadius: 20, padding: "2px 8px", color: "#44ccaa", marginLeft: "auto" }}>公式API対応</span>
             </div>
-            <div style={{ fontSize: 12, color: "#8A8278", marginTop: 6 }}>
+            <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 6 }}>
               下の「API連携設定」で設定済みの SP-API がそのまま自動取り下げにも使われます。
             </div>
           </div>
@@ -396,15 +396,15 @@ export default function SettingsPage() {
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 16 }}>🛍️</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>メルカリ</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>メルカリ</span>
               {mercariToken ? (
-                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>設定済み</span>
+                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>設定済み</span>
               ) : (
-                <span style={{ fontSize: 11, background: "rgba(100,100,100,0.15)", border: "1px solid rgba(100,100,100,0.3)", borderRadius: 20, padding: "2px 8px", color: "#8A8278" }}>未設定</span>
+                <span style={{ fontSize: 11, background: "rgba(100,100,100,0.15)", border: "1px solid rgba(100,100,100,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--text-3)" }}>未設定</span>
               )}
               <span style={{ fontSize: 11, background: "rgba(255,170,0,0.1)", border: "1px solid rgba(255,170,0,0.3)", borderRadius: 20, padding: "2px 8px", color: "#ffaa44", marginLeft: "auto" }}>公式API準備中</span>
             </div>
-            <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 10, lineHeight: 1.7 }}>
+            <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 10, lineHeight: 1.7 }}>
               メルカリは現在、出品者向け公式APIの一般提供を準備中です。<br />
               API提供開始次第すぐに連携できるよう、将来用のトークン欄を用意しています。
             </div>
@@ -418,15 +418,15 @@ export default function SettingsPage() {
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 16 }}>🎀</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>ラクマ</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>ラクマ</span>
               {rakumaToken ? (
-                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>設定済み</span>
+                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>設定済み</span>
               ) : (
-                <span style={{ fontSize: 11, background: "rgba(100,100,100,0.15)", border: "1px solid rgba(100,100,100,0.3)", borderRadius: 20, padding: "2px 8px", color: "#8A8278" }}>未設定</span>
+                <span style={{ fontSize: 11, background: "rgba(100,100,100,0.15)", border: "1px solid rgba(100,100,100,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--text-3)" }}>未設定</span>
               )}
               <span style={{ fontSize: 11, background: "rgba(255,170,0,0.1)", border: "1px solid rgba(255,170,0,0.3)", borderRadius: 20, padding: "2px 8px", color: "#ffaa44", marginLeft: "auto" }}>公式API準備中</span>
             </div>
-            <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 10 }}>ラクマ（楽天）の出品者向け公式APIが公開され次第、自動連携に対応します。</div>
+            <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 10 }}>ラクマ（楽天）の出品者向け公式APIが公開され次第、自動連携に対応します。</div>
             <div>
               <label style={lbl}>APIトークン（取得後に入力）</label>
               <input style={{ ...inp, opacity: 0.6 }} type="password" value={rakumaToken} onChange={e => setRakumaToken(e.target.value)} placeholder="公式APIが公開されたら入力..." />
@@ -437,15 +437,15 @@ export default function SettingsPage() {
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 16 }}>💴</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>PayPayフリマ</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>PayPayフリマ</span>
               {paypayToken ? (
-                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>設定済み</span>
+                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>設定済み</span>
               ) : (
-                <span style={{ fontSize: 11, background: "rgba(100,100,100,0.15)", border: "1px solid rgba(100,100,100,0.3)", borderRadius: 20, padding: "2px 8px", color: "#8A8278" }}>未設定</span>
+                <span style={{ fontSize: 11, background: "rgba(100,100,100,0.15)", border: "1px solid rgba(100,100,100,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--text-3)" }}>未設定</span>
               )}
               <span style={{ fontSize: 11, background: "rgba(255,170,0,0.1)", border: "1px solid rgba(255,170,0,0.3)", borderRadius: 20, padding: "2px 8px", color: "#ffaa44", marginLeft: "auto" }}>公式API準備中</span>
             </div>
-            <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 10 }}>PayPayフリマの出品者向け公式APIが公開され次第、自動連携に対応します。</div>
+            <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 10 }}>PayPayフリマの出品者向け公式APIが公開され次第、自動連携に対応します。</div>
             <div>
               <label style={lbl}>APIトークン（取得後に入力）</label>
               <input style={{ ...inp, opacity: 0.6 }} type="password" value={paypayToken} onChange={e => setPaypayToken(e.target.value)} placeholder="公式APIが公開されたら入力..." />
@@ -463,7 +463,7 @@ export default function SettingsPage() {
           <div style={{ marginTop: 14, borderTop: "1px solid rgba(212,175,55,0.12)", paddingTop: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
               <div style={{ fontSize: 13, color: "#C8C0B0", fontWeight: 700 }}>自動在庫・価格連動ルール</div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#8A8278" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-3)" }}>
                 <input type="checkbox" checked={sourceSyncEnabled} onChange={e => setSourceSyncEnabled(e.target.checked)} />
                 有効化
               </label>
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                 <label style={lbl}>最低上昇額（円）</label>
                 <input style={inp} type="number" min="50" value={sourceSyncDeltaJpy} onChange={e => setSourceSyncDeltaJpy(e.target.value)} />
               </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#8A8278" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-3)" }}>
                 <input type="checkbox" checked={sourceSyncActiveOnly} onChange={e => setSourceSyncActiveOnly(e.target.checked)} />
                 出品中のみ監視
               </label>
@@ -501,7 +501,7 @@ export default function SettingsPage() {
               <button
                 onClick={runSourceSync}
                 disabled={sourceSyncRunning}
-                style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 8, color: "#D4AF37", padding: "10px 12px", fontWeight: 700, cursor: sourceSyncRunning ? "not-allowed" : "pointer", fontSize: 13 }}
+                style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 8, color: "var(--blue)", padding: "10px 12px", fontWeight: 700, cursor: sourceSyncRunning ? "not-allowed" : "pointer", fontSize: 13 }}
               >
                 {sourceSyncRunning ? "実行中..." : "今すぐ確認"}
               </button>
@@ -515,10 +515,10 @@ export default function SettingsPage() {
             <Key size={16} color="#66aaff" />
             <span style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0" }}>API連携設定</span>
             {apiSaved && (
-              <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>保存済み</span>
+              <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>保存済み</span>
             )}
           </div>
-          <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16 }}>
             各プラットフォームのAPIキーを設定すると、リアルタイム価格検索が使えます。
           </div>
 
@@ -526,7 +526,7 @@ export default function SettingsPage() {
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <Sparkles size={15} color="#aa88ff" />
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>Claude AI（商品分析）</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Claude AI（商品分析）</span>
               {anthropicKey ? (
                 <span style={{ fontSize: 11, background: "rgba(170,136,255,0.15)", border: "1px solid rgba(170,136,255,0.4)", borderRadius: 20, padding: "2px 8px", color: "#aa88ff" }}>設定済み</span>
               ) : (
@@ -535,7 +535,7 @@ export default function SettingsPage() {
             </div>
             <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 10, fontSize: 12 }}>
               <div style={{ color: "#c0a8ff", fontWeight: 700, marginBottom: 6 }}>APIキーの取得方法（無料枠あり）</div>
-              <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
+              <div style={{ color: "var(--text-3)", lineHeight: 1.8 }}>
                 1. <span style={{ color: "#66ccff" }}>console.anthropic.com</span> にアクセス<br />
                 2. アカウント登録（無料）<br />
                 3.「API Keys」→「Create Key」<br />
@@ -544,7 +544,7 @@ export default function SettingsPage() {
             </div>
             <label style={lbl}>Anthropic API Key</label>
             <input style={inp} type="password" value={anthropicKey} onChange={e => setAnthropicKey(e.target.value)} placeholder="sk-ant-api03-..." />
-            <div style={{ fontSize: 11, color: "#8A8278", marginTop: 6 }}>
+            <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 6 }}>
               設定すると利益スキャナーで「AI分析」ボタンが使えるようになります
             </div>
           </div>
@@ -553,16 +553,16 @@ export default function SettingsPage() {
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 18 }}>📊</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>Keepa API（Amazon価格精度向上）</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Keepa API（Amazon価格精度向上）</span>
               {keepaApiKey ? (
-                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>設定済み</span>
+                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>設定済み</span>
               ) : (
                 <span style={{ fontSize: 11, background: "rgba(255,100,0,0.1)", border: "1px solid rgba(255,100,0,0.3)", borderRadius: 20, padding: "2px 8px", color: "#ff8844" }}>未設定</span>
               )}
             </div>
             <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 10, fontSize: 12 }}>
               <div style={{ color: "#7deeaa", fontWeight: 700, marginBottom: 6 }}>APIキーの取得方法（月$19〜）</div>
-              <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
+              <div style={{ color: "var(--text-3)", lineHeight: 1.8 }}>
                 1. <span style={{ color: "#66ccff" }}>keepa.com</span> にアクセス・アカウント登録<br />
                 2.「API Access」プランを購入（月$19〜）<br />
                 3. ダッシュボード →「API Key」をコピー<br />
@@ -571,7 +571,7 @@ export default function SettingsPage() {
             </div>
             <label style={lbl}>Keepa API Key</label>
             <input style={inp} type="password" value={keepaApiKey} onChange={e => setKeepaApiKey(e.target.value)} placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
-            <div style={{ fontSize: 11, color: "#8A8278", marginTop: 6 }}>
+            <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 6 }}>
               未設定時はAmazonスクレイピング（不安定）にフォールバックします
             </div>
           </div>
@@ -580,16 +580,16 @@ export default function SettingsPage() {
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 18 }}>🌏</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>eBay Finding API</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>eBay Finding API</span>
               {ebayAppId ? (
-                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>設定済み</span>
+                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>設定済み</span>
               ) : (
                 <span style={{ fontSize: 11, background: "rgba(255,100,0,0.1)", border: "1px solid rgba(255,100,0,0.3)", borderRadius: 20, padding: "2px 8px", color: "#ff8844" }}>未設定</span>
               )}
             </div>
             <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 10, fontSize: 12 }}>
               <div style={{ color: "#7deeaa", fontWeight: 700, marginBottom: 6 }}>App IDの取得方法（無料）</div>
-              <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
+              <div style={{ color: "var(--text-3)", lineHeight: 1.8 }}>
                 1. <span style={{ color: "#66ccff" }}>developer.ebay.com</span> にアクセス<br />
                 2. 無料アカウント登録<br />
                 3.「Create Application」→ アプリ名を入力<br />
@@ -611,16 +611,16 @@ export default function SettingsPage() {
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 18 }}>📦</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>Amazon SP-API（価格検索）</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Amazon SP-API（価格検索）</span>
               {amazonRefreshToken ? (
-                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "#D4AF37" }}>設定済み</span>
+                <span style={{ fontSize: 11, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 8px", color: "var(--blue)" }}>設定済み</span>
               ) : (
                 <span style={{ fontSize: 11, background: "rgba(255,100,0,0.1)", border: "1px solid rgba(255,100,0,0.3)", borderRadius: 20, padding: "2px 8px", color: "#ff8844" }}>未設定</span>
               )}
             </div>
             <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 10, fontSize: 12 }}>
               <div style={{ color: "#7deeaa", fontWeight: 700, marginBottom: 6 }}>SP-API認証情報の取得方法</div>
-              <div style={{ color: "#8A8278", lineHeight: 1.8 }}>
+              <div style={{ color: "var(--text-3)", lineHeight: 1.8 }}>
                 1. <span style={{ color: "#66ccff" }}>sellercentral.amazon.co.jp</span> にログイン<br />
                 2.「アプリと連携」→「デベロッパートークン」→「SP-APIに登録」<br />
                 3. LWA Client ID / Client Secret を取得<br />
@@ -648,8 +648,8 @@ export default function SettingsPage() {
           <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <Globe size={15} color="#66ccff" />
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#F5F0E8" }}>為替レート（手動設定）</span>
-              <span style={{ fontSize: 11, color: "#8A8278" }}>※ 自動取得が失敗した場合のフォールバック</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>為替レート（手動設定）</span>
+              <span style={{ fontSize: 11, color: "var(--text-3)" }}>※ 自動取得が失敗した場合のフォールバック</span>
             </div>
             <label style={lbl}>USD/JPY レート（1ドル = 何円）</label>
             <input
@@ -661,7 +661,7 @@ export default function SettingsPage() {
               min="100"
               max="200"
             />
-            <div style={{ fontSize: 11, color: "#8A8278", marginTop: 6 }}>
+            <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 6 }}>
               為替レートはfrankfurter.app（無料）から自動取得されます。取得失敗時にこの値が使われます。
             </div>
           </div>
