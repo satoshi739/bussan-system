@@ -9,28 +9,68 @@ import { errMsg } from "@/lib/errors";
 
 // ── おすすめジャンル ────────────────────────────────────────────────
 const GENRES = [
-  { keyword: "ノートパソコン 中古",          platform: "eBay",      maxPrice: 30000, label: "コンピュータ",         reason: "北米需要が高い",     color: "#66aaff" },
-  { keyword: "フィルムカメラ 中古",          platform: "eBay",      maxPrice: 15000, label: "家電・AV・カメラ",      reason: "ヴィンテージ復活",   color: "#aaccff" },
-  { keyword: "レコード LP 中古",            platform: "eBay",      maxPrice: 5000,  label: "音楽",                 reason: "アナログ人気再燃",   color: "#ff88cc" },
-  { keyword: "初版本 漫画 希少",            platform: "eBay",      maxPrice: 5000,  label: "本・雑誌",              reason: "希少本は高値",       color: "#aa88ff" },
-  { keyword: "VHS ビデオ レトロ",          platform: "eBay",      maxPrice: 3000,  label: "映画・ビデオ",          reason: "レトロ需要あり",     color: "#cc88ff" },
-  { keyword: "ポケモンカード",              platform: "eBay",      maxPrice: 5000,  label: "おもちゃ・ゲーム",      reason: "海外需要 No.1",      color: "#ffcc44" },
-  { keyword: "LEGO レゴ 廃盤",             platform: "eBay",      maxPrice: 12000, label: "ホビー・カルチャー",    reason: "廃番品が高値",       color: "#ffdd44" },
-  { keyword: "骨董品 アンティーク",         platform: "eBay",      maxPrice: 20000, label: "アンティーク・コレクション", reason: "一品物は高利益", color: "#ddaa44" },
-  { keyword: "アウトドア キャンプ 中古",    platform: "eBay",      maxPrice: 10000, label: "スポーツ・レジャー",    reason: "海外でも人気",       color: "#44ddaa" },
-  { keyword: "ミニカー トミカ 旧車",        platform: "eBay",      maxPrice: 5000,  label: "自動車・オートバイ",    reason: "旧車ミニカー高値",   color: "#ff9944" },
-  { keyword: "ブランド 財布 中古",          platform: "eBay",      maxPrice: 50000, label: "ファッション",          reason: "高利益率",           color: "#ff66aa" },
-  { keyword: "腕時計 セイコー 中古",        platform: "eBay",      maxPrice: 20000, label: "アクセサリー・時計",    reason: "SEIKOは海外評価高",  color: "var(--blue)" },
-  { keyword: "美顔器 美容機器 中古",        platform: "Shopee_SG", maxPrice: 8000,  label: "ビューティー・ヘルスケア", reason: "アジア女性需要高",  color: "#ff88aa" },
-  { keyword: "日本酒 ウイスキー 希少",      platform: "eBay",      maxPrice: 10000, label: "食品・飲料",            reason: "和酒は海外高値",     color: "#ffaa66" },
-  { keyword: "陶器 花瓶 和風",             platform: "eBay",      maxPrice: 8000,  label: "住まい・インテリア",    reason: "和風インテリア人気", color: "#4ade80" },
-  { keyword: "ペット用品 国産 人気",        platform: "Shopee_SG", maxPrice: 5000,  label: "ペット・生き物",        reason: "アジアでペット急増", color: "#4ade80" },
-  { keyword: "万年筆 高級 中古",           platform: "eBay",      maxPrice: 10000, label: "事務・店舗用品",        reason: "文具コレクター多い", color: "#99aacc" },
-  { keyword: "盆栽 道具 和",              platform: "eBay",      maxPrice: 8000,  label: "花・園芸",              reason: "BONSAI海外人気",     color: "#4ade80" },
-  { keyword: "商品券 金券 未使用",         platform: "メルカリ",   maxPrice: 3000,  label: "チケット・金券",        reason: "額面以下で仕入れ可", color: "#cccc44" },
-  { keyword: "ベビー おもちゃ 日本製",     platform: "Shopee_SG", maxPrice: 5000,  label: "ベビー用品",            reason: "日本製は安全性で人気",color: "#ffccaa" },
-  { keyword: "アイドル グッズ 限定品",      platform: "eBay",      maxPrice: 5000,  label: "タレントグッズ",        reason: "限定品は稀少価値",   color: "#ff6699" },
-  { keyword: "フィギュア アニメ 限定",      platform: "eBay",      maxPrice: 8000,  label: "コミック・アニメグッズ", reason: "コレクター需要高",  color: "#cc66ff" },
+  // ⌚ 時計
+  { keyword: "腕時計 セイコー 中古",             platform: "eBay",      maxPrice: 20000, label: "セイコー",       reason: "海外評価No.1",         color: "#006FE6", emoji: "⌚" },
+  { keyword: "腕時計 カシオ G-SHOCK 中古",       platform: "eBay",      maxPrice: 15000, label: "G-SHOCK",        reason: "定番高利益ジャンル",    color: "#006FE6", emoji: "⏱️" },
+  { keyword: "腕時計 シチズン エコドライブ",      platform: "eBay",      maxPrice: 18000, label: "シチズン",       reason: "ソーラー技術を海外評価", color: "#006FE6", emoji: "🕐" },
+  // 📷 カメラ・光学
+  { keyword: "フィルムカメラ 中古",              platform: "eBay",      maxPrice: 15000, label: "フィルムカメラ",  reason: "ヴィンテージ復活中",    color: "#aaccff", emoji: "📷" },
+  { keyword: "フィルムカメラ CONTAX 中古",       platform: "eBay",      maxPrice: 30000, label: "CONTAX",         reason: "コンタックスは超高値",  color: "#aaccff", emoji: "📸" },
+  { keyword: "双眼鏡 日本製 中古",              platform: "eBay",      maxPrice: 10000, label: "双眼鏡",         reason: "日本製光学は海外人気",  color: "#aaccff", emoji: "🔭" },
+  { keyword: "一眼レフ ニコン キヤノン 中古",    platform: "eBay",      maxPrice: 25000, label: "一眼レフ",        reason: "日本メーカー信頼度高",  color: "#aaccff", emoji: "🎥" },
+  // 🃏 カード・TCG
+  { keyword: "ポケモンカード",                   platform: "eBay",      maxPrice: 5000,  label: "ポケモンカード",  reason: "海外需要 No.1",         color: "#ffcc44", emoji: "🃏" },
+  { keyword: "遊戯王カード 旧弾 レア",           platform: "eBay",      maxPrice: 3000,  label: "遊戯王",         reason: "海外コレクター多い",    color: "#ffcc44", emoji: "🎴" },
+  { keyword: "ドラゴンボール カード 初版",       platform: "eBay",      maxPrice: 3000,  label: "DBカード",       reason: "初版は超希少価値",      color: "#ffcc44", emoji: "🐉" },
+  // 🕹️ レトロゲーム
+  { keyword: "ファミコン ソフト 希少",           platform: "eBay",      maxPrice: 5000,  label: "ファミコン",      reason: "ファミコンブーム継続",  color: "#ff9944", emoji: "🕹️" },
+  { keyword: "スーパーファミコン ソフト 未開封", platform: "eBay",      maxPrice: 8000,  label: "スーパーファミコン", reason: "未開封品は超高値",   color: "#ff9944", emoji: "👾" },
+  { keyword: "ゲームボーイ ソフト 希少",         platform: "eBay",      maxPrice: 3000,  label: "ゲームボーイ",    reason: "GB世代の海外需要大",    color: "#ff9944", emoji: "🎮" },
+  { keyword: "ネオジオ ソフト 希少",             platform: "eBay",      maxPrice: 10000, label: "ネオジオ",        reason: "超希少レトロ高値",      color: "#ff9944", emoji: "💾" },
+  // 🤖 フィギュア・ホビー
+  { keyword: "フィギュア アニメ 限定",           platform: "eBay",      maxPrice: 8000,  label: "アニメフィギュア", reason: "コレクター需要高",     color: "#cc66ff", emoji: "🗿" },
+  { keyword: "LEGO レゴ 廃盤",                 platform: "eBay",      maxPrice: 12000, label: "LEGO廃盤",        reason: "廃番品が高値",          color: "#ffdd44", emoji: "🧱" },
+  { keyword: "ミニカー トミカ 旧車",            platform: "eBay",      maxPrice: 5000,  label: "ミニカー",        reason: "旧車ミニカー高値",      color: "#ff9944", emoji: "🚗" },
+  { keyword: "プラモデル ガンダム 旧キット",     platform: "eBay",      maxPrice: 5000,  label: "ガンプラ",        reason: "ガンプラ海外ブーム",    color: "#66aaff", emoji: "🤖" },
+  // 📚 本・漫画
+  { keyword: "初版本 漫画 希少",                platform: "eBay",      maxPrice: 5000,  label: "初版漫画",        reason: "希少本は高値",          color: "#aa88ff", emoji: "📚" },
+  { keyword: "ワンピース 初版 希少",             platform: "eBay",      maxPrice: 3000,  label: "ワンピース",      reason: "ワンピース海外人気",    color: "#aa88ff", emoji: "📖" },
+  // 🎵 音楽・映像
+  { keyword: "レコード LP 中古",               platform: "eBay",      maxPrice: 5000,  label: "レコード",        reason: "アナログ人気再燃",      color: "#ff88cc", emoji: "🎵" },
+  { keyword: "VHS ビデオ レトロ",             platform: "eBay",      maxPrice: 3000,  label: "VHS",             reason: "レトロ需要あり",        color: "#cc88ff", emoji: "📼" },
+  { keyword: "CD 邦楽 廃盤 希少",             platform: "eBay",      maxPrice: 2000,  label: "廃盤CD",          reason: "廃盤は入手困難で高値",  color: "#ff88cc", emoji: "💿" },
+  // 👜 ブランド・ファッション
+  { keyword: "ブランド 財布 中古",             platform: "eBay",      maxPrice: 50000, label: "ブランド財布",    reason: "高利益率",              color: "#ff66aa", emoji: "👜" },
+  { keyword: "スニーカー ナイキ 限定",          platform: "eBay",      maxPrice: 15000, label: "限定スニーカー",  reason: "限定スニーカーは高値",  color: "#ff66aa", emoji: "👟" },
+  { keyword: "ヴィンテージ 古着 デニム",        platform: "eBay",      maxPrice: 8000,  label: "ヴィンテージ古着", reason: "ヴィンテージ服は海外人気", color: "#ff66aa", emoji: "👖" },
+  { keyword: "アイドル グッズ 限定品",          platform: "eBay",      maxPrice: 5000,  label: "アイドルグッズ",  reason: "限定品は稀少価値",      color: "#ff6699", emoji: "🌟" },
+  // 💻 家電・PC
+  { keyword: "ノートパソコン 中古",             platform: "eBay",      maxPrice: 30000, label: "ノートPC",        reason: "北米需要が高い",        color: "#66aaff", emoji: "💻" },
+  { keyword: "オーディオ アンプ 日本製 中古",   platform: "eBay",      maxPrice: 20000, label: "オーディオ",      reason: "日本製アンプは世界一",  color: "#66aaff", emoji: "🔊" },
+  { keyword: "シンセサイザー ローランド 中古",  platform: "eBay",      maxPrice: 30000, label: "シンセ",          reason: "Roland/Yamahaは超人気", color: "#66aaff", emoji: "🎹" },
+  // 🎸 楽器
+  { keyword: "ギター エレキ 日本製 中古",       platform: "eBay",      maxPrice: 30000, label: "エレキギター",    reason: "MADE IN JAPANは高評価", color: "#ff9944", emoji: "🎸" },
+  { keyword: "ベースギター 日本製 中古",        platform: "eBay",      maxPrice: 25000, label: "ベース",          reason: "ビンテージJapanが高騰", color: "#ff9944", emoji: "🎵" },
+  { keyword: "ハーモニカ スズキ 中古",          platform: "eBay",      maxPrice: 5000,  label: "ハーモニカ",      reason: "SUZUKI製は海外評価高",  color: "#ff9944", emoji: "🎶" },
+  // 🏺 和物・骨董
+  { keyword: "骨董品 アンティーク",            platform: "eBay",      maxPrice: 20000, label: "骨董品",          reason: "一品物は高利益",        color: "#ddaa44", emoji: "🏺" },
+  { keyword: "盆栽 道具 和",                  platform: "eBay",      maxPrice: 8000,  label: "盆栽",            reason: "BONSAI海外人気",        color: "#4ade80", emoji: "🌿" },
+  { keyword: "陶器 花瓶 和風",               platform: "eBay",      maxPrice: 8000,  label: "陶器・漆器",      reason: "和風インテリア人気",    color: "#4ade80", emoji: "🏮" },
+  { keyword: "着物 帯 未使用 高級",           platform: "eBay",      maxPrice: 10000, label: "着物",            reason: "海外でKIMONO人気沸騰",  color: "#ff88aa", emoji: "👘" },
+  // 🍶 食品・酒
+  { keyword: "日本酒 ウイスキー 希少",         platform: "eBay",      maxPrice: 10000, label: "日本酒・ウイスキー", reason: "和酒は海外高値",       color: "#ffaa66", emoji: "🍶" },
+  { keyword: "香水 日本 未使用 廃盤",          platform: "eBay",      maxPrice: 5000,  label: "香水",            reason: "廃番フレグランス高値",  color: "#ff88aa", emoji: "🌸" },
+  // 🏃 スポーツ・アウトドア
+  { keyword: "アウトドア キャンプ 中古",       platform: "eBay",      maxPrice: 10000, label: "キャンプ用品",    reason: "海外でも人気",          color: "#44ddaa", emoji: "⛺" },
+  { keyword: "釣り道具 ダイワ シマノ 中古",    platform: "eBay",      maxPrice: 10000, label: "釣具",            reason: "DAIWAはグローバル評価", color: "#44ddaa", emoji: "🎣" },
+  { keyword: "ゴルフ クラブ 日本製 中古",      platform: "eBay",      maxPrice: 20000, label: "ゴルフ",          reason: "日本製ゴルフ用品が人気", color: "#44ddaa", emoji: "⛳" },
+  // 🛠️ その他
+  { keyword: "万年筆 高級 中古",              platform: "eBay",      maxPrice: 10000, label: "万年筆",          reason: "文具コレクター多い",    color: "#99aacc", emoji: "✒️" },
+  { keyword: "美顔器 美容機器 中古",          platform: "Shopee_SG", maxPrice: 8000,  label: "美容機器",        reason: "アジア女性需要高",      color: "#ff88aa", emoji: "✨" },
+  { keyword: "ペット用品 国産 人気",          platform: "Shopee_SG", maxPrice: 5000,  label: "ペット用品",      reason: "アジアでペット急増",    color: "#4ade80", emoji: "🐕" },
+  { keyword: "ベビー おもちゃ 日本製",        platform: "Shopee_SG", maxPrice: 5000,  label: "ベビー用品",      reason: "日本製は安全性で人気",  color: "#ffccaa", emoji: "👶" },
+  { keyword: "商品券 金券 未使用",            platform: "メルカリ",   maxPrice: 3000,  label: "金券・チケット",  reason: "額面以下で仕入れ可",    color: "#cccc44", emoji: "🎫" },
+  { keyword: "医療機器 マッサージ器 日本製",  platform: "Shopee_SG", maxPrice: 8000,  label: "健康機器",        reason: "アジアで健康意識高まる", color: "#44ddcc", emoji: "💊" },
 ] as const;
 
 const PLATFORMS = [
@@ -204,101 +244,105 @@ function SampleResultCard({ name, buy, sell, profit, rate, rating, source, platf
   const rt = RATING[rating as keyof typeof RATING] ?? RATING.ok;
   const stars = RATING_STARS[rating] ?? 3;
   const isProfit = profit >= 0;
-  const profitColor = isProfit ? rt.color : "#ff4444";
-  const profitBg = isProfit ? rt.bg : "rgba(255,68,68,0.08)";
+  const profitColor = isProfit ? rt.color : "#ff5555";
+  const profitBg = isProfit ? rt.bg : "rgba(255,85,85,0.08)";
 
   const trendIcon = trend === "up" ? "↑" : trend === "down" ? "↓" : "→";
-  const trendColor = trend === "up" ? "#4ade80" : trend === "down" ? "#ff5555" : "#ffcc44";
-  const trendLabel = trend === "up" ? "上昇中" : trend === "down" ? "下落中" : "安定";
+  const trendColor = trend === "up" ? "#34C759" : trend === "down" ? "#FF3B30" : "#FF9500";
+  const trendLabel = trend === "up" ? "上昇" : trend === "down" ? "下落" : "安定";
 
-  const aiVerdictColor = aiVerdict === "強く買い" ? "#4ade80" : aiVerdict === "買い" ? "var(--blue)" : aiVerdict === "様子見" ? "#ffcc44" : "#ff5555";
-  const aiVerdictBg   = aiVerdict === "強く買い" ? "rgba(74,222,128,0.12)" : aiVerdict === "買い" ? "rgba(0,111,230,0.1)" : aiVerdict === "様子見" ? "rgba(255,204,68,0.1)" : "rgba(255,85,85,0.1)";
+  const aiVerdictColor = aiVerdict === "強く買い" ? "#34C759" : aiVerdict === "買い" ? "#007AFF" : aiVerdict === "様子見" ? "#FF9500" : "#FF3B30";
+  const aiVerdictBg   = aiVerdict === "強く買い" ? "rgba(52,199,89,0.12)" : aiVerdict === "買い" ? "rgba(0,122,255,0.1)" : aiVerdict === "様子見" ? "rgba(255,149,0,0.1)" : "rgba(255,59,48,0.1)";
 
-  const scoreColor = aiScore >= 80 ? "#4ade80" : aiScore >= 60 ? "var(--blue)" : aiScore >= 40 ? "#ffcc44" : "#ff5555";
-  const sg_r = 14; const sg_circ = 2 * Math.PI * sg_r;
+  const scoreColor = aiScore >= 80 ? "#34C759" : aiScore >= 60 ? "#007AFF" : aiScore >= 40 ? "#FF9500" : "#FF3B30";
+  const sg_r = 15; const sg_circ = 2 * Math.PI * sg_r;
   const sg_dash = (aiScore / 100) * sg_circ;
 
-  const demandColor = demand === "高" ? "#4ade80" : demand === "中" ? "#ffcc44" : "#ff9944";
-  const compColor   = competition === "少" ? "#4ade80" : competition === "中" ? "#ffcc44" : "#ff9944";
+  const demandColor = demand === "高" ? "#34C759" : demand === "中" ? "#FF9500" : "#FF3B30";
+  const compColor   = competition === "少" ? "#34C759" : competition === "中" ? "#FF9500" : "#FF3B30";
 
   return (
-    <div style={{ background: "var(--surface)", border: `1px solid ${isProfit ? profitColor + "28" : "#ff444428"}`, borderRadius: 16, overflow: "hidden", transition: "box-shadow 0.2s", boxShadow: aiScore >= 80 ? `0 2px 16px ${profitColor}12` : "none" }}>
+    <div className="sample-card" style={{ background: "var(--surface)", border: `1px solid ${isProfit ? profitColor + "22" : "#FF3B3022"}`, borderRadius: 20, overflow: "hidden", boxShadow: aiScore >= 80 ? `0 4px 24px ${profitColor}14` : "0 2px 12px rgba(0,0,0,0.05)" }}>
       {/* 上部カラーバー */}
-      <div style={{ height: 3, background: isProfit ? `linear-gradient(90deg, ${profitColor}, ${profitColor}44)` : "linear-gradient(90deg, #ff5555, #ff555540)" }} />
+      <div style={{ height: 4, background: isProfit ? `linear-gradient(90deg, ${profitColor}, ${profitColor}55)` : "linear-gradient(90deg, #FF3B30, #FF3B3044)" }} />
 
-      <div style={{ padding: "14px 16px" }}>
-        {/* AI判定 + 相場トレンド */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <span style={{ fontSize: 10, background: aiVerdictBg, border: `1px solid ${aiVerdictColor}40`, borderRadius: 20, padding: "3px 11px", color: aiVerdictColor, fontWeight: 800, letterSpacing: "0.02em" }}>
+      <div style={{ padding: "16px 18px" }}>
+        {/* AI判定 + トレンド */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <span style={{ fontSize: 11, background: aiVerdictBg, border: `1px solid ${aiVerdictColor}35`, borderRadius: 20, padding: "3px 12px", color: aiVerdictColor, fontWeight: 800 }}>
             🤖 {aiVerdict}
           </span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: trendColor }}>
-            {trendIcon} 相場{trendLabel}
+          <span style={{ fontSize: 11, fontWeight: 700, color: trendColor, background: `${trendColor}12`, borderRadius: 20, padding: "3px 10px" }}>
+            {trendIcon} {trendLabel}
           </span>
         </div>
 
         {/* AIスコアゲージ + 商品名 */}
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 14 }}>
           <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-            <svg width={36} height={36}>
-              <circle cx={18} cy={18} r={sg_r} fill="none" stroke="var(--border)" strokeWidth={3} />
-              <circle cx={18} cy={18} r={sg_r} fill="none" stroke={scoreColor} strokeWidth={3}
+            <svg width={38} height={38}>
+              <circle cx={19} cy={19} r={sg_r} fill="none" stroke="var(--border)" strokeWidth={3.5} />
+              <circle cx={19} cy={19} r={sg_r} fill="none" stroke={scoreColor} strokeWidth={3.5}
                 strokeDasharray={`${sg_dash} ${sg_circ}`} strokeLinecap="round"
                 style={{ transform: "rotate(-90deg)", transformOrigin: "50% 50%" }} />
-              <text x={18} y={22} textAnchor="middle" fontSize={9} fontWeight={900} fill={scoreColor}>{aiScore}</text>
+              <text x={19} y={23} textAnchor="middle" fontSize={9} fontWeight={900} fill={scoreColor}>{aiScore}</text>
             </svg>
-            <div style={{ fontSize: 8, color: "var(--text-4)", letterSpacing: "0.02em" }}>AIスコア</div>
+            <div style={{ fontSize: 8, color: "var(--text-4)", letterSpacing: "0.04em", fontWeight: 600 }}>AI</div>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", lineHeight: 1.5 }}>{name}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", lineHeight: 1.55 }}>{name}</div>
             <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 3 }}>{source} → {platform}</div>
           </div>
         </div>
 
-        {/* 利益メインパネル */}
-        <div style={{ background: profitBg, border: `1px solid ${profitColor}30`, borderRadius: 10, padding: "10px 14px", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: 9, color: "var(--text-3)", marginBottom: 3 }}>想定利益</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: profitColor, fontFamily: "monospace", lineHeight: 1 }}>
-              {isProfit ? "+" : ""}¥{profit.toLocaleString()}
+        {/* 利益メインパネル（iOS ウィジェット風） */}
+        <div style={{ background: profitBg, border: `1px solid ${profitColor}28`, borderRadius: 14, padding: "12px 16px", marginBottom: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 600, marginBottom: 4, letterSpacing: "0.04em" }}>想定利益</div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: profitColor, fontFamily: "-apple-system, 'SF Pro Display', monospace", lineHeight: 1, letterSpacing: "-0.02em" }}>
+                {isProfit ? "+" : ""}¥{profit.toLocaleString()}
+              </div>
             </div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 9, color: "var(--text-3)", marginBottom: 3 }}>利益率</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: profitColor, fontFamily: "monospace", lineHeight: 1 }}>{rate}%</div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 600, marginBottom: 4, letterSpacing: "0.04em" }}>利益率</div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: profitColor, fontFamily: "-apple-system, 'SF Pro Display', monospace", lineHeight: 1, letterSpacing: "-0.02em" }}>{rate}%</div>
+            </div>
           </div>
         </div>
 
         {/* 仕入れ → 販売フロー */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-          <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: 8, padding: "7px 10px" }}>
-            <div style={{ fontSize: 9, color: "var(--text-3)" }}>仕入れ</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-2)", fontFamily: "monospace" }}>¥{buy.toLocaleString()}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: 12, padding: "9px 12px" }}>
+            <div style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 600, marginBottom: 2 }}>仕入れ</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-2)", fontFamily: "monospace" }}>¥{buy.toLocaleString()}</div>
           </div>
-          <TrendingUp size={13} color={profitColor} />
-          <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: 8, padding: "7px 10px", textAlign: "right" }}>
-            <div style={{ fontSize: 9, color: "var(--text-3)" }}>販売</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-2)", fontFamily: "monospace" }}>¥{sell.toLocaleString()}</div>
+          <div style={{ flexShrink: 0, width: 28, height: 28, borderRadius: "50%", background: `${profitColor}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <TrendingUp size={13} color={profitColor} />
+          </div>
+          <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: 12, padding: "9px 12px", textAlign: "right" }}>
+            <div style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 600, marginBottom: 2 }}>販売</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-2)", fontFamily: "monospace" }}>¥{sell.toLocaleString()}</div>
           </div>
         </div>
 
-        {/* 需要・競合・月間販売数 */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
+        {/* 需要・競合・月販 (iOS grouped row) */}
+        <div style={{ background: "var(--surface-2)", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
           {[
-            { label: "需要", val: demand,                   color: demandColor },
-            { label: "競合", val: competition,              color: compColor },
-            { label: "月販", val: `${soldPerMonth}件`,      color: "var(--text-2)" },
-          ].map(({ label, val, color }) => (
-            <div key={label} style={{ background: "var(--surface-2)", borderRadius: 7, padding: "6px 8px", textAlign: "center" }}>
-              <div style={{ fontSize: 8, color: "var(--text-4)", marginBottom: 2 }}>{label}</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color }}>{val}</div>
+            { label: "需要", val: demand,              color: demandColor },
+            { label: "競合", val: competition,         color: compColor },
+            { label: "月販", val: `${soldPerMonth}件`, color: "var(--text-2)" },
+          ].map(({ label, val, color }, i, arr) => (
+            <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 14px", borderBottom: i < arr.length - 1 ? "1px solid var(--border)" : "none" }}>
+              <span style={{ fontSize: 12, color: "var(--text-3)", fontWeight: 500 }}>{label}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color }}>{val}</span>
             </div>
           ))}
         </div>
 
         {/* おすすめ度 */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 10, color: "var(--text-3)" }}>おすすめ度</span>
+          <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 500 }}>おすすめ度</span>
           <ScanStars n={stars} />
         </div>
       </div>
@@ -627,8 +671,14 @@ function ScannerPageContent() {
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
-        .scan-card:hover { border-color: rgba(212,175,55,0.35) !important; }
-        .scan-card { transition: border-color 0.15s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .scan-card { transition: box-shadow 0.2s, transform 0.15s; border-radius: 20px !important; }
+        .scan-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.10) !important; transform: translateY(-1px); }
+        .genre-pill { transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1); }
+        .genre-pill:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .sample-card { animation: fadeIn 0.4s ease both; border-radius: 20px !important; }
+        .ios-card { border-radius: 20px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); transition: box-shadow 0.2s; }
+        .ios-card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.10); }
         @media (max-width: 768px) {
           .scanner-steps    { grid-template-columns: 1fr !important; }
           .scanner-stat-bar { grid-template-columns: repeat(2,1fr) !important; }
@@ -639,6 +689,7 @@ function ScannerPageContent() {
           .scanner-quickbar input { min-height: 44px; }
           .scanner-quickbar button { min-height: 44px; }
           .scan-info-grid   { grid-template-columns: 1fr 1fr !important; }
+          .genre-grid       { grid-template-columns: repeat(4, 1fr) !important; }
         }
       `}</style>
 
@@ -773,28 +824,34 @@ function ScannerPageContent() {
       )}
 
       {/* ── おすすめジャンル ── */}
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 18px", marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
-          <Zap size={14} color="#ffcc44" />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>おすすめジャンル</span>
-          <span style={{ fontSize: 11, color: "var(--text-3)" }}>クリックで即スキャン</span>
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 20, padding: "18px 20px", marginBottom: 16, boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(255,204,68,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Zap size={16} color="#ffcc44" />
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text)", lineHeight: 1.2 }}>おすすめジャンル</div>
+              <div style={{ fontSize: 11, color: "var(--text-3)" }}>{GENRES.length}ジャンル — タップで即スキャン</div>
+            </div>
+          </div>
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <div className="genre-grid" style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8 }}>
           {GENRES.map(g => {
             const added = keywords.some(k => k.keyword === g.keyword);
             const isRunning = scanningKw.has(g.keyword);
             return (
               <button key={g.keyword} onClick={() => addFromGenre(g)} disabled={scanning || isRunning}
-                style={{ display: "flex", alignItems: "center", gap: 7, background: added ? `${g.color}12` : "var(--surface-2)", border: `1px solid ${added ? g.color + "44" : "var(--border)"}`, borderRadius: 7, padding: "6px 12px", cursor: scanning || isRunning ? "not-allowed" : "pointer", transition: "all 0.15s" }}>
+                className="genre-pill"
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: added ? `${g.color}15` : "var(--surface-2)", border: `1.5px solid ${added ? g.color + "60" : "var(--border)"}`, borderRadius: 16, padding: "10px 8px", cursor: scanning || isRunning ? "not-allowed" : "pointer", position: "relative", overflow: "hidden" }}>
+                {/* active dot */}
+                {added && <div style={{ position: "absolute", top: 5, right: 5, width: 5, height: 5, borderRadius: "50%", background: g.color }} />}
                 {isRunning
-                  ? <RefreshCw size={10} color={g.color} style={{ animation: "spin 1s linear infinite", flexShrink: 0 }} />
-                  : <div style={{ width: 2, height: 18, borderRadius: 1, background: g.color, flexShrink: 0 }} />
+                  ? <RefreshCw size={16} color={g.color} style={{ animation: "spin 1s linear infinite" }} />
+                  : <span style={{ fontSize: 20, lineHeight: 1 }}>{(g as typeof g & { emoji?: string }).emoji ?? "🔍"}</span>
                 }
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: added ? g.color : "var(--text-2)", lineHeight: 1.2 }}>{g.label}</div>
-                  <div style={{ fontSize: 9, color: "var(--text-4)" }}>{g.reason}</div>
-                </div>
-                {added && <div style={{ width: 4, height: 4, borderRadius: "50%", background: g.color }} />}
+                <div style={{ fontSize: 10, fontWeight: 700, color: added ? g.color : "var(--text-2)", lineHeight: 1.2, textAlign: "center", wordBreak: "break-all" }}>{g.label}</div>
+                <div style={{ fontSize: 8, color: "var(--text-4)", lineHeight: 1.2, textAlign: "center" }}>{g.reason}</div>
               </button>
             );
           })}
@@ -974,32 +1031,42 @@ function ScannerPageContent() {
       {processed.length === 0 && results.length === 0 && !scanning ? (
         <div>
           {/* AIが選んだ今週のイチオシ TOP3 */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <Crown size={16} color="#D4AF37" />
-              <span style={{ fontSize: 16, fontWeight: 900, color: "var(--text)" }}>AIが選んだ今週のイチオシ</span>
-              <span style={{ fontSize: 10, color: "var(--text-4)", background: "rgba(212,175,55,0.08)", border: "1px solid var(--border)", borderRadius: 5, padding: "2px 8px", marginLeft: "auto" }}>SAMPLE</span>
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 12, background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.08))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Crown size={18} color="#D4AF37" />
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: "var(--text)", lineHeight: 1.2 }}>AIが選んだ今週のイチオシ</div>
+                <div style={{ fontSize: 11, color: "var(--text-3)" }}>直近7日のスキャンデータからAIが算出</div>
+              </div>
+              <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-4)", background: "rgba(212,175,55,0.08)", border: "1px solid var(--border)", borderRadius: 20, padding: "3px 10px", fontWeight: 700 }}>SAMPLE</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
               {SAMPLE_SCAN_ITEMS.filter(i => i.aiVerdict === "強く買い").slice(0, 3).map((item, idx) => {
                 const rc = ["#FFD700", "#C0C0C0", "#CD7F32"][idx];
                 const rankLabel = ["🥇 1位", "🥈 2位", "🥉 3位"][idx];
+                const scoreColor = ["#FFD700", "#C0C0C0", "#CD7F32"][idx];
                 return (
-                  <div key={item.id} style={{ background: `linear-gradient(145deg, var(--surface) 60%, ${rc}06 100%)`, border: `1px solid ${rc}45`, borderRadius: 14, padding: "14px 16px", position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${rc}, ${rc}44)` }} />
-                    <div style={{ fontSize: 11, fontWeight: 900, color: rc, marginBottom: 6, letterSpacing: "0.04em" }}>{rankLabel}</div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", lineHeight: 1.4, marginBottom: 10, minHeight: 36 }}>{item.name}</div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                      <div>
-                        <div style={{ fontSize: 9, color: "var(--text-3)" }}>想定利益</div>
-                        <div style={{ fontSize: 20, fontWeight: 900, color: rc, fontFamily: "monospace", lineHeight: 1 }}>+¥{item.profit.toLocaleString()}</div>
-                        <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>利益率 {item.rate}%</div>
+                  <div key={item.id} className="ios-card" style={{ background: "var(--surface)", border: `1px solid ${rc}40`, borderRadius: 20, padding: "16px 18px", position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${rc}, ${rc}44)` }} />
+                    <div style={{ fontSize: 12, fontWeight: 900, color: rc, marginBottom: 8, letterSpacing: "0.04em" }}>{rankLabel}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", lineHeight: 1.5, marginBottom: 12, minHeight: 38 }}>{item.name}</div>
+                    <div style={{ background: `${rc}10`, borderRadius: 12, padding: "10px 14px", marginBottom: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                        <div>
+                          <div style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 600, marginBottom: 2 }}>想定利益</div>
+                          <div style={{ fontSize: 22, fontWeight: 900, color: rc, fontFamily: "monospace", lineHeight: 1 }}>+¥{item.profit.toLocaleString()}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 600, marginBottom: 2 }}>利益率</div>
+                          <div style={{ fontSize: 22, fontWeight: 900, color: rc, fontFamily: "monospace", lineHeight: 1 }}>{item.rate}%</div>
+                        </div>
                       </div>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 9, color: "var(--text-3)" }}>AIスコア</div>
-                        <div style={{ fontSize: 26, fontWeight: 900, color: rc, fontFamily: "monospace", lineHeight: 1 }}>{item.aiScore}</div>
-                        <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 2 }}>月販 {item.soldPerMonth}件</div>
-                      </div>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ fontSize: 10, color: "var(--text-3)" }}>AIスコア <span style={{ fontWeight: 900, color: scoreColor, fontSize: 14 }}>{item.aiScore}</span></div>
+                      <div style={{ fontSize: 10, color: "var(--text-3)" }}>月販 <span style={{ fontWeight: 700, color: "var(--text-2)" }}>{item.soldPerMonth}件</span></div>
                     </div>
                   </div>
                 );
