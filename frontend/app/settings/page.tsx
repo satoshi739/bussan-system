@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { getSettings, saveSettings, testLineNotify, notifyStale, notifyDaily, getSourceSyncSettings, saveSourceSyncSettings, runSourceSyncNow } from "@/lib/api";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
-import { Bell, Send, AlertTriangle, Key, Globe, RefreshCw, Sparkles, Truck, ChevronDown, ChevronUp } from "lucide-react";
+import { Bell, Send, AlertTriangle, Key, Globe, RefreshCw, Sparkles, Truck, ChevronDown, ChevronUp, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 const card: React.CSSProperties = { background: "rgba(20,20,22,0.9)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "20px 24px" };
 const inp: React.CSSProperties = { background: "rgba(10,10,11,0.95)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#F5F0E8", padding: "9px 12px", fontSize: 14, width: "100%", outline: "none", fontFamily: "monospace", boxSizing: "border-box" };
 const lbl: React.CSSProperties = { fontSize: 12, color: "#8A8278", fontWeight: 600, display: "block", marginBottom: 6 };
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [lineToken, setLineToken] = useState("");
   const [savedToken, setSavedToken] = useState("");
@@ -202,6 +204,28 @@ export default function SettingsPage() {
       `}</style>
       <h1 style={{ fontSize: 22, fontWeight: 900, color: "#F5F0E8", margin: 0 }}>設定</h1>
       <div style={{ fontSize: 12, color: "#8A8278", marginBottom: 16, marginTop: 3 }}>通知・連携の設定</div>
+
+      {/* ── テーマ切り替え ── */}
+      <div style={{ ...card, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+          {theme === "dark" ? <Moon size={16} color="#D4AF37" /> : <Sun size={16} color="#D4AF37" />}
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0" }}>テーマ</span>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={() => setTheme("light")}
+            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 10, border: `1px solid ${theme === "light" ? "rgba(212,175,55,0.5)" : "rgba(212,175,55,0.15)"}`, background: theme === "light" ? "rgba(212,175,55,0.1)" : "transparent", color: theme === "light" ? "#D4AF37" : "#8A8278", fontWeight: 700, cursor: "pointer", fontSize: 13, transition: "all 0.15s" }}
+          >
+            <Sun size={14} /> ライト
+          </button>
+          <button
+            onClick={() => setTheme("dark")}
+            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 10, border: `1px solid ${theme === "dark" ? "rgba(212,175,55,0.5)" : "rgba(212,175,55,0.15)"}`, background: theme === "dark" ? "rgba(212,175,55,0.1)" : "transparent", color: theme === "dark" ? "#D4AF37" : "#8A8278", fontWeight: 700, cursor: "pointer", fontSize: 13, transition: "all 0.15s" }}
+          >
+            <Moon size={14} /> ダーク
+          </button>
+        </div>
+      </div>
 
       {/* ── まずはサンプルで試せます ── */}
       <div style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 12, padding: "14px 18px", marginBottom: 20 }}>

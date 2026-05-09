@@ -3,6 +3,7 @@ import "./globals.css";
 import { ToastContainer } from "@/components/Toast";
 import Providers from "@/components/Providers";
 import ClientShell from "@/components/ClientShell";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -18,12 +19,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
+    <html lang="ja" suppressHydrationWarning>
       <body>
-        <Providers>
-          <ClientShell>{children}</ClientShell>
-        </Providers>
-        <ToastContainer />
+        <ThemeProvider>
+          <Providers>
+            <ClientShell>{children}</ClientShell>
+          </Providers>
+          <ToastContainer />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1207,9 +1207,17 @@ function ScannerPageContent() {
                   )}
                 </div>
 
-                <div style={{ fontSize: 10, color: "#3a5a4a", textAlign: "center", marginTop: 10 }}>
-                  出品完了後、仕入れ管理からステータスを更新してください
-                </div>
+                {listingConfirmed ? (
+                  <div style={{ textAlign: "center", marginTop: 10 }}>
+                    <a href="/listings" style={{ fontSize: 13, color: "#66aaff", textDecoration: "none", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <ExternalLink size={12} /> 出品管理で確認する →
+                    </a>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 10, color: "#3a5a4a", textAlign: "center", marginTop: 10 }}>
+                    出品完了後、仕入れ管理からステータスを更新してください
+                  </div>
+                )}
               </>
             )}
           </div>

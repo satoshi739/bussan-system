@@ -8,7 +8,7 @@ import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
 
-const GROUP_LABEL = "rgba(10,15,30,0.35)";
+const GROUP_LABEL = "var(--text-3)";
 
 const PLAN_LABELS: Record<string, string> = { FREE: "フリー", LITE: "Lite", STANDARD: "Standard", PRO: "Pro" };
 const PLAN_COLORS: Record<string, string> = { FREE: T.t3, LITE: "#7eb0e8", STANDARD: T.gold, PRO: T.goldLt };
@@ -98,8 +98,8 @@ export default function Sidebar() {
     <aside style={{
       width: 224,
       minHeight: "100vh",
-      background: T.bgSidebar,
-      borderRight: `1px solid ${T.bd}`,
+      background: "var(--sidebar-bg)",
+      borderRight: "1px solid var(--border)",
       boxShadow: "2px 0 12px rgba(0,0,0,0.05)",
       display: "flex",
       flexDirection: "column",
@@ -109,7 +109,7 @@ export default function Sidebar() {
       {/* ── ロゴ ── */}
       <div style={{
         padding: "20px 16px 16px",
-        borderBottom: `1px solid ${T.bd}`,
+        borderBottom: "1px solid var(--border)",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -135,7 +135,7 @@ export default function Sidebar() {
         <button
           onClick={() => setMobileMenu(false)}
           className="sidebar-close-btn"
-          style={{ display: "none", background: "none", border: "none", color: T.t3, cursor: "pointer", padding: 4, borderRadius: 10 }}
+          style={{ display: "none", background: "none", border: "none", color: "var(--text-3)", cursor: "pointer", padding: 4, borderRadius: 10 }}
         >
           <X size={16} />
         </button>
@@ -196,15 +196,15 @@ export default function Sidebar() {
                       borderRadius: 12,
                       fontWeight: active ? 700 : 500,
                       fontSize: 12,
-                      color:      active ? T.t1 : T.t2,
-                      background: active ? T.bgActive : "transparent",
-                      border:     active ? `1px solid ${T.bdSt}` : "1px solid transparent",
+                      color:      active ? "var(--text)" : "var(--text-2)",
+                      background: active ? "var(--nav-active)" : "transparent",
+                      border:     active ? "1px solid var(--border-strong)" : "1px solid transparent",
                       textDecoration: "none",
                       transition: "all 0.15s",
                       marginBottom: 1,
                     }}
                   >
-                    <Icon size={13} style={{ flexShrink: 0 }} color={active ? T.gold : T.t3} />
+                    <Icon size={13} style={{ flexShrink: 0 }} color={active ? T.gold : "var(--text-3)"} />
                     <span>{label}</span>
                     {active && (
                       <div style={{ marginLeft: "auto", width: 5, height: 5, borderRadius: "50%", background: T.gold, flexShrink: 0 }} />
@@ -214,7 +214,7 @@ export default function Sidebar() {
               })}
 
               {gi < navGroups.length - 1 && (
-                <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.bd}, transparent)`, margin: "4px 4px" }} />
+                <div style={{ height: 1, background: "linear-gradient(90deg, transparent, var(--border), transparent)", margin: "4px 4px" }} />
               )}
             </div>
           );
@@ -222,7 +222,7 @@ export default function Sidebar() {
       </div>
 
       {/* ── フッター ── */}
-      <div style={{ padding: "12px 8px 0", borderTop: `1px solid ${T.bd}`, marginTop: 4 }}>
+      <div style={{ padding: "12px 8px 0", borderTop: "1px solid var(--border)", marginTop: 4 }}>
         {session?.user && (
           <Link
             href="/settings/billing"
@@ -233,14 +233,14 @@ export default function Sidebar() {
               textDecoration: "none",
               padding: "9px 12px",
               borderRadius: 18,
-              border: `1px solid ${planError ? "rgba(255,100,50,0.3)" : T.bd}`,
+              border: planError ? "1px solid rgba(255,100,50,0.3)" : "1px solid var(--border)",
               background: planError ? "rgba(255,100,50,0.05)" : `${T.gold}06`,
               marginBottom: 8,
               transition: "border-color 0.15s, background 0.15s",
             }}
           >
-            <CreditCard size={11} color={planError ? "#ff9966" : (PLAN_COLORS[plan] ?? T.t3)} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: planError ? "#ff9966" : (PLAN_COLORS[plan] ?? T.t3), letterSpacing: "0.05em" }}>
+            <CreditCard size={11} color={planError ? "#ff9966" : (PLAN_COLORS[plan] ?? "var(--text-3)")} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: planError ? "#ff9966" : (PLAN_COLORS[plan] ?? "var(--text-3)"), letterSpacing: "0.05em" }}>
               {planError ? "プラン取得失敗" : `${PLAN_LABELS[plan] ?? plan} プラン`}
             </span>
           </Link>
@@ -262,10 +262,10 @@ export default function Sidebar() {
         </div>
 
         <div style={{ display: "flex", gap: 2, marginBottom: 2 }}>
-          <Link href="/settings" style={{ flex: 1, display: "flex", alignItems: "center", gap: 6, textDecoration: "none", padding: "7px 8px", borderRadius: 12, color: T.t3, fontSize: 12, transition: "color 0.15s" }}>
+          <Link href="/settings" style={{ flex: 1, display: "flex", alignItems: "center", gap: 6, textDecoration: "none", padding: "7px 8px", borderRadius: 12, color: "var(--text-3)", fontSize: 12, transition: "color 0.15s" }}>
             <Settings size={11} /> 設定
           </Link>
-          <Link href="/support" style={{ flex: 1, display: "flex", alignItems: "center", gap: 6, textDecoration: "none", padding: "7px 8px", borderRadius: 12, color: T.t3, fontSize: 12, transition: "color 0.15s" }}>
+          <Link href="/support" style={{ flex: 1, display: "flex", alignItems: "center", gap: 6, textDecoration: "none", padding: "7px 8px", borderRadius: 12, color: "var(--text-3)", fontSize: 12, transition: "color 0.15s" }}>
             <HelpCircle size={11} /> サポート
           </Link>
         </div>
@@ -279,7 +279,7 @@ export default function Sidebar() {
               gap: 6,
               background: "transparent",
               border: "none",
-              color: T.t3,
+              color: "var(--text-3)",
               fontSize: 12,
               cursor: "pointer",
               padding: "8px 6px",
@@ -314,14 +314,14 @@ export default function Sidebar() {
             bottom: 64,
             left: 0,
             right: 0,
-            background: T.bgSidebar,
-            borderTop: `1px solid ${T.bd}`,
+            background: "var(--sidebar-bg)",
+            borderTop: "1px solid var(--border)",
             borderRadius: "16px 16px 0 0",
             padding: "12px 16px 16px",
             maxHeight: "70vh",
             overflowY: "auto",
           }}>
-            <div style={{ width: 36, height: 3, background: T.t4, borderRadius: 2, margin: "0 auto 16px" }} />
+            <div style={{ width: 36, height: 3, background: "var(--text-4)", borderRadius: 2, margin: "0 auto 16px" }} />
             {navGroups.map((group) => (
               <div key={group.label} style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 9, fontWeight: 700, color: GROUP_LABEL, letterSpacing: "0.14em", textTransform: "uppercase", padding: "4px 8px 6px" }}>
@@ -342,14 +342,14 @@ export default function Sidebar() {
                           borderRadius: 14,
                           fontSize: 13,
                           fontWeight: active ? 700 : 500,
-                          color: active ? T.t1 : T.t2,
-                          background: active ? T.bgActive : "rgba(255,255,255,0.03)",
-                          border: `1px solid ${active ? T.bdSt : T.bd}`,
+                          color: active ? "var(--text)" : "var(--text-2)",
+                          background: active ? "var(--nav-active)" : "rgba(255,255,255,0.03)",
+                          border: active ? "1px solid var(--border-strong)" : "1px solid var(--border)",
                           textDecoration: "none",
                           minHeight: 44,
                         }}
                       >
-                        <Icon size={13} color={active ? T.gold : T.t3} />
+                        <Icon size={13} color={active ? T.gold : "var(--text-3)"} />
                         {label}
                       </Link>
                     );
@@ -377,8 +377,8 @@ export default function Sidebar() {
         left: 0,
         right: 0,
         height: 64,
-        background: T.bgSidebar,
-        borderTop: `1px solid ${T.bd}`,
+        background: "var(--sidebar-bg)",
+        borderTop: "1px solid var(--border)",
         zIndex: 998,
         padding: "0 8px",
         alignItems: "stretch",
@@ -397,7 +397,7 @@ export default function Sidebar() {
                 justifyContent: "center",
                 gap: 3,
                 textDecoration: "none",
-                color: active ? T.gold : T.t3,
+                color: active ? T.gold : "var(--text-3)",
                 fontSize: 10,
                 fontWeight: active ? 700 : 400,
                 transition: "color 0.15s",
@@ -419,7 +419,7 @@ export default function Sidebar() {
             gap: 3,
             background: "none",
             border: "none",
-            color: mobileMenu ? T.gold : T.t3,
+            color: mobileMenu ? T.gold : "var(--text-3)",
             fontSize: 10,
             cursor: "pointer",
           }}
@@ -439,9 +439,9 @@ export default function Sidebar() {
           .mobile-bottom-nav { display: none !important; }
         }
         .nav-link:hover {
-          background: ${T.bgHover} !important;
-          color: ${T.t1} !important;
-          border-color: ${T.bd} !important;
+          background: var(--nav-hover) !important;
+          color: var(--text) !important;
+          border-color: var(--border) !important;
         }
       `}</style>
     </>
