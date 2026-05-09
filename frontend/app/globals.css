@@ -28,21 +28,21 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0a0a0f;
-  --surface: #111116;
-  --sidebar-bg: #0d0d12;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --blue: #409CFF;
-  --blue-lt: #66b8ff;
-  --blue-dm: #0070e8;
-  --text: #F5F0E8;
-  --text-2: rgba(245, 240, 232, 0.60);
-  --text-3: rgba(245, 240, 232, 0.38);
-  --text-4: rgba(245, 240, 232, 0.18);
-  --text-muted: rgba(245, 240, 232, 0.55);
-  --nav-hover: rgba(64, 156, 255, 0.08);
-  --nav-active: rgba(64, 156, 255, 0.14);
+  --bg: #0b0c12;
+  --surface: #13141c;
+  --sidebar-bg: #0f1018;
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.20);
+  --blue: #4DA3FF;
+  --blue-lt: #70BAFF;
+  --blue-dm: #2080E0;
+  --text: #F0EDE8;
+  --text-2: rgba(240, 237, 232, 0.78);
+  --text-3: rgba(240, 237, 232, 0.55);
+  --text-4: rgba(240, 237, 232, 0.28);
+  --text-muted: rgba(240, 237, 232, 0.78);
+  --nav-hover: rgba(77, 163, 255, 0.09);
+  --nav-active: rgba(77, 163, 255, 0.16);
 }
 
 html,
@@ -73,15 +73,68 @@ body {
 /* ── フォーム要素の基本スタイル ── */
 button {
   border-radius: var(--r-md);
-  transition: opacity 0.15s, box-shadow 0.15s;
+  transition: opacity 0.15s, box-shadow 0.15s, background 0.15s, transform 0.1s;
 }
+button:active { transform: scale(0.97); }
+
 input, select, textarea {
   border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  padding: 9px 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.22);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(0, 111, 230, 0.15);
 }
+
+/* ── グローバルテーブルスタイル ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--border);
+  background: rgba(0, 0, 0, 0.02);
+  white-space: nowrap;
+}
+td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(0, 111, 230, 0.03); }
+
+/* ── バッジユーティリティ ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.badge-green  { background: rgba(30,156,60,0.12);  color: #1E9C3C; }
+.badge-red    { background: rgba(224,46,36,0.12);  color: #E02E24; }
+.badge-orange { background: rgba(232,133,0,0.12);  color: #E88500; }
+.badge-blue   { background: rgba(0,111,230,0.12);  color: #006FE6; }
+.badge-gray   { background: rgba(8,13,28,0.08);    color: var(--text-3); }
 
 /* ═══ レスポンシブ・グリッドユーティリティ ═══ */
 
