@@ -4,6 +4,8 @@ import { ToastContainer } from "@/components/Toast";
 import Providers from "@/components/Providers";
 import ClientShell from "@/components/ClientShell";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: {
@@ -27,6 +29,8 @@ export default function RootLayout({
           </Providers>
           <ToastContainer />
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

@@ -3,8 +3,9 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type Dashboard, type Purchase } from "@/lib/api";
-import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Brain, Search, Bot, Camera, Lightbulb, Flame } from "lucide-react";
+import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Search, Bot, Camera, Lightbulb, Flame } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import OnboardingModal, { OnboardingChecklist, useOnboarding } from "@/components/OnboardingModal";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
@@ -325,10 +326,12 @@ function AICEOHero() {
       overflow: "hidden",
       marginBottom: 16,
     }}>
-      <img
+      <Image
         src="/mascot-banner.png"
         alt="勘で稼ぐ時代は、終わった。UPJ利益スキャナー"
-        style={{ width: "100%", display: "block" }}
+        width={800}
+        height={200}
+        style={{ width: "100%", height: "auto", display: "block" }}
       />
       <div style={{ display: "flex", gap: 10, padding: "14px 20px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
         <Link href="/scanner" style={{
@@ -510,7 +513,7 @@ export default function DashboardPage() {
       {showEmptyBanner && (
         <div style={{ display: "flex", alignItems: "center", gap: 12, background: error ? "rgba(255,69,58,0.08)" : C.bg1, border: `1px solid ${error ? "rgba(255,69,58,0.35)" : C.bd}`, borderRadius: 24, padding: "14px 20px", marginBottom: 16 }}>
           {!error ? (
-            <img src="/mascot-cat.png" alt="UPJ" style={{ width: 52, height: 52, objectFit: "contain", flexShrink: 0 }} />
+            <Image src="/mascot-cat.png" alt="UPJ" width={52} height={52} style={{ objectFit: "contain", flexShrink: 0 }} />
           ) : (
             <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,69,58,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <AlertTriangle size={17} color="#ff4444" />

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown, Crown } from "lucide-react";
@@ -89,7 +90,7 @@ export default function Sidebar() {
   );
   const toggleCollapse = (label: string) => setCollapsed(prev => {
     const next = new Set(prev);
-    next.has(label) ? next.delete(label) : next.add(label);
+    if (next.has(label)) { next.delete(label); } else { next.add(label); }
     return next;
   });
 
@@ -122,12 +123,12 @@ export default function Sidebar() {
           alignItems: "center",
           gap: 8,
         }}>
-          <img
+          <Image
             src="/upj-logo.jpg"
             alt="UPJ"
+            width={80}
+            height={32}
             style={{
-              width: 80,
-              height: 32,
               objectFit: "contain",
               objectPosition: "left center",
               flexShrink: 0,
@@ -299,7 +300,7 @@ export default function Sidebar() {
 
         {/* ── マスコット ── */}
         <div style={{ display: "flex", justifyContent: "center", padding: "4px 0 8px" }}>
-          <img src="/mascot-cat.png" alt="UPJ" style={{ width: 72, height: 72, objectFit: "contain" }} />
+          <Image src="/mascot-cat.png" alt="UPJ" width={72} height={72} style={{ objectFit: "contain" }} />
         </div>
 
         <div style={{ display: "flex", gap: 2, marginBottom: 2 }}>
