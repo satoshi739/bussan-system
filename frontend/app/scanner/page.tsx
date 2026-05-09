@@ -3,7 +3,7 @@
 import RequirePlan from "@/components/RequirePlan";
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
-import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, SlidersHorizontal, TrendingUp, ArrowUpDown, X, Sparkles, ChevronDown, ChevronUp, BarChart2, Activity } from "lucide-react";
+import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, SlidersHorizontal, TrendingUp, ArrowUpDown, X, Sparkles, ChevronDown, ChevronUp, BarChart2, Activity, GitFork, Crown, Share2 } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
@@ -267,6 +267,12 @@ function ScannerPageContent() {
   const [listingRegistering, setListingRegistering] = useState(false); // 登録中フラグ
   const [checked, setChecked]                 = useState<Set<string>>(new Set());
 
+  // ルートマトリックスモーダル
+  type RouteEntry = { gross_profit: number; profit_rate: number; platform_fees: number; emoji: string; area: string };
+  const [routeItem, setRouteItem]   = useState<ScanResult | null>(null);
+  const [routeData, setRouteData]   = useState<Record<string, RouteEntry> | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+
   const loadData = useCallback(async () => {
     const [kws, res] = await Promise.all([
       api<ScanKeyword[]>("/api/scanner/keywords"),
@@ -476,6 +482,27 @@ function ScannerPageContent() {
       }
     }
     openChecked();
+  };
+
+  const openRouteMatrix = async (item: ScanResult) => {
+    setRouteItem(item);
+    setRouteData(null);
+    setRouteLoading(true);
+    try {
+      const r = await api<Record<string, { gross_profit: number; profit_rate: number; platform_fees: number; emoji: string; area: string }>>("/api/calc/all-platforms", {
+        method: "POST",
+        body: JSON.stringify({
+          purchase_price: item.buy_price,
+          purchase_shipping: item.intl_shipping_jpy ?? 0,
+          selling_price: item.est_sell_price_jpy,
+        }),
+      });
+      setRouteData(r);
+    } catch (e) {
+      toast(errMsg(e), "error");
+    } finally {
+      setRouteLoading(false);
+    }
   };
 
   // フィルター & ソート適用
@@ -976,6 +1003,10 @@ function ScannerPageContent() {
                     style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "linear-gradient(135deg,rgba(0,60,20,0.8),rgba(0,80,30,0.8))", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 8, color: "#D4AF37", padding: "8px 0", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                     <ShoppingCart size={12} /> 仕入れ＆出品
                   </button>
+                  <button onClick={() => openRouteMatrix(item)}
+                    style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 8, color: "#D4AF37", padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                    <GitFork size={12} /> ルート
+                  </button>
                   <button
                     onClick={() => {
                       const d = demandData[key];
@@ -1100,6 +1131,145 @@ function ScannerPageContent() {
           })}
         </div>
         </>
+      )}
+
+      {/* ── ルートマトリックスモーダル ── */}
+      {routeItem && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}
+          onClick={e => { if (e.target === e.currentTarget) setRouteItem(null); }}>
+          <div style={{ background: "#141414", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 16, padding: 24, width: 620, maxHeight: "90vh", overflowY: "auto" }}>
+
+            {/* ヘッダー */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <GitFork size={16} color="#D4AF37" />
+                <span style={{ fontWeight: 800, color: "#F5F0E8", fontSize: 15 }}>ルートマトリックス</span>
+                <span style={{ fontSize: 10, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, padding: "2px 8px", color: "#D4AF37" }}>全{routeData ? Object.keys(routeData).length : "—"}ルート</span>
+              </div>
+              <button onClick={() => setRouteItem(null)} style={{ background: "none", border: "none", color: "#8A8278", cursor: "pointer" }}><X size={16} /></button>
+            </div>
+
+            {/* 商品情報 */}
+            <div style={{ background: "rgba(10,10,11,0.8)", borderRadius: 10, padding: "11px 14px", marginBottom: 16, border: "1px solid rgba(212,175,55,0.1)" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#F5F0E8", marginBottom: 5, lineHeight: 1.4 }}>{routeItem.name}</div>
+              <div style={{ display: "flex", gap: 14, fontSize: 11 }}>
+                <span style={{ color: "#8A8278" }}>仕入れ元 <span style={{ color: "#c0dcd0", fontWeight: 700 }}>{routeItem.buy_source}</span></span>
+                <span style={{ color: "#8A8278" }}>仕入れ価格 <span style={{ color: "#c0dcd0", fontWeight: 700, fontFamily: "monospace" }}>¥{routeItem.buy_price.toLocaleString()}</span></span>
+                <span style={{ color: "#8A8278" }}>推定売価 <span style={{ color: "#66aaff", fontWeight: 700, fontFamily: "monospace" }}>¥{routeItem.est_sell_price_jpy.toLocaleString()}</span></span>
+              </div>
+            </div>
+
+            {routeLoading ? (
+              <div style={{ textAlign: "center", color: "#8A8278", padding: "40px 0" }}>
+                <RefreshCw size={22} style={{ animation: "spin 1s linear infinite", display: "block", margin: "0 auto 10px" }} />
+                <div style={{ fontSize: 13 }}>全プラットフォームの利益を計算中...</div>
+              </div>
+            ) : routeData ? (() => {
+              const sorted = Object.entries(routeData).sort((a, b) => b[1].profit_rate - a[1].profit_rate);
+              const bestProfit = sorted[0]?.[1]?.gross_profit ?? 0;
+              const domestic = sorted.filter(([, v]) => v.area === "国内");
+              const overseas = sorted.filter(([, v]) => v.area === "海外");
+
+              const renderRow = (platform: string, entry: { gross_profit: number; profit_rate: number; platform_fees: number; emoji: string; area: string }, rank: number) => {
+                const isTop = rank === 0;
+                const isCurrent = platform === routeItem.sell_platform || platform === routeItem.sell_platform_name;
+                const profitColor = entry.profit_rate >= 40 ? "#D4AF37" : entry.profit_rate >= 25 ? "#4ade80" : entry.profit_rate >= 10 ? "#ffcc44" : "#ff6666";
+                const barW = bestProfit > 0 ? Math.max(0, Math.min(100, (entry.gross_profit / bestProfit) * 100)) : 0;
+                return (
+                  <div key={platform} style={{ display: "flex", alignItems: "center", gap: 10, background: isTop ? "rgba(212,175,55,0.07)" : "rgba(0,0,0,0.25)", border: `1px solid ${isTop ? "rgba(212,175,55,0.3)" : isCurrent ? "rgba(102,170,255,0.2)" : "rgba(255,255,255,0.04)"}`, borderRadius: 9, padding: "9px 12px", marginBottom: 4, transition: "background 0.12s" }}>
+                    {/* ランク */}
+                    <div style={{ width: 22, textAlign: "center", flexShrink: 0 }}>
+                      {isTop ? <Crown size={14} color="#D4AF37" /> : <span style={{ fontSize: 11, color: "#5a5248", fontFamily: "monospace" }}>#{rank + 1}</span>}
+                    </div>
+                    {/* プラットフォーム */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                        <span style={{ fontSize: 14 }}>{entry.emoji}</span>
+                        <span style={{ fontSize: 12, color: "#d0e8d8", fontWeight: 700 }}>{platform}</span>
+                        {isCurrent && <span style={{ fontSize: 9, background: "rgba(102,170,255,0.15)", border: "1px solid rgba(102,170,255,0.3)", borderRadius: 6, padding: "1px 5px", color: "#66aaff" }}>スキャン結果</span>}
+                        {isTop && <span style={{ fontSize: 9, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 6, padding: "1px 5px", color: "#D4AF37", marginLeft: "auto" }}>最高利益</span>}
+                      </div>
+                      <div style={{ height: 3, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${barW}%`, background: profitColor, borderRadius: 2, transition: "width 0.4s ease" }} />
+                      </div>
+                    </div>
+                    {/* 手数料 */}
+                    <div style={{ textAlign: "right", flexShrink: 0, minWidth: 58 }}>
+                      <div style={{ fontSize: 9, color: "#4a4a4a" }}>手数料</div>
+                      <div style={{ fontSize: 11, color: "#5a6a5a", fontFamily: "monospace" }}>¥{Math.round(entry.platform_fees).toLocaleString()}</div>
+                    </div>
+                    {/* 利益額 */}
+                    <div style={{ textAlign: "right", flexShrink: 0, minWidth: 72 }}>
+                      <div style={{ fontSize: 9, color: "#4a4a4a" }}>想定利益</div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: profitColor, fontFamily: "monospace" }}>
+                        {entry.gross_profit >= 0 ? "+" : ""}¥{Math.round(entry.gross_profit).toLocaleString()}
+                      </div>
+                    </div>
+                    {/* 利益率 */}
+                    <div style={{ textAlign: "center", flexShrink: 0, minWidth: 44 }}>
+                      <div style={{ fontSize: 9, color: "#4a4a4a" }}>利益率</div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: profitColor }}>{entry.profit_rate.toFixed(0)}%</div>
+                    </div>
+                    {/* 出品ボタン */}
+                    <button
+                      onClick={() => { setRouteItem(null); openListing({ ...routeItem, sell_platform: platform, sell_platform_name: platform }); }}
+                      style={{ display: "flex", alignItems: "center", gap: 4, background: isTop ? "linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.08))" : "rgba(0,40,15,0.6)", border: `1px solid ${isTop ? "rgba(212,175,55,0.4)" : "rgba(212,175,55,0.15)"}`, borderRadius: 7, color: isTop ? "#D4AF37" : "#4a8a5a", padding: "5px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>
+                      <ShoppingCart size={10} /> 出品
+                    </button>
+                  </div>
+                );
+              };
+
+              return (
+                <div>
+                  {/* 海外プラットフォーム */}
+                  {overseas.length > 0 && (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, color: "#8A8278", fontWeight: 700, marginBottom: 7, letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
+                        🌏 海外プラットフォーム
+                      </div>
+                      {overseas.map(([p, e]) => {
+                        const globalRank = sorted.findIndex(([sp]) => sp === p);
+                        return renderRow(p, e, globalRank);
+                      })}
+                    </div>
+                  )}
+                  {/* 国内プラットフォーム */}
+                  {domestic.length > 0 && (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, color: "#8A8278", fontWeight: 700, marginBottom: 7, letterSpacing: "0.06em" }}>
+                        🏪 国内プラットフォーム
+                      </div>
+                      {domestic.map(([p, e]) => {
+                        const globalRank = sorted.findIndex(([sp]) => sp === p);
+                        return renderRow(p, e, globalRank);
+                      })}
+                    </div>
+                  )}
+                  {/* フッター */}
+                  <div style={{ borderTop: "1px solid rgba(212,175,55,0.1)", paddingTop: 12, marginTop: 6 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ fontSize: 10, color: "#5a5248", lineHeight: 1.6 }}>
+                        ※ 推定売価 ¥{routeItem.est_sell_price_jpy.toLocaleString()} で計算（国際送料・仕入れ価格控除済み）
+                      </div>
+                      <button
+                        onClick={() => {
+                          const top = sorted[0];
+                          if (!top) return;
+                          const text = `【物販チェッカー】\n仕入れ: ${routeItem.buy_source} ¥${routeItem.buy_price.toLocaleString()}\n最高ルート: ${top[0]} → +¥${Math.round(top[1].gross_profit).toLocaleString()}（${top[1].profit_rate.toFixed(0)}%）\n\n#物販 #せどり #海外転売`;
+                          navigator.clipboard.writeText(text);
+                          toast("SNS投稿文をコピーしました", "success");
+                        }}
+                        style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(100,150,255,0.08)", border: "1px solid rgba(100,150,255,0.2)", borderRadius: 8, color: "#66aaff", padding: "7px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                        <Share2 size={11} /> SNS投稿文をコピー
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })() : null}
+          </div>
+        </div>
       )}
 
       {/* ── 出品モーダル ── */}
