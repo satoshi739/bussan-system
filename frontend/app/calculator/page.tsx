@@ -9,6 +9,7 @@ import {
 } from "@/lib/api";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
+import { SHIPPING_OPTIONS, getShippingFee } from "@/lib/shipping";
 
 const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
 const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "10px 12px", fontSize: 15, width: "100%", outline: "none", fontFamily: "monospace" };
@@ -76,6 +77,7 @@ export default function CalculatorPage() {
 /* ── 利益計算タブ ── */
 function ProfitTab({ domestic, overseas, categories }: { domestic: [string, PlatformInfo][]; overseas: [string, PlatformInfo][]; categories: string[] }) {
   const [form, setForm] = useState({ purchase_price: "", selling_price: "", purchase_shipping: "", shipping_to_platform: "", selling_platform: "メルカリ", category: "その他", ebay_keyword: "", weight_g: "" });
+  const [shippingMethod, setShippingMethod] = useState("manual");
   const [result, setResult] = useState<ProfitResult | null>(null);
 
   // eBay落札相場
@@ -166,7 +168,30 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
           </div>
           <div className="calc-form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div><label style={lbl}>販売価格 (円)</label><input type="number" style={inp} value={form.selling_price} onChange={e => upd("selling_price", e.target.value)} placeholder="0" /></div>
-            <div><label style={lbl}>配送料 (円)</label><input type="number" style={inp} value={form.shipping_to_platform} onChange={e => upd("shipping_to_platform", e.target.value)} placeholder="0" /></div>
+            <div>
+              <label style={lbl}>配送方法</label>
+              <select style={{ ...inp, fontSize: 13 }} value={shippingMethod} onChange={e => {
+                const method = e.target.value;
+                setShippingMethod(method);
+                if (method !== "manual") {
+                  const fee = getShippingFee(method);
+                  upd("shipping_to_platform", String(fee));
+                }
+              }}>
+                {SHIPPING_OPTIONS.map((o, i) => (
+                  <option key={i} value={o.value} disabled={o.disabled}>{o.label}{o.value && o.value !== "manual" ? ` ¥${o.fee.toLocaleString()}` : ""}</option>
+                ))}
+              </select>
+              {shippingMethod === "manual" && (
+                <input type="number" style={{ ...inp, marginTop: 6, fontSize: 13 }} value={form.shipping_to_platform} onChange={e => upd("shipping_to_platform", e.target.value)} placeholder="配送料 (円)" />
+              )}
+              {shippingMethod !== "manual" && (
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-3)" }}>
+                  配送料: <span style={{ color: "var(--blue)", fontWeight: 700 }}>¥{getShippingFee(shippingMethod).toLocaleString()}</span>
+                  <button onClick={() => setShippingMethod("manual")} style={{ marginLeft: 8, background: "transparent", border: "none", color: "var(--text-3)", fontSize: 11, cursor: "pointer", textDecoration: "underline" }}>手入力に切替</button>
+                </div>
+              )}
+            </div>
           </div>
           {form.selling_platform === "Amazon" && (
             <div style={{ marginTop: 12 }}>
@@ -224,6 +249,7 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
 function ReverseTab({ domestic, overseas, categories }: { domestic: [string, PlatformInfo][]; overseas: [string, PlatformInfo][]; categories: string[] }) {
   const [form, setForm] = useState({ selling_price: "", target_profit_rate: "20", selling_platform: "メルカリ", category: "その他", shipping_to_platform: "" });
   const [result, setResult] = useState<number | null>(null);
+  const [shippingMethod, setShippingMethod] = useState("manual");
 
   const recalc = useCallback(async (f: typeof form) => {
     if (!f.selling_price) { setResult(null); return; }
@@ -253,7 +279,30 @@ function ReverseTab({ domestic, overseas, categories }: { domestic: [string, Pla
             <div><label style={lbl}>目標利益率 (%)</label><input type="number" style={inp} value={form.target_profit_rate} onChange={e => upd("target_profit_rate", e.target.value)} placeholder="20" /></div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div><label style={lbl}>配送料 (円)</label><input type="number" style={inp} value={form.shipping_to_platform} onChange={e => upd("shipping_to_platform", e.target.value)} placeholder="0" /></div>
+            <div>
+              <label style={lbl}>配送方法</label>
+              <select style={{ ...inp, fontSize: 13 }} value={shippingMethod} onChange={e => {
+                const method = e.target.value;
+                setShippingMethod(method);
+                if (method !== "manual") {
+                  const fee = getShippingFee(method);
+                  upd("shipping_to_platform", String(fee));
+                }
+              }}>
+                {SHIPPING_OPTIONS.map((o, i) => (
+                  <option key={i} value={o.value} disabled={o.disabled}>{o.label}{o.value && o.value !== "manual" ? ` ¥${o.fee.toLocaleString()}` : ""}</option>
+                ))}
+              </select>
+              {shippingMethod === "manual" && (
+                <input type="number" style={{ ...inp, marginTop: 6, fontSize: 13 }} value={form.shipping_to_platform} onChange={e => upd("shipping_to_platform", e.target.value)} placeholder="配送料 (円)" />
+              )}
+              {shippingMethod !== "manual" && (
+                <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-3)" }}>
+                  配送料: <span style={{ color: "var(--blue)", fontWeight: 700 }}>¥{getShippingFee(shippingMethod).toLocaleString()}</span>
+                  <button onClick={() => setShippingMethod("manual")} style={{ marginLeft: 8, background: "transparent", border: "none", color: "var(--text-3)", fontSize: 11, cursor: "pointer", textDecoration: "underline" }}>手入力に切替</button>
+                </div>
+              )}
+            </div>
             {form.selling_platform === "Amazon" && (
               <div><label style={lbl}>カテゴリー</label><select style={{ ...inp, fontSize: 13 }} value={form.category} onChange={e => upd("category", e.target.value)}>{categories.map(c => <option key={c}>{c}</option>)}</select></div>
             )}

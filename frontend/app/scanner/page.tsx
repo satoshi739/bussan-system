@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, SlidersHorizontal, TrendingUp, ArrowUpDown, X, Sparkles, ChevronDown, ChevronUp, BarChart2, Activity, GitFork, Crown, Share2 } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
+import { SHIPPING_OPTIONS, getShippingFee } from "@/lib/shipping";
 
 // ── おすすめジャンル ────────────────────────────────────────────────
 const GENRES = [
@@ -377,6 +378,10 @@ function ScannerPageContent() {
   const [filterRating, setFilterRating] = useState<string>("all");
   const [filterSource, setFilterSource] = useState<string>("all");
 
+  // 配送費調整
+  const [shippingMethod, setShippingMethod] = useState("manual");
+  const shippingFee = shippingMethod === "manual" ? 0 : getShippingFee(shippingMethod);
+
   // スコア内訳（文字列キーでフィルター後もズレない）
   const [openScore, setOpenScore]       = useState<string | null>(null);
 
@@ -669,82 +674,93 @@ function ScannerPageContent() {
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto" }}>
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pulseRing { 0%{box-shadow:0 0 0 0 rgba(var(--blue-rgb,0,111,230),0.3)} 70%{box-shadow:0 0 0 8px rgba(var(--blue-rgb,0,111,230),0)} 100%{box-shadow:0 0 0 0 rgba(var(--blue-rgb,0,111,230),0)} }
         .scan-card { transition: box-shadow 0.2s, transform 0.15s; border-radius: 20px !important; }
-        .scan-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.10) !important; transform: translateY(-1px); }
-        .genre-pill { transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1); }
-        .genre-pill:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-        .sample-card { animation: fadeIn 0.4s ease both; border-radius: 20px !important; }
-        .ios-card { border-radius: 20px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); transition: box-shadow 0.2s; }
-        .ios-card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.10); }
-        @media (max-width: 768px) {
-          .scanner-steps    { grid-template-columns: 1fr !important; }
-          .scanner-stat-bar { grid-template-columns: repeat(2,1fr) !important; }
-          .scanner-grid     { grid-template-columns: 1fr !important; }
-          .scanner-sample   { grid-template-columns: 1fr !important; }
-          .scanner-header   { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
-          .scanner-quickbar { flex-direction: column !important; }
-          .scanner-quickbar input { min-height: 44px; }
-          .scanner-quickbar button { min-height: 44px; }
-          .scan-info-grid   { grid-template-columns: 1fr 1fr !important; }
-          .genre-grid       { grid-template-columns: repeat(4, 1fr) !important; }
+        .scan-card:hover { box-shadow: 0 10px 40px rgba(0,0,0,0.10) !important; transform: translateY(-2px); }
+        .genre-pill { transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1); cursor: pointer; }
+        .genre-pill:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .sample-card { animation: fadeIn 0.45s ease both; }
+        .ios-card { border-radius: 20px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); transition: box-shadow 0.2s, transform 0.15s; }
+        .ios-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.10); transform: translateY(-1px); }
+        .stat-card { transition: box-shadow 0.2s, transform 0.15s; }
+        .stat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .hot-tag { transition: all 0.15s; }
+        .hot-tag:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(0,0,0,0.10); }
+        @media (max-width:768px) {
+          .scanner-steps    { grid-template-columns:1fr !important }
+          .scanner-stat-bar { grid-template-columns:repeat(2,1fr) !important }
+          .scanner-grid     { grid-template-columns:1fr !important }
+          .scanner-sample   { grid-template-columns:1fr !important }
+          .scanner-header   { flex-direction:column !important;align-items:flex-start !important;gap:10px !important }
+          .scanner-quickbar { flex-direction:column !important }
+          .scanner-quickbar input { min-height:44px }
+          .scanner-quickbar button { min-height:44px }
+          .scan-info-grid   { grid-template-columns:1fr 1fr !important }
+          .genre-grid       { grid-template-columns:repeat(4,1fr) !important }
         }
       `}</style>
 
       {/* ── 3ステップ ガイド ── */}
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "18px 22px", marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14 }}>使い方 — かんたん3ステップ</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} className="scanner-steps">
+      <div style={{ background: "var(--surface)", borderRadius: 20, padding: "22px 26px", marginBottom: 20, boxShadow: "0 2px 16px rgba(0,0,0,0.05)", border: "1px solid var(--border)" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-4)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 18 }}>かんたん 3 ステップ</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr", gap: 0, alignItems: "start" }} className="scanner-steps">
           {([
-            ["①", "商品名を入れる",     "下の入力欄にキーワードを入力"],
-            ["②", "利益を調べる",       "ボタンを押すと仕入れ価格・利益を自動計算"],
-            ["③", "おすすめか確認する", "スコアと判定で「買うべきか」がすぐわかる"],
-          ] as [string, string, string][]).map(([step, title, desc]) => (
-            <div key={step} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "var(--blue)", lineHeight: 1, flexShrink: 0, minWidth: 28 }}>{step}</div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text)", marginBottom: 3 }}>{title}</div>
-                <div style={{ fontSize: 11, color: "var(--text-3)", lineHeight: 1.5 }}>{desc}</div>
+            { n: "1", icon: "🔍", title: "商品名を入力",      desc: "キーワードや商品名を入力する" },
+            { n: "2", icon: "⚡", title: "AIが自動分析",       desc: "仕入れ価格・利益を瞬時に計算" },
+            { n: "3", icon: "✅", title: "判定を確認して購入",  desc: "スコアと判定で迷わず決断できる" },
+          ]).map(({ n, icon, title, desc }, i) => (
+            <>
+              <div key={n} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 10, padding: "0 8px" }}>
+                <div style={{ width: 52, height: 52, borderRadius: 16, background: `linear-gradient(135deg, var(--blue), var(--blue)cc)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(0,111,230,0.25)", flexShrink: 0 }}>
+                  <span style={{ fontSize: 22 }}>{icon}</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text)", marginBottom: 4 }}>{title}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", lineHeight: 1.6 }}>{desc}</div>
+                </div>
               </div>
-            </div>
+              {i < 2 && <div key={`arrow-${i}`} style={{ display: "flex", alignItems: "flex-start", paddingTop: 16, color: "var(--text-4)", fontSize: 18, paddingLeft: 4, paddingRight: 4 }}>›</div>}
+            </>
           ))}
         </div>
       </div>
 
       {/* ── モード切り替え ── */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        <button
-          onClick={() => setScanMode("global")}
-          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: scanMode === "global" ? "var(--nav-active)" : "var(--surface)", border: `1px solid ${scanMode === "global" ? "var(--border-strong)" : "var(--border)"}`, borderRadius: 10, color: scanMode === "global" ? "var(--blue)" : "var(--text-3)", padding: "12px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
-        >
-          🌏 海外転売モード
+      <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 14, padding: 4, marginBottom: 16, display: "flex", gap: 4 }}>
+        <button onClick={() => setScanMode("global")}
+          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: scanMode === "global" ? "var(--surface)" : "transparent", borderRadius: 11, color: scanMode === "global" ? "var(--blue)" : "var(--text-3)", padding: "11px 0", fontSize: 13, fontWeight: 800, cursor: "pointer", border: "none", boxShadow: scanMode === "global" ? "0 2px 8px rgba(0,0,0,0.08)" : "none", transition: "all 0.2s" }}>
+          <span>🌏</span> 海外転売モード
         </button>
-        <button
-          onClick={() => setScanMode("domestic")}
-          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: scanMode === "domestic" ? "rgba(74,222,128,0.10)" : "var(--surface)", border: `1px solid ${scanMode === "domestic" ? "rgba(74,222,128,0.45)" : "var(--border)"}`, borderRadius: 10, color: scanMode === "domestic" ? "#1E9C3C" : "var(--text-3)", padding: "12px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
-        >
-          🏠 国内転売モード（Amazon実売価格）
+        <button onClick={() => setScanMode("domestic")}
+          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: scanMode === "domestic" ? "rgba(52,199,89,0.12)" : "transparent", borderRadius: 11, color: scanMode === "domestic" ? "#1E9C3C" : "var(--text-3)", padding: "11px 0", fontSize: 13, fontWeight: 800, cursor: "pointer", border: "none", boxShadow: scanMode === "domestic" ? "0 2px 8px rgba(52,199,89,0.15)" : "none", transition: "all 0.2s" }}>
+          <span>🏠</span> 国内転売モード
         </button>
       </div>
 
       {/* ── クイック商品検索 ── */}
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: 14, padding: "18px 20px", marginBottom: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-          <Sparkles size={15} color="var(--blue)" />
-          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text)" }}>AI利益スキャン — 商品名を入れると瞬時に分析</span>
+      <div style={{ background: "var(--surface)", borderRadius: 20, padding: "20px 22px", marginBottom: 20, boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 12, background: "linear-gradient(135deg, var(--blue), var(--blue)99)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 10px rgba(0,111,230,0.22)" }}>
+            <Sparkles size={16} color="#fff" />
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text)", lineHeight: 1.2 }}>AI 利益スキャン</div>
+            <div style={{ fontSize: 11, color: "var(--text-3)" }}>商品名を入れると仕入れ価格・利益・AI判定を瞬時に表示</div>
+          </div>
         </div>
-        <div className="scanner-quickbar" style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+        <div className="scanner-quickbar" style={{ display: "flex", gap: 8, marginBottom: 12 }}>
           <input
-            style={{ flex: 1, background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--text)", padding: "14px 16px", fontSize: 15, outline: "none", minHeight: 52 }}
+            style={{ flex: 1, background: "var(--surface-2)", border: "1.5px solid var(--border)", borderRadius: 13, color: "var(--text)", padding: "14px 18px", fontSize: 15, outline: "none", minHeight: 52, transition: "border-color 0.2s" }}
             placeholder="例：セイコー腕時計、ポケモンカード、フィルムカメラ..."
             value={quickKw}
             onChange={e => setQuickKw(e.target.value)}
             onKeyDown={e => e.key === "Enter" && doQuickScan()}
           />
           <select
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--text)", padding: "0 12px", fontSize: 13, outline: "none", flexShrink: 0 }}
+            style={{ background: "var(--surface-2)", border: "1.5px solid var(--border)", borderRadius: 13, color: "var(--text)", padding: "0 14px", fontSize: 13, outline: "none", flexShrink: 0 }}
             value={quickPlatform}
             onChange={e => setQuickPlatform(e.target.value)}
           >
@@ -753,18 +769,19 @@ function ScannerPageContent() {
           <button
             onClick={doQuickScan}
             disabled={!quickKw.trim() || scanning}
-            style={{ display: "flex", alignItems: "center", gap: 7, background: quickKw.trim() && !scanning ? "var(--blue)" : "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 10, color: quickKw.trim() && !scanning ? "#fff" : "var(--text-4)", padding: "0 28px", fontSize: 14, fontWeight: 800, cursor: !quickKw.trim() ? "not-allowed" : "pointer", minHeight: 52, whiteSpace: "nowrap" }}
-          >
+            style={{ display: "flex", alignItems: "center", gap: 8, background: quickKw.trim() && !scanning ? "linear-gradient(135deg, var(--blue), var(--blue)dd)" : "var(--surface-2)", border: "none", borderRadius: 13, color: quickKw.trim() && !scanning ? "#fff" : "var(--text-4)", padding: "0 28px", fontSize: 14, fontWeight: 800, cursor: !quickKw.trim() ? "not-allowed" : "pointer", minHeight: 52, whiteSpace: "nowrap", boxShadow: quickKw.trim() && !scanning ? "0 4px 14px rgba(0,111,230,0.3)" : "none", transition: "all 0.2s" }}>
             <Radar size={16} /> 利益を調べる
           </button>
         </div>
-        {/* AIが今週注目しているジャンル */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, flexShrink: 0 }}>🔥 AI注目:</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,59,48,0.08)", borderRadius: 20, padding: "4px 10px", flexShrink: 0 }}>
+            <span style={{ fontSize: 11 }}>🔥</span>
+            <span style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700 }}>AI注目</span>
+          </div>
           {AI_HOT_GENRES.map(g => (
-            <button key={g.label} onClick={() => { setQuickKw(g.label); }}
-              style={{ display: "flex", alignItems: "center", gap: 4, background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 600, color: "var(--text-2)", cursor: "pointer", transition: "all 0.15s" }}>
-              <span>{g.emoji}</span>
+            <button key={g.label} onClick={() => setQuickKw(g.label)} className="hot-tag"
+              style={{ display: "flex", alignItems: "center", gap: 5, background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 20, padding: "5px 13px", fontSize: 11, fontWeight: 600, color: "var(--text-2)", cursor: "pointer" }}>
+              <span style={{ fontSize: 12 }}>{g.emoji}</span>
               <span>{g.label}</span>
             </button>
           ))}
@@ -772,52 +789,51 @@ function ScannerPageContent() {
       </div>
 
       {/* ── ヘッダー ── */}
-      <div className="scanner-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <Radar size={22} color="#D4AF37" />
-            <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>利益スキャナー</h1>
+      <div className="scanner-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, background: "var(--surface)", borderRadius: 16, padding: "16px 20px", border: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 13, background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))", border: "1px solid rgba(212,175,55,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Radar size={20} color="#D4AF37" />
           </div>
-          <p style={{ fontSize: 12, color: "var(--text-3)", margin: 0 }}>
-            仕入れサイトを自動巡回し、利益が出る商品だけをランキング表示
-          </p>
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 900, color: "var(--text)", margin: 0, lineHeight: 1.2 }}>利益スキャナー</h1>
+            <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0, marginTop: 2 }}>仕入れサイトを自動巡回し、利益が出る商品をランキング表示</p>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           {scanMsg && (
-            <span style={{ fontSize: 12, color: scanning ? "#ffcc44" : "#8A8278" }}>
-              {scanning && <RefreshCw size={11} style={{ display: "inline", marginRight: 5, animation: "spin 1s linear infinite" }} />}
+            <span style={{ fontSize: 12, color: scanning ? "#FF9500" : "var(--text-4)", display: "flex", alignItems: "center", gap: 5 }}>
+              {scanning && <RefreshCw size={11} style={{ animation: "spin 1s linear infinite" }} />}
               {scanMsg}
-              {slowWarning && (
-                <span style={{ display: "block", fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>
-                  初回は少し時間がかかります。そのままお待ちください...
-                </span>
-              )}
+              {slowWarning && <span style={{ display: "block", fontSize: 10, color: "var(--text-4)", marginTop: 2 }}>初回は少し時間がかかります...</span>}
             </span>
           )}
           <button
             onClick={() => keywords.length > 0 ? runScan() : undefined}
             disabled={scanning || keywords.length === 0}
-            style={{ display: "flex", alignItems: "center", gap: 7, background: scanning || keywords.length === 0 ? "var(--surface-2)" : "var(--blue)", border: "1px solid var(--border)", borderRadius: 9, color: scanning || keywords.length === 0 ? "var(--text-4)" : "#fff", padding: "10px 20px", fontWeight: 700, fontSize: 13, cursor: scanning || keywords.length === 0 ? "not-allowed" : "pointer" }}
-          >
-            {scanning ? <><RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} /> スキャン中</> : <><Radar size={14} /> 全キーワードをスキャン</>}
+            style={{ display: "flex", alignItems: "center", gap: 8, background: scanning || keywords.length === 0 ? "var(--surface-2)" : "linear-gradient(135deg, var(--blue), var(--blue)dd)", border: "none", borderRadius: 12, color: scanning || keywords.length === 0 ? "var(--text-4)" : "#fff", padding: "10px 22px", fontWeight: 800, fontSize: 13, cursor: scanning || keywords.length === 0 ? "not-allowed" : "pointer", boxShadow: scanning || keywords.length === 0 ? "none" : "0 4px 14px rgba(0,111,230,0.28)", transition: "all 0.2s" }}>
+            {scanning ? <><RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} /> スキャン中...</> : <><Radar size={14} /> 全キーワードをスキャン</>}
           </button>
         </div>
       </div>
 
       {/* ── 統計バー ── */}
       {results.length > 0 && (
-        <div className="scanner-stat-bar" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, marginBottom: 16 }}>
+        <div className="scanner-stat-bar" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 18 }}>
           {[
-            { label: "利益候補",       value: `${results.length}件`,                                    sub: `フィルター後: ${processed.length}件`, color: "var(--text)" },
-            { label: "最高利益率",     value: `${bestProfit.toFixed(1)}%`,                              sub: "スキャン結果中のベスト",              color: "var(--blue)" },
-            { label: "平均 ROI",       value: `${avgRoi.toFixed(0)}%`,                                  sub: "全候補の平均",                        color: "#66aaff" },
-            { label: "合計購入金額",   value: `¥${Math.round(totalBuyCost).toLocaleString()}`,          sub: "全候補の仕入れ合計",                  color: "#ff9966" },
-            { label: "潜在利益合計",   value: `¥${Math.round(totalPotential).toLocaleString()}`,        sub: "全候補の純利益合計",                  color: "#00ffcc" },
+            { label: "利益候補",     value: `${results.length}件`,                               sub: `絞込後: ${processed.length}件`, color: "var(--text)",  icon: "📦", accent: "rgba(0,0,0,0.04)" },
+            { label: "最高利益率",   value: `${bestProfit.toFixed(1)}%`,                          sub: "スキャン中のベスト",            color: "var(--blue)",  icon: "🏆", accent: "rgba(0,111,230,0.05)" },
+            { label: "平均 ROI",     value: `${avgRoi.toFixed(0)}%`,                              sub: "全候補の平均",                  color: "#007AFF",       icon: "📈", accent: "rgba(0,122,255,0.05)" },
+            { label: "仕入れ総額",   value: `¥${Math.round(totalBuyCost).toLocaleString()}`,      sub: "全候補の仕入れ合計",            color: "#FF9500",       icon: "💰", accent: "rgba(255,149,0,0.06)" },
+            { label: "潜在利益合計", value: `¥${Math.round(totalPotential).toLocaleString()}`,    sub: "全候補の純利益合計",            color: "#34C759",       icon: "✨", accent: "rgba(52,199,89,0.06)" },
           ].map(s => (
-            <div key={s.label} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 4 }}>{s.label}</div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: s.color, fontFamily: "monospace" }}>{s.value}</div>
-              <div style={{ fontSize: 10, color: "var(--text-4)", marginTop: 2 }}>{s.sub}</div>
+            <div key={s.label} className="stat-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "14px 16px", overflow: "hidden", position: "relative" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: s.color, opacity: 0.6 }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, marginTop: 4 }}>
+                <span style={{ fontSize: 14 }}>{s.icon}</span>
+                <span style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 600, letterSpacing: "0.03em" }}>{s.label}</span>
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: s.color, fontFamily: "monospace", lineHeight: 1, marginBottom: 4 }}>{s.value}</div>
+              <div style={{ fontSize: 10, color: "var(--text-4)", letterSpacing: "0.02em" }}>{s.sub}</div>
             </div>
           ))}
         </div>
@@ -859,22 +875,26 @@ function ScannerPageContent() {
       </div>
 
       {/* ── AIキーワード提案 ── */}
-      <div style={{ background: "var(--surface)", border: "1px solid rgba(170,136,255,0.2)", borderRadius: 12, padding: "14px 18px", marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <Sparkles size={14} color="#aa88ff" />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>AI キーワード提案</span>
-          <span style={{ fontSize: 11, color: "var(--text-3)" }}>ジャンルを入力してAIが仕入れキーワードを提案</span>
+      <div style={{ background: "var(--surface)", border: "1px solid rgba(170,136,255,0.25)", borderRadius: 20, padding: "18px 20px", marginBottom: 16, boxShadow: "0 2px 16px rgba(170,136,255,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 11, background: "linear-gradient(135deg, rgba(170,136,255,0.2), rgba(170,136,255,0.08))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Sparkles size={15} color="#aa88ff" />
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text)", lineHeight: 1.2 }}>AIキーワード提案</div>
+            <div style={{ fontSize: 11, color: "var(--text-3)" }}>ジャンルを入力するとAIが仕入れキーワードを提案</div>
+          </div>
         </div>
         <div style={{ display: "flex", gap: 8, marginBottom: aiKwSuggestions.length > 0 ? 12 : 0 }}>
           <input
-            style={{ ...inp, flex: 1 }}
+            style={{ ...inp, flex: 1, borderRadius: 12, padding: "10px 14px" }}
             placeholder="例: カメラ、ポケモン、アニメフィギュア..."
             value={aiKwGenre}
             onChange={e => setAiKwGenre(e.target.value)}
             onKeyDown={e => e.key === "Enter" && runAiKeywords()}
           />
           <select
-            style={{ ...inp, width: "auto", flexShrink: 0, padding: "8px 10px" }}
+            style={{ ...inp, width: "auto", flexShrink: 0, padding: "10px 12px", borderRadius: 12 }}
             value={aiKwPlatform}
             onChange={e => setAiKwPlatform(e.target.value)}
           >
@@ -883,25 +903,23 @@ function ScannerPageContent() {
           <button
             onClick={runAiKeywords}
             disabled={aiKwLoading || !aiKwGenre.trim()}
-            style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(170,136,255,0.12)", border: "1px solid rgba(170,136,255,0.35)", borderRadius: 8, color: "#aa88ff", padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: aiKwLoading || !aiKwGenre.trim() ? "not-allowed" : "pointer", flexShrink: 0, opacity: aiKwLoading || !aiKwGenre.trim() ? 0.6 : 1 }}
-          >
+            style={{ display: "flex", alignItems: "center", gap: 7, background: aiKwLoading || !aiKwGenre.trim() ? "rgba(170,136,255,0.07)" : "linear-gradient(135deg, rgba(170,136,255,0.2), rgba(170,136,255,0.12))", border: "1px solid rgba(170,136,255,0.3)", borderRadius: 12, color: "#aa88ff", padding: "10px 18px", fontSize: 12, fontWeight: 800, cursor: aiKwLoading || !aiKwGenre.trim() ? "not-allowed" : "pointer", flexShrink: 0, opacity: aiKwLoading || !aiKwGenre.trim() ? 0.55 : 1, transition: "all 0.2s" }}>
             {aiKwLoading ? <RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={12} />}
             {aiKwLoading ? "生成中..." : "AIに提案させる"}
           </button>
         </div>
         {aiKwSuggestions.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
             {aiKwSuggestions.map((s, i) => (
               <button
                 key={i}
                 onClick={() => addFromGenre({ keyword: s.keyword, platform: aiKwPlatform as typeof PLATFORMS[number]["key"], maxPrice: s.max_price, label: s.keyword, reason: s.reason, color: "#aa88ff" } as typeof GENRES[number])}
                 disabled={scanning}
-                style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(170,136,255,0.07)", border: "1px solid rgba(170,136,255,0.2)", borderRadius: 7, padding: "6px 12px", cursor: "pointer", transition: "all 0.15s" }}
-              >
-                <div style={{ width: 2, height: 18, borderRadius: 1, background: "#aa88ff", flexShrink: 0 }} />
+                style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(170,136,255,0.08)", border: "1px solid rgba(170,136,255,0.22)", borderRadius: 12, padding: "7px 13px", cursor: "pointer", transition: "all 0.15s" }}>
+                <div style={{ width: 3, height: 20, borderRadius: 2, background: "#aa88ff", flexShrink: 0 }} />
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#c0b0e8", lineHeight: 1.2 }}>{s.keyword}</div>
-                  <div style={{ fontSize: 9, color: "#6a5a8a" }}>{s.reason} · ¥{s.max_price.toLocaleString()}以下</div>
+                  <div style={{ fontSize: 9, color: "#7a6aaa", marginTop: 1 }}>{s.reason} · ¥{s.max_price.toLocaleString()}以下</div>
                 </div>
               </button>
             ))}
@@ -910,56 +928,63 @@ function ScannerPageContent() {
       </div>
 
       {/* ── キーワード管理 ── */}
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 18px", marginBottom: 20 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: keywords.length > 0 ? 10 : 0 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>スキャンキーワード <span style={{ color: "var(--text-3)", fontWeight: 400 }}>({keywords.length}件)</span></span>
-          <button onClick={() => setShowAdd(!showAdd)} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 7, color: "var(--blue)", padding: "5px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 20, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: keywords.length > 0 || showAdd ? 14 : 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 9, background: "rgba(212,175,55,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Radar size={14} color="#D4AF37" />
+            </div>
+            <div>
+              <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text)" }}>スキャンキーワード</span>
+              <span style={{ fontSize: 11, color: "var(--text-3)", marginLeft: 6 }}>{keywords.length}件登録中</span>
+            </div>
+          </div>
+          <button onClick={() => setShowAdd(!showAdd)} style={{ display: "flex", alignItems: "center", gap: 6, background: showAdd ? "var(--surface-2)" : "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.08))", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, color: "var(--blue)", padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.15s" }}>
             <Plus size={12} /> キーワード追加
           </button>
         </div>
 
         {showAdd && (
-          <div style={{ background: "var(--surface-2)", borderRadius: 8, padding: 12, marginBottom: 10, border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: 8, alignItems: "end" }}>
+          <div style={{ background: "var(--surface-2)", borderRadius: 14, padding: "14px 16px", marginBottom: 12, border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: 8, alignItems: "end" }}>
             <div>
-              <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 3 }}>キーワード</div>
-              <input style={inp} placeholder="例: ポケモンカード" value={newKw} onChange={e => setNewKw(e.target.value)} onKeyDown={e => e.key === "Enter" && addKeyword()} autoFocus />
+              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 600, marginBottom: 4 }}>キーワード</div>
+              <input style={{ ...inp, borderRadius: 10 }} placeholder="例: ポケモンカード" value={newKw} onChange={e => setNewKw(e.target.value)} onKeyDown={e => e.key === "Enter" && addKeyword()} autoFocus />
             </div>
             <div>
-              <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 3 }}>販売先</div>
-              <select style={inp} value={newPlatform} onChange={e => setNewPlatform(e.target.value)}>
+              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 600, marginBottom: 4 }}>販売先</div>
+              <select style={{ ...inp, borderRadius: 10 }} value={newPlatform} onChange={e => setNewPlatform(e.target.value)}>
                 {PLATFORMS.map(p => <option key={p.key} value={p.key}>{p.flag} {p.label}</option>)}
               </select>
             </div>
             <div>
-              <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 3 }}>予算上限（円）</div>
-              <input style={inp} type="number" placeholder="上限なし" value={newMaxPrice} onChange={e => setNewMaxPrice(e.target.value)} />
+              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 600, marginBottom: 4 }}>予算上限（円）</div>
+              <input style={{ ...inp, borderRadius: 10 }} type="number" placeholder="上限なし" value={newMaxPrice} onChange={e => setNewMaxPrice(e.target.value)} />
             </div>
             <div>
-              <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 3 }}>最低利益率(%)</div>
-              <input style={inp} type="number" value={newMinRate} onChange={e => setNewMinRate(e.target.value)} />
+              <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 600, marginBottom: 4 }}>最低利益率(%)</div>
+              <input style={{ ...inp, borderRadius: 10 }} type="number" value={newMinRate} onChange={e => setNewMinRate(e.target.value)} />
             </div>
-            <div style={{ display: "flex", gap: 5 }}>
-              <button onClick={addKeyword} style={{ background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 7, color: "var(--blue)", padding: "8px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>追加</button>
-              <button onClick={() => setShowAdd(false)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 7, color: "var(--text-3)", padding: "8px 10px", cursor: "pointer" }}><X size={12} /></button>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button onClick={addKeyword} style={{ background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.12))", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 10, color: "var(--blue)", padding: "9px 16px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>追加</button>
+              <button onClick={() => setShowAdd(false)} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--text-3)", padding: "9px 11px", cursor: "pointer" }}><X size={12} /></button>
             </div>
           </div>
         )}
 
         {keywords.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
             {keywords.map(kw => {
               const pf = PLATFORMS.find(p => p.key === kw.target_sell_platform);
               const isKwScanning = scanningKw.has(kw.keyword);
               return (
-                <div key={kw.keyword} style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 20, padding: "5px 10px 5px 12px" }}>
+                <div key={kw.keyword} style={{ display: "flex", alignItems: "center", gap: 6, background: isKwScanning ? "rgba(212,175,55,0.08)" : "var(--surface-2)", border: `1px solid ${isKwScanning ? "rgba(212,175,55,0.35)" : "var(--border)"}`, borderRadius: 22, padding: "6px 10px 6px 13px", transition: "all 0.2s" }}>
                   <span style={{ fontSize: 12, color: "var(--text-2)", fontWeight: 600 }}>{kw.keyword}</span>
-                  <span style={{ fontSize: 10, color: "var(--text-3)" }}>{pf?.flag} {kw.target_sell_platform}</span>
-                  {kw.best_profit_rate && <span style={{ fontSize: 10, color: "var(--blue)", background: "rgba(212,175,55,0.1)", borderRadius: 10, padding: "1px 6px" }}>{kw.best_profit_rate.toFixed(1)}%</span>}
-                  {/* 個別スキャン: 全体スキャン中でも実行可能 */}
-                  <button onClick={() => runScan(kw.keyword, kw.target_sell_platform)} disabled={isKwScanning} style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 6, color: "var(--blue)", padding: "2px 6px", cursor: isKwScanning ? "not-allowed" : "pointer", lineHeight: 1 }}>
+                  <span style={{ fontSize: 10, color: "var(--text-3)" }}>{pf?.flag}</span>
+                  {kw.best_profit_rate && <span style={{ fontSize: 10, color: "var(--blue)", background: "rgba(0,111,230,0.08)", borderRadius: 10, padding: "1px 7px", fontWeight: 700 }}>{kw.best_profit_rate.toFixed(1)}%</span>}
+                  <button onClick={() => runScan(kw.keyword, kw.target_sell_platform)} disabled={isKwScanning} style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 7, color: "var(--blue)", padding: "3px 7px", cursor: isKwScanning ? "not-allowed" : "pointer", lineHeight: 1 }}>
                     {isKwScanning ? <RefreshCw size={9} style={{ animation: "spin 1s linear infinite" }} /> : <Play size={9} />}
                   </button>
-                  <button onClick={() => deleteKeyword(kw.keyword)} style={{ background: "transparent", border: "none", color: "#4a5a4a", cursor: "pointer", padding: "1px 3px", lineHeight: 1 }}>
+                  <button onClick={() => deleteKeyword(kw.keyword)} style={{ background: "transparent", border: "none", color: "var(--text-4)", cursor: "pointer", padding: "1px 3px", lineHeight: 1 }}>
                     <Trash2 size={10} />
                   </button>
                 </div>
@@ -969,60 +994,73 @@ function ScannerPageContent() {
         )}
 
         {keywords.length === 0 && !showAdd && (
-          <div style={{ fontSize: 12, color: "#3a6a4a", textAlign: "center", padding: "12px 0" }}>
-            上のジャンルをクリックするか、「キーワード追加」でスキャン対象を設定してください
+          <div style={{ textAlign: "center", padding: "18px 0", color: "var(--text-4)", fontSize: 12 }}>
+            上のジャンルをタップするか「キーワード追加」でスキャン対象を設定してください
           </div>
         )}
       </div>
 
       {/* ── フィルター & ソート ── */}
       {results.length > 0 && (
-        <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <ArrowUpDown size={13} color="#8A8278" />
-            <span style={{ fontSize: 11, color: "var(--text-3)" }}>並び替え</span>
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "12px 16px", marginBottom: 14, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", boxShadow: "0 1px 8px rgba(0,0,0,0.04)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <ArrowUpDown size={13} color="var(--text-4)" />
+            <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600 }}>並び替え</span>
             {(["score","profit","roi","price"] as const).map(s => (
-              <button key={s} onClick={() => setSortBy(s)} style={{ padding: "4px 10px", borderRadius: 20, border: `1px solid ${sortBy===s ? "rgba(212,175,55,0.4)" : "rgba(212,175,55,0.1)"}`, background: sortBy===s ? "rgba(212,175,55,0.1)" : "transparent", color: sortBy===s ? "#D4AF37" : "#6a9a7a", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+              <button key={s} onClick={() => setSortBy(s)} style={{ padding: "5px 12px", borderRadius: 20, border: "none", background: sortBy===s ? "var(--blue)" : "var(--surface-2)", color: sortBy===s ? "#fff" : "var(--text-3)", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.15s", boxShadow: sortBy===s ? "0 2px 8px rgba(0,111,230,0.25)" : "none" }}>
                 {{ score:"スコア", profit:"利益額", roi:"ROI", price:"仕入れ価格" }[s]}
               </button>
             ))}
           </div>
-          <div style={{ width: 1, height: 20, background: "rgba(212,175,55,0.1)" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <SlidersHorizontal size={13} color="#8A8278" />
-            <span style={{ fontSize: 11, color: "var(--text-3)" }}>評価</span>
+          <div style={{ width: 1, height: 20, background: "var(--border)" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <SlidersHorizontal size={13} color="var(--text-4)" />
+            <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600 }}>評価</span>
             {(["all", "excellent", "good", "ok", "marginal", "loss"] as const).map(r => (
-              <button key={r} onClick={() => setFilterRating(r)} style={{ padding: "4px 10px", borderRadius: 20, border: `1px solid ${filterRating===r ? "rgba(212,175,55,0.4)" : "rgba(212,175,55,0.1)"}`, background: filterRating===r ? "rgba(212,175,55,0.1)" : "transparent", color: filterRating===r ? "#D4AF37" : "#6a9a7a", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+              <button key={r} onClick={() => setFilterRating(r)} style={{ padding: "5px 12px", borderRadius: 20, border: "none", background: filterRating===r ? "var(--blue)" : "var(--surface-2)", color: filterRating===r ? "#fff" : "var(--text-3)", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.15s", boxShadow: filterRating===r ? "0 2px 8px rgba(0,111,230,0.25)" : "none" }}>
                 {r === "all" ? "すべて" : RATING[r as keyof typeof RATING]?.label}
               </button>
             ))}
           </div>
           {sources.length > 1 && (
             <>
-              <div style={{ width: 1, height: 20, background: "rgba(212,175,55,0.1)" }} />
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 11, color: "var(--text-3)" }}>仕入れ元</span>
-                <button onClick={() => setFilterSource("all")} style={{ padding: "4px 10px", borderRadius: 20, border: `1px solid ${filterSource==="all" ? "rgba(212,175,55,0.4)" : "rgba(212,175,55,0.1)"}`, background: filterSource==="all" ? "rgba(212,175,55,0.1)" : "transparent", color: filterSource==="all" ? "#D4AF37" : "#6a9a7a", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>すべて</button>
+              <div style={{ width: 1, height: 20, background: "var(--border)" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600 }}>仕入れ元</span>
+                <button onClick={() => setFilterSource("all")} style={{ padding: "5px 12px", borderRadius: 20, border: "none", background: filterSource==="all" ? "var(--blue)" : "var(--surface-2)", color: filterSource==="all" ? "#fff" : "var(--text-3)", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.15s", boxShadow: filterSource==="all" ? "0 2px 8px rgba(0,111,230,0.25)" : "none" }}>すべて</button>
                 {sources.map(s => (
-                  <button key={s} onClick={() => setFilterSource(s)} style={{ padding: "4px 10px", borderRadius: 20, border: `1px solid ${filterSource===s ? "rgba(212,175,55,0.4)" : "rgba(212,175,55,0.1)"}`, background: filterSource===s ? "rgba(212,175,55,0.1)" : "transparent", color: filterSource===s ? "#D4AF37" : "#6a9a7a", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{s}</button>
+                  <button key={s} onClick={() => setFilterSource(s)} style={{ padding: "5px 12px", borderRadius: 20, border: "none", background: filterSource===s ? "var(--blue)" : "var(--surface-2)", color: filterSource===s ? "#fff" : "var(--text-3)", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.15s", boxShadow: filterSource===s ? "0 2px 8px rgba(0,111,230,0.25)" : "none" }}>{s}</button>
                 ))}
               </div>
             </>
           )}
-          <div style={{ width: 1, height: 20, background: "rgba(212,175,55,0.1)" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <TrendingUp size={13} color="#8A8278" />
-            <span style={{ fontSize: 11, color: "var(--text-3)" }}>ROI最低</span>
-            <select
-              value={minRoi}
-              onChange={e => setMinRoi(Number(e.target.value))}
-              style={{ background: "var(--surface-2)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 20, color: minRoi > 0 ? "#D4AF37" : "#6a9a7a", padding: "4px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer", outline: "none" }}
-            >
+          <div style={{ width: 1, height: 20, background: "var(--border)" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <TrendingUp size={13} color="var(--text-4)" />
+            <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600 }}>ROI最低</span>
+            <select value={minRoi} onChange={e => setMinRoi(Number(e.target.value))}
+              style={{ background: "var(--surface-2)", border: "none", borderRadius: 20, color: minRoi > 0 ? "var(--blue)" : "var(--text-3)", padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", outline: "none" }}>
               <option value={0}>指定なし</option>
               <option value={30}>30% 以上</option>
               <option value={50}>50% 以上</option>
               <option value={100}>100% 以上</option>
             </select>
+          </div>
+          <div style={{ width: 1, height: 20, background: "var(--border)" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <span style={{ fontSize: 11 }}>📦</span>
+            <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600 }}>配送費</span>
+            <select value={shippingMethod} onChange={e => setShippingMethod(e.target.value)}
+              style={{ background: "var(--surface-2)", border: "none", borderRadius: 20, color: shippingFee > 0 ? "var(--blue)" : "var(--text-3)", padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", outline: "none", maxWidth: 200 }}>
+              {SHIPPING_OPTIONS.map((o, i) => (
+                <option key={i} value={o.value} disabled={o.disabled}>
+                  {o.label}{o.value && o.value !== "manual" ? ` ¥${o.fee.toLocaleString()}` : ""}
+                </option>
+              ))}
+            </select>
+            {shippingFee > 0 && (
+              <span style={{ fontSize: 10, color: "var(--blue)", background: "rgba(0,111,230,0.08)", borderRadius: 10, padding: "2px 8px", fontWeight: 700 }}>−¥{shippingFee.toLocaleString()} 差引中</span>
+            )}
           </div>
         </div>
       )}
@@ -1102,7 +1140,8 @@ function ScannerPageContent() {
           {processed.map((item, i) => {
             const rt = RATING[item.rating as keyof typeof RATING] ?? RATING.ok;
             const rankColor = i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : i === 2 ? "#cd7f32" : "rgba(212,175,55,0.3)";
-            const profitColor = item.net_profit_jpy >= 0 ? rt.color : "#ff4444";
+            const adjustedProfit = item.net_profit_jpy - shippingFee;
+            const profitColor = adjustedProfit >= 0 ? rt.color : "#ff4444";
             const key = itemKey(item);
             return (
               <div key={key} className="scan-card" style={{ background: "var(--surface)", border: `1px solid ${i < 3 ? rankColor + "30" : "rgba(212,175,55,0.1)"}`, borderRadius: 14, padding: "18px 20px", position: "relative", overflow: "visible" }}
@@ -1172,10 +1211,13 @@ function ScannerPageContent() {
                 {/* 利益情報 */}
                 <div className="scan-info-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
                   <div style={{ background: `${profitColor}0c`, border: `1px solid ${profitColor}22`, borderRadius: 7, padding: "7px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 9, color: "var(--text-3)" }}>想定利益</div>
+                    <div style={{ fontSize: 9, color: "var(--text-3)" }}>{shippingFee > 0 ? "配送費込み利益" : "想定利益"}</div>
                     <div style={{ fontSize: 16, fontWeight: 900, color: profitColor, fontFamily: "monospace" }}>
-                      {item.net_profit_jpy >= 0 ? "+" : ""}¥{Math.round(item.net_profit_jpy).toLocaleString()}
+                      {adjustedProfit >= 0 ? "+" : ""}¥{Math.round(adjustedProfit).toLocaleString()}
                     </div>
+                    {shippingFee > 0 && (
+                      <div style={{ fontSize: 8, color: "var(--text-3)", marginTop: 1 }}>配送 −¥{shippingFee.toLocaleString()}</div>
+                    )}
                   </div>
                   <div style={{ background: "var(--surface-2)", borderRadius: 7, padding: "7px 8px", textAlign: "center" }}>
                     <div style={{ fontSize: 9, color: "var(--text-3)" }}>利益率</div>
