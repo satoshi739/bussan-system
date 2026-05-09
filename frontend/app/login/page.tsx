@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
-import { Mail, Loader, Lock, Play, Heart, MessageCircle, Music2 } from "lucide-react";
+import { Loader, Lock, Play, Heart, MessageCircle, Music2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -190,34 +190,13 @@ export default function LoginPage() {
     if (typeof window === "undefined") return "/";
     return new URLSearchParams(window.location.search).get("callbackUrl") ?? "/";
   });
-  const [mode, setMode] = useState<"magic" | "password">("magic");
-
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [pwSubMode, setPwSubMode] = useState<"login" | "register">("login");
 
   const [pwEmail, setPwEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
-
-  const handleMagicLink = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-    setError("");
-    startTransition(async () => {
-      try {
-        const result = await signIn("resend", { email, redirect: false, callbackUrl });
-        if (result?.error) {
-          setError("送信に失敗しました。メールアドレスを確認してください。");
-        } else {
-          setSent(true);
-        }
-      } catch {
-        setError("エラーが発生しました。もう一度お試しください。");
-      }
-    });
-  };
 
   const handlePassword = (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,6 +212,40 @@ export default function LoginPage() {
         });
         if (result?.error) {
           setError("メールアドレスまたはパスワードが間違っています。");
+        } else {
+          router.push(result?.url ?? "/");
+        }
+      } catch {
+        setError("エラーが発生しました。もう一度お試しください。");
+      }
+    });
+  };
+
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pwEmail || !password) return;
+    setError("");
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: pwEmail, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error ?? "登録に失敗しました");
+          return;
+        }
+        // 登録成功 → そのままログイン
+        const result = await signIn("admin-password", {
+          email: pwEmail,
+          password,
+          redirect: false,
+          callbackUrl,
+        });
+        if (result?.error) {
+          setError("登録しましたが、ログインに失敗しました。パスワードタブからログインしてください。");
         } else {
           router.push(result?.url ?? "/");
         }
@@ -264,39 +277,6 @@ export default function LoginPage() {
     boxSizing: "border-box",
   };
 
-  if (sent) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#07101f" }}>
-        <div style={card}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-              <div style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(201,169,107,0.25)", borderRadius: 16, padding: 18 }}>
-                <Mail size={32} color="#c9a96b" />
-              </div>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: "#f5f1e8", marginBottom: 10 }}>
-              メールを送信しました
-            </div>
-            <div style={{ fontSize: 14, color: "#8a9ab8", lineHeight: 1.8 }}>
-              <strong style={{ color: "#c9a96b" }}>{email}</strong> へ<br />
-              ログインリンクを送りました。<br />
-              メールのリンクをクリックしてください。
-            </div>
-            <div style={{ marginTop: 24, fontSize: 12, color: "#8a9ab8" }}>
-              メールが届かない場合はスパムフォルダをご確認ください
-            </div>
-            <button
-              onClick={() => { setSent(false); }}
-              style={{ marginTop: 20, background: "transparent", border: "none", color: "#8a9ab8", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}
-            >
-              別のメールアドレスで再送する
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <style>{`
@@ -314,10 +294,7 @@ export default function LoginPage() {
         }}
       >
         {/* 左 */}
-        <div
-          className="tt-col"
-          style={{ display: "flex", alignItems: "center" }}
-        >
+        <div className="tt-col" style={{ display: "flex", alignItems: "center" }}>
           <TikTokCard t={TIKTOKS[0]} />
         </div>
 
@@ -329,61 +306,50 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* タブ */}
-          <div style={{ display: "flex", gap: 0, marginBottom: 28, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(201,169,107,0.20)" }}>
-            {([["magic", "メールリンク", <Mail key="m" size={13} />], ["password", "パスワード", <Lock key="p" size={13} />]] as const).map(([m, label, icon]) => (
-              <button
-                key={m}
-                onClick={() => { setMode(m); setError(""); }}
-                style={{ flex: 1, padding: "10px", background: mode === m ? "rgba(212,175,55,0.12)" : "transparent", border: "none", color: mode === m ? "#c9a96b" : "#8a9ab8", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, borderRight: m === "magic" ? "1px solid rgba(201,169,107,0.20)" : "none" }}
-              >
-                {icon}{label}
-              </button>
-            ))}
-          </div>
+          <>
+              {/* ログイン / 新規登録 サブタブ */}
+              <div style={{ display: "flex", gap: 0, marginBottom: 20, borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.2)" }}>
+                {([["login", "ログイン"], ["register", "新規登録（無料）"]] as const).map(([sub, label], i) => (
+                  <button
+                    key={sub}
+                    onClick={() => { setPwSubMode(sub); setError(""); }}
+                    style={{ flex: 1, padding: "9px", background: pwSubMode === sub ? "rgba(212,175,55,0.15)" : "transparent", border: "none", color: pwSubMode === sub ? "#c9a96b" : "#8a9ab8", fontWeight: 700, fontSize: 13, cursor: "pointer", borderRight: i === 0 ? "1px solid rgba(255,255,255,0.06)" : "none" }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
 
-          {mode === "magic" ? (
-            <form onSubmit={handleMagicLink}>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 13, color: "#8a9ab8", marginBottom: 8, fontWeight: 600 }}>メールアドレス</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required style={inp} />
-              </div>
-              {error && <div style={{ fontSize: 13, color: "#ff6666", marginBottom: 14, padding: "10px 14px", background: "rgba(255,80,50,0.08)", border: "1px solid rgba(255,80,50,0.2)", borderRadius: 8 }}>{error}</div>}
-              <button type="submit" disabled={isPending || !email} style={{ width: "100%", background: "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.40)", borderRadius: 10, color: "#c9a96b", padding: "13px", fontSize: 15, fontWeight: 700, cursor: isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: isPending ? 0.7 : 1 }}>
-                {isPending ? <Loader size={16} /> : <Mail size={16} />}
-                {isPending ? "送信中..." : "ログインリンクを送る"}
-              </button>
-              <div style={{ marginTop: 14, textAlign: "center", fontSize: 12, color: "#4d6080" }}>
-                登録したメールアドレスにリンクが届きます。スパムフォルダもご確認ください。
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handlePassword}>
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 13, color: "#8a9ab8", marginBottom: 8, fontWeight: 600 }}>メールアドレス</label>
-                <input type="email" value={pwEmail} onChange={e => setPwEmail(e.target.value)} placeholder="you@example.com" required style={inp} autoFocus />
-              </div>
-              <div style={{ marginBottom: 4 }}>
-                <label style={{ display: "block", fontSize: 13, color: "#8a9ab8", marginBottom: 8, fontWeight: 600 }}>パスワード</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required style={inp} onKeyDown={e => e.key === "Enter" && handlePassword(e)} />
-              </div>
-              <div style={{ textAlign: "right", marginBottom: 16 }}>
-                <Link href="/login/forgot" style={{ fontSize: 12, color: "#4d6080", textDecoration: "none" }}>
-                  パスワードを忘れた方はこちら
-                </Link>
-              </div>
-              {error && <div style={{ fontSize: 13, color: "#ff6666", marginBottom: 14, padding: "10px 14px", background: "rgba(255,80,50,0.08)", border: "1px solid rgba(255,80,50,0.2)", borderRadius: 8 }}>{error}</div>}
-              <button type="submit" disabled={isPending || !pwEmail || !password} style={{ width: "100%", background: "linear-gradient(135deg,#0a1530,#111e44)", border: "1px solid rgba(201,169,107,0.40)", borderRadius: 10, color: "#c9a96b", padding: "13px", fontSize: 15, fontWeight: 700, cursor: isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: isPending ? 0.7 : 1 }}>
-                {isPending ? <Loader size={16} /> : <Lock size={16} />}
-                {isPending ? "ログイン中..." : "ログイン"}
-              </button>
-            </form>
-          )}
+              <form onSubmit={pwSubMode === "login" ? handlePassword : handleRegister}>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: "block", fontSize: 13, color: "#8a9ab8", marginBottom: 8, fontWeight: 600 }}>メールアドレス</label>
+                  <input type="email" value={pwEmail} onChange={e => setPwEmail(e.target.value)} placeholder="you@example.com" required style={inp} autoFocus />
+                </div>
+                <div style={{ marginBottom: pwSubMode === "login" ? 4 : 16 }}>
+                  <label style={{ display: "block", fontSize: 13, color: "#8a9ab8", marginBottom: 8, fontWeight: 600 }}>パスワード{pwSubMode === "register" && "（6文字以上）"}</label>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required style={inp} />
+                </div>
+                {pwSubMode === "login" && (
+                  <div style={{ textAlign: "right", marginBottom: 16 }}>
+                    <Link href="/login/forgot" style={{ fontSize: 12, color: "#4d6080", textDecoration: "none" }}>
+                      パスワードを忘れた方
+                    </Link>
+                  </div>
+                )}
+                {error && <div style={{ fontSize: 13, color: "#ff6666", marginBottom: 14, padding: "10px 14px", background: "rgba(255,80,50,0.08)", border: "1px solid rgba(255,80,50,0.2)", borderRadius: 8 }}>{error}</div>}
+                <button type="submit" disabled={isPending || !pwEmail || !password} style={{ width: "100%", background: pwSubMode === "register" ? "linear-gradient(135deg,#0a2a18,#0d3d24)" : "linear-gradient(135deg,#0a1530,#111e44)", border: `1px solid ${pwSubMode === "register" ? "rgba(74,222,128,0.40)" : "rgba(201,169,107,0.40)"}`, borderRadius: 10, color: pwSubMode === "register" ? "#4ade80" : "#c9a96b", padding: "13px", fontSize: 15, fontWeight: 700, cursor: isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: isPending ? 0.7 : 1 }}>
+                  {isPending ? <Loader size={16} /> : <Lock size={16} />}
+                  {isPending ? (pwSubMode === "register" ? "登録中..." : "ログイン中...") : (pwSubMode === "register" ? "無料で新規登録する" : "ログイン")}
+                </button>
+                {pwSubMode === "register" && (
+                  <div style={{ marginTop: 10, textAlign: "center", fontSize: 12, color: "#4d6080" }}>
+                    登録後すぐに無料プランでご利用いただけます
+                  </div>
+                )}
+              </form>
+            </>
 
           <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(212,175,55,0.1)", textAlign: "center" }}>
-            <div style={{ background: "rgba(201,169,107,0.06)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "#c9a96b", lineHeight: 1.6 }}>
-              🎁 初めての方も<strong>メールアドレスを入力するだけ</strong>で無料登録できます
-            </div>
             <div style={{ display: "flex", justifyContent: "center", gap: 24 }}>
               <Link href="/login/forgot" style={{ fontSize: 13, color: "#4d6080", textDecoration: "none" }}>
                 ログインできない方
@@ -396,10 +362,7 @@ export default function LoginPage() {
         </div>
 
         {/* 右 */}
-        <div
-          className="tt-col"
-          style={{ display: "flex", alignItems: "center" }}
-        >
+        <div className="tt-col" style={{ display: "flex", alignItems: "center" }}>
           <TikTokCard t={TIKTOKS[1]} />
         </div>
       </div>

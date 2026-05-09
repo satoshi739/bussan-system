@@ -10,7 +10,7 @@ import {
   type MonthlyReport, type SalesTrends, type RouteMatrixRow,
 } from "@/lib/api";
 
-const card: React.CSSProperties = { background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" };
+const card: React.CSSProperties = { background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.13)", borderRadius: 14, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" };
 type Tab = "analytics" | "trends" | "monthly" | "route";
 
 type BestProduct = { product_name: string; buy_platform: string; selling_platform: string; purchase_price: number; sale_price: number; net_profit: number; sale_date: string; profit_rate: number };
@@ -32,18 +32,18 @@ function ReportPageContent() {
           .report-monthly-ctrl > div { width: 100% !important; }
         }
       `}</style>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#0A0F1E", margin: 0 }}>レポート</h1>
-      <div style={{ fontSize: 12, color: "rgba(10,15,30,0.55)", marginBottom: 20, marginTop: 3 }}>売上分析・トレンド予測・月次レポートを確認できます</div>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "#080D1C", margin: 0 }}>レポート</h1>
+      <div style={{ fontSize: 12, color: "rgba(8,13,28,0.70)", marginBottom: 20, marginTop: 3 }}>売上分析・トレンド予測・月次レポートを確認できます</div>
 
       {/* タブ */}
-      <div className="report-tab-group" style={{ display: "flex", gap: 6, marginBottom: 24, background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 5, width: "fit-content", flexWrap: "wrap", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+      <div className="report-tab-group" style={{ display: "flex", gap: 6, marginBottom: 24, background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.13)", borderRadius: 12, padding: 5, width: "fit-content", flexWrap: "wrap", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
         {([
           { id: "analytics", label: "売上分析" },
           { id: "trends",    label: "トレンド予測" },
           { id: "monthly",   label: "月次レポート" },
           { id: "route",     label: "🗺 ルート分析" },
         ] as { id: Tab; label: string }[]).map(({ id, label }) => (
-          <button key={id} onClick={() => setTab(id)} style={{ padding: "9px 18px", borderRadius: 9, border: "none", background: tab === id ? "#007AFF" : "transparent", color: tab === id ? "#FFFFFF" : "rgba(10,15,30,0.55)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+          <button key={id} onClick={() => setTab(id)} style={{ padding: "9px 18px", borderRadius: 9, border: "none", background: tab === id ? "#006FE6" : "transparent", color: tab === id ? "#FFFFFF" : "rgba(8,13,28,0.70)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
             {label}
           </button>
         ))}
@@ -80,15 +80,15 @@ function AnalyticsTab() {
   const maxBuy = Math.max(...byBuy.map(r => r.total_profit), 1);
   const noData = byPlatform.length === 0 && byBuy.length === 0 && bestProducts.length === 0;
 
-  if (loading) return <div style={{ ...card, textAlign: "center", padding: 60, color: "rgba(10,15,30,0.45)" }}>読み込み中...</div>;
+  if (loading) return <div style={{ ...card, textAlign: "center", padding: 60, color: "rgba(8,13,28,0.60)" }}>読み込み中...</div>;
 
   if (apiError) {
     return (
       <div style={{ ...card, textAlign: "center", padding: 60 }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
-        <div style={{ color: "#FF3B30", fontWeight: 700, marginBottom: 8 }}>サーバーに接続できませんでした</div>
-        <div style={{ color: "rgba(10,15,30,0.55)", fontSize: 13 }}>しばらくしてから再読み込みしてください。</div>
-        <button onClick={() => window.location.reload()} style={{ marginTop: 16, background: "transparent", border: "1px solid rgba(0,122,255,0.3)", borderRadius: 8, color: "#007AFF", padding: "8px 20px", fontSize: 13, cursor: "pointer" }}>再読み込み</button>
+        <div style={{ color: "#E02E24", fontWeight: 700, marginBottom: 8 }}>サーバーに接続できませんでした</div>
+        <div style={{ color: "rgba(8,13,28,0.70)", fontSize: 13 }}>しばらくしてから再読み込みしてください。</div>
+        <button onClick={() => window.location.reload()} style={{ marginTop: 16, background: "transparent", border: "1px solid rgba(0,111,230,0.35)", borderRadius: 8, color: "#006FE6", padding: "8px 20px", fontSize: 13, cursor: "pointer" }}>再読み込み</button>
       </div>
     );
   }
@@ -97,17 +97,17 @@ function AnalyticsTab() {
     return (
       <div style={{ ...card, textAlign: "center", padding: "48px 40px" }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
-        <div style={{ color: "#0A0F1E", fontWeight: 700, fontSize: 16, marginBottom: 8 }}>まだ分析データがありません</div>
-        <div style={{ color: "rgba(10,15,30,0.55)", fontSize: 13, lineHeight: 1.9, marginBottom: 20 }}>
+        <div style={{ color: "#080D1C", fontWeight: 700, fontSize: 16, marginBottom: 8 }}>まだ分析データがありません</div>
+        <div style={{ color: "rgba(8,13,28,0.70)", fontSize: 13, lineHeight: 1.9, marginBottom: 20 }}>
           データが少ない段階では分析は表示されません。<br />
           「仕入れ管理」で仕入れを登録し、「在庫・出品管理」で売上を記録すると<br />
           プラットフォーム別利益・ベスト商品ランキングが自動で表示されます。
         </div>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-          <a href="/purchases" style={{ display: "inline-block", background: "#007AFF", border: "none", borderRadius: 10, color: "#FFFFFF", padding: "10px 22px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+          <a href="/purchases" style={{ display: "inline-block", background: "#006FE6", border: "none", borderRadius: 10, color: "#FFFFFF", padding: "10px 22px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
             仕入れを登録する →
           </a>
-          <a href="/sales" style={{ display: "inline-block", background: "transparent", border: "1px solid rgba(0,122,255,0.25)", borderRadius: 10, color: "#007AFF", padding: "10px 22px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+          <a href="/sales" style={{ display: "inline-block", background: "transparent", border: "1px solid rgba(0,111,230,0.30)", borderRadius: 10, color: "#006FE6", padding: "10px 22px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
             売上を記録する →
           </a>
         </div>
@@ -119,21 +119,21 @@ function AnalyticsTab() {
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {bestProducts.length > 0 && (
         <div style={card}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E", marginBottom: 4 }}>ベスト商品ランキング（利益額順）</div>
-          <div style={{ fontSize: 12, color: "rgba(10,15,30,0.55)", marginBottom: 16 }}>また仕入れるべき商品がわかります</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C", marginBottom: 4 }}>ベスト商品ランキング（利益額順）</div>
+          <div style={{ fontSize: 12, color: "rgba(8,13,28,0.70)", marginBottom: 16 }}>また仕入れるべき商品がわかります</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {bestProducts.map((p, i) => (
               <div key={i} className="report-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: i === 0 ? "rgba(0,122,255,0.05)" : "transparent", borderRadius: 10, border: i === 0 ? "1px solid rgba(0,122,255,0.18)" : "1px solid transparent" }}>
-                <div style={{ fontSize: 16, fontWeight: 900, color: i === 0 ? "#007AFF" : i === 1 ? "#888" : i === 2 ? "#FF9500" : "rgba(10,15,30,0.4)", width: 24, textAlign: "center", flexShrink: 0 }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: i === 0 ? "#006FE6" : i === 1 ? "#888" : i === 2 ? "#E88500" : "rgba(8,13,28,0.55)", width: 24, textAlign: "center", flexShrink: 0 }}>
                   {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, color: "#0A0F1E", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.product_name}</div>
-                  <div style={{ fontSize: 11, color: "rgba(10,15,30,0.5)" }}>{p.buy_platform} → {p.selling_platform} · {p.sale_date}</div>
+                  <div style={{ fontWeight: 700, color: "#080D1C", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.product_name}</div>
+                  <div style={{ fontSize: 11, color: "rgba(8,13,28,0.65)" }}>{p.buy_platform} → {p.selling_platform} · {p.sale_date}</div>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontFamily: "monospace", fontWeight: 800, color: "#007AFF", fontSize: 15 }}>+¥{Math.round(p.net_profit).toLocaleString()}</div>
-                  <div style={{ fontSize: 11, color: "rgba(10,15,30,0.45)" }}>利益率 {p.profit_rate?.toFixed(1) ?? "-"}%</div>
+                  <div style={{ fontFamily: "monospace", fontWeight: 800, color: "#006FE6", fontSize: 15 }}>+¥{Math.round(p.net_profit).toLocaleString()}</div>
+                  <div style={{ fontSize: 11, color: "rgba(8,13,28,0.60)" }}>利益率 {p.profit_rate?.toFixed(1) ?? "-"}%</div>
                 </div>
               </div>
             ))}
@@ -143,19 +143,19 @@ function AnalyticsTab() {
 
       <div className="report-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <div style={card}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E", marginBottom: 16 }}>📤 販売プラットフォーム別利益</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C", marginBottom: 16 }}>📤 販売プラットフォーム別利益</div>
           {byPlatform.length === 0 ? (
-            <div style={{ color: "rgba(10,15,30,0.45)", textAlign: "center", padding: 40 }}>データなし</div>
+            <div style={{ color: "rgba(8,13,28,0.60)", textAlign: "center", padding: 40 }}>データなし</div>
           ) : byPlatform.map(row => (
             <div key={row.selling_platform} style={{ marginBottom: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontSize: 13, color: "#0A0F1E", fontWeight: 600 }}>{row.selling_platform}</span>
-                <span style={{ fontSize: 13, color: "#007AFF", fontFamily: "monospace", fontWeight: 700 }}>¥{Math.round(row.total_profit).toLocaleString()}</span>
+                <span style={{ fontSize: 13, color: "#080D1C", fontWeight: 600 }}>{row.selling_platform}</span>
+                <span style={{ fontSize: 13, color: "#006FE6", fontFamily: "monospace", fontWeight: 700 }}>¥{Math.round(row.total_profit).toLocaleString()}</span>
               </div>
               <div style={{ background: "rgba(0,122,255,0.07)", borderRadius: 4, height: 8, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${(row.total_profit / maxProfit) * 100}%`, background: "linear-gradient(90deg,#409CFF,#007AFF)", borderRadius: 4 }} />
+                <div style={{ height: "100%", width: `${(row.total_profit / maxProfit) * 100}%`, background: "linear-gradient(90deg,#3B8EEA,#006FE6)", borderRadius: 4 }} />
               </div>
-              <div style={{ display: "flex", gap: 16, marginTop: 4, fontSize: 11, color: "rgba(10,15,30,0.5)" }}>
+              <div style={{ display: "flex", gap: 16, marginTop: 4, fontSize: 11, color: "rgba(8,13,28,0.65)" }}>
                 <span>{row.count}件</span>
                 <span>平均利益 ¥{Math.round(row.avg_profit).toLocaleString()}</span>
                 <span>平均利益率 {row.avg_rate?.toFixed(1) ?? "-"}%</span>
@@ -165,19 +165,19 @@ function AnalyticsTab() {
         </div>
 
         <div style={card}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E", marginBottom: 16 }}>📥 仕入れ元別利益</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C", marginBottom: 16 }}>📥 仕入れ元別利益</div>
           {byBuy.length === 0 ? (
-            <div style={{ color: "rgba(10,15,30,0.45)", textAlign: "center", padding: 40 }}>データなし</div>
+            <div style={{ color: "rgba(8,13,28,0.60)", textAlign: "center", padding: 40 }}>データなし</div>
           ) : byBuy.map(row => (
             <div key={row.platform} style={{ marginBottom: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontSize: 13, color: "#0A0F1E", fontWeight: 600 }}>{row.platform}</span>
+                <span style={{ fontSize: 13, color: "#080D1C", fontWeight: 600 }}>{row.platform}</span>
                 <span style={{ fontSize: 13, color: "#34AADC", fontFamily: "monospace", fontWeight: 700 }}>¥{Math.round(row.total_profit).toLocaleString()}</span>
               </div>
               <div style={{ background: "rgba(52,170,220,0.08)", borderRadius: 4, height: 8, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${(row.total_profit / maxBuy) * 100}%`, background: "linear-gradient(90deg,#34AADC,#007AFF)", borderRadius: 4 }} />
+                <div style={{ height: "100%", width: `${(row.total_profit / maxBuy) * 100}%`, background: "linear-gradient(90deg,#34AADC,#006FE6)", borderRadius: 4 }} />
               </div>
-              <div style={{ display: "flex", gap: 16, marginTop: 4, fontSize: 11, color: "rgba(10,15,30,0.5)" }}>
+              <div style={{ display: "flex", gap: 16, marginTop: 4, fontSize: 11, color: "rgba(8,13,28,0.65)" }}>
                 <span>{row.count}件</span>
                 <span>平均利益 ¥{Math.round(row.avg_profit).toLocaleString()}</span>
               </div>
@@ -201,12 +201,12 @@ function TrendsTab() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ ...card, textAlign: "center", padding: 60, color: "rgba(10,15,30,0.45)" }}>読み込み中...</div>;
+  if (loading) return <div style={{ ...card, textAlign: "center", padding: 60, color: "rgba(8,13,28,0.60)" }}>読み込み中...</div>;
   if (!data || (data.monthly_totals.length === 0 && data.trending_products.length === 0)) {
     return (
       <div style={{ ...card, textAlign: "center", padding: 60 }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>📈</div>
-        <div style={{ color: "rgba(10,15,30,0.45)" }}>売上データが溜まるとトレンドが表示されます</div>
+        <div style={{ color: "rgba(8,13,28,0.60)" }}>売上データが溜まるとトレンドが表示されます</div>
       </div>
     );
   }
@@ -223,8 +223,8 @@ function TrendsTab() {
       {/* 月別利益推移 */}
       {data.monthly_totals.length > 0 && (
         <div style={card}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E", marginBottom: 4 }}>📅 月別利益推移（過去6ヶ月）</div>
-          <div style={{ fontSize: 12, color: "rgba(10,15,30,0.55)", marginBottom: 16 }}>利益の増減トレンドを確認できます</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C", marginBottom: 4 }}>📅 月別利益推移（過去6ヶ月）</div>
+          <div style={{ fontSize: 12, color: "rgba(8,13,28,0.70)", marginBottom: 16 }}>利益の増減トレンドを確認できます</div>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 120 }}>
             {data.monthly_totals.map((r, i) => {
               const h = maxMonthlyProfit > 0 ? Math.max(8, (r.profit / maxMonthlyProfit) * 100) : 8;
@@ -232,12 +232,12 @@ function TrendsTab() {
               const growth = prev && prev.profit > 0 ? ((r.profit - prev.profit) / prev.profit * 100).toFixed(1) : null;
               return (
                 <div key={r.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <div style={{ fontSize: 11, color: growth !== null ? (Number(growth) >= 0 ? "#007AFF" : "#FF3B30") : "rgba(10,15,30,0.45)", fontWeight: 700, height: 16 }}>
+                  <div style={{ fontSize: 11, color: growth !== null ? (Number(growth) >= 0 ? "#006FE6" : "#E02E24") : "rgba(8,13,28,0.60)", fontWeight: 700, height: 16 }}>
                     {growth !== null ? `${Number(growth) >= 0 ? "+" : ""}${growth}%` : ""}
                   </div>
-                  <div style={{ width: "100%", height: `${h}px`, background: "linear-gradient(180deg,#007AFF,#409CFF)", borderRadius: "4px 4px 0 0", minHeight: 8 }} />
-                  <div style={{ fontSize: 10, color: "rgba(10,15,30,0.5)", textAlign: "center" }}>{r.month.slice(5)}月</div>
-                  <div style={{ fontSize: 11, color: "#007AFF", fontFamily: "monospace", fontWeight: 700 }}>¥{Math.round(r.profit / 1000)}k</div>
+                  <div style={{ width: "100%", height: `${h}px`, background: "linear-gradient(180deg,#006FE6,#3B8EEA)", borderRadius: "4px 4px 0 0", minHeight: 8 }} />
+                  <div style={{ fontSize: 10, color: "rgba(8,13,28,0.65)", textAlign: "center" }}>{r.month.slice(5)}月</div>
+                  <div style={{ fontSize: 11, color: "#006FE6", fontFamily: "monospace", fontWeight: 700 }}>¥{Math.round(r.profit / 1000)}k</div>
                 </div>
               );
             })}
@@ -248,21 +248,21 @@ function TrendsTab() {
       {/* 売れ筋商品ランキング */}
       {data.trending_products.length > 0 && (
         <div style={card}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E", marginBottom: 4 }}>売れ筋商品ランキング（過去6ヶ月）</div>
-          <div style={{ fontSize: 12, color: "rgba(10,15,30,0.55)", marginBottom: 16 }}>繰り返し仕入れるべき商品がわかります</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C", marginBottom: 4 }}>売れ筋商品ランキング（過去6ヶ月）</div>
+          <div style={{ fontSize: 12, color: "rgba(8,13,28,0.70)", marginBottom: 16 }}>繰り返し仕入れるべき商品がわかります</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {data.trending_products.map((p, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: i < 3 ? "rgba(0,122,255,0.04)" : "transparent", borderRadius: 10, border: "1px solid rgba(0,0,0,0.06)" }}>
-                <div style={{ fontSize: 15, width: 28, textAlign: "center", flexShrink: 0, color: i === 0 ? "#007AFF" : i === 1 ? "#888" : i === 2 ? "#FF9500" : "rgba(10,15,30,0.4)", fontWeight: 900 }}>
+                <div style={{ fontSize: 15, width: 28, textAlign: "center", flexShrink: 0, color: i === 0 ? "#006FE6" : i === 1 ? "#888" : i === 2 ? "#E88500" : "rgba(8,13,28,0.55)", fontWeight: 900 }}>
                   {i === 0 ? "🔥" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, color: "#0A0F1E", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.product_name}</div>
-                  <div style={{ fontSize: 11, color: "rgba(10,15,30,0.5)" }}>最終: {p.last_sold} · 平均利益率 {p.avg_rate}%</div>
+                  <div style={{ fontWeight: 700, color: "#080D1C", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.product_name}</div>
+                  <div style={{ fontSize: 11, color: "rgba(8,13,28,0.65)" }}>最終: {p.last_sold} · 平均利益率 {p.avg_rate}%</div>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontFamily: "monospace", fontWeight: 800, color: "#007AFF", fontSize: 14 }}>¥{p.total_profit.toLocaleString()}</div>
-                  <div style={{ fontSize: 11, color: "rgba(10,15,30,0.45)" }}>{p.sale_count}回販売</div>
+                  <div style={{ fontFamily: "monospace", fontWeight: 800, color: "#006FE6", fontSize: 14 }}>¥{p.total_profit.toLocaleString()}</div>
+                  <div style={{ fontSize: 11, color: "rgba(8,13,28,0.60)" }}>{p.sale_count}回販売</div>
                 </div>
               </div>
             ))}
@@ -273,29 +273,29 @@ function TrendsTab() {
       {/* プラットフォーム×月 */}
       {months.length > 0 && platforms.length > 0 && (
         <div style={card}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E", marginBottom: 16 }}>🗓️ プラットフォーム別月次推移</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C", marginBottom: 16 }}>🗓️ プラットフォーム別月次推移</div>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <thead>
                 <tr>
-                  <th style={{ textAlign: "left", color: "rgba(10,15,30,0.55)", padding: "6px 10px", fontWeight: 600 }}>プラットフォーム</th>
-                  {months.map(m => <th key={m} style={{ color: "rgba(10,15,30,0.55)", padding: "6px 10px", fontWeight: 600 }}>{m.slice(5)}月</th>)}
+                  <th style={{ textAlign: "left", color: "rgba(8,13,28,0.70)", padding: "6px 10px", fontWeight: 600 }}>プラットフォーム</th>
+                  {months.map(m => <th key={m} style={{ color: "rgba(8,13,28,0.70)", padding: "6px 10px", fontWeight: 600 }}>{m.slice(5)}月</th>)}
                 </tr>
               </thead>
               <tbody>
                 {platforms.map(pf => (
                   <tr key={pf}>
-                    <td style={{ color: "#0A0F1E", padding: "8px 10px", fontWeight: 600 }}>{pf}</td>
+                    <td style={{ color: "#080D1C", padding: "8px 10px", fontWeight: 600 }}>{pf}</td>
                     {months.map(m => {
                       const cell = data.monthly_by_platform.find(r => r.selling_platform === pf && r.month === m);
                       return (
                         <td key={m} style={{ textAlign: "center", padding: "8px 10px" }}>
                           {cell ? (
                             <div>
-                              <div style={{ fontFamily: "monospace", color: "#007AFF", fontWeight: 700 }}>¥{Math.round(cell.total_profit / 1000)}k</div>
-                              <div style={{ color: "rgba(10,15,30,0.45)", fontSize: 10 }}>{cell.count}件</div>
+                              <div style={{ fontFamily: "monospace", color: "#006FE6", fontWeight: 700 }}>¥{Math.round(cell.total_profit / 1000)}k</div>
+                              <div style={{ color: "rgba(8,13,28,0.60)", fontSize: 10 }}>{cell.count}件</div>
                             </div>
-                          ) : <span style={{ color: "rgba(10,15,30,0.2)" }}>—</span>}
+                          ) : <span style={{ color: "rgba(8,13,28,0.30)" }}>—</span>}
                         </td>
                       );
                     })}
@@ -360,21 +360,21 @@ function MonthlyTab() {
       {/* コントロールバー */}
       <div className="report-monthly-ctrl" style={{ ...card, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
         <div>
-          <label style={{ fontSize: 12, color: "rgba(10,15,30,0.55)", display: "block", marginBottom: 4 }}>対象月</label>
+          <label style={{ fontSize: 12, color: "rgba(8,13,28,0.70)", display: "block", marginBottom: 4 }}>対象月</label>
           <select
             value={month}
             onChange={e => { setMonth(e.target.value); load(e.target.value); }}
-            style={{ background: "#F0F4FA", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 8, color: "#0A0F1E", padding: "8px 12px", fontSize: 14, outline: "none" }}
+            style={{ background: "#EEF2FA", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 8, color: "#080D1C", padding: "8px 12px", fontSize: 14, outline: "none" }}
           >
             {monthOptions.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          {sentMsg && <span style={{ fontSize: 12, color: sentMsg.includes("失敗") ? "#FF3B30" : "#007AFF" }}>{sentMsg}</span>}
+          {sentMsg && <span style={{ fontSize: 12, color: sentMsg.includes("失敗") ? "#E02E24" : "#006FE6" }}>{sentMsg}</span>}
           <button
             onClick={sendLine}
             disabled={sending || !report}
-            style={{ background: "transparent", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 8, color: "#007AFF", padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+            style={{ background: "transparent", border: "1px solid rgba(0,0,0,0.12)", borderRadius: 8, color: "#006FE6", padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
           >
             {sending ? "送信中..." : "📱 LINEに送る"}
           </button>
@@ -388,15 +388,15 @@ function MonthlyTab() {
           {/* KPIカード */}
           <div className="report-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
             {[
-              { label: "総利益",     value: `¥${report.summary.total_profit.toLocaleString()}`,  color: "#007AFF",  sub: report.profit_growth ? `前月比 ${report.profit_growth > 0 ? "+" : ""}${report.profit_growth}%` : "前月データなし" },
+              { label: "総利益",     value: `¥${report.summary.total_profit.toLocaleString()}`,  color: "#006FE6",  sub: report.profit_growth ? `前月比 ${report.profit_growth > 0 ? "+" : ""}${report.profit_growth}%` : "前月データなし" },
               { label: "販売件数",   value: `${report.summary.sale_count}件`,                     color: "#34AADC",  sub: `前月: ${report.prev_month.sale_count}件` },
-              { label: "平均利益率", value: `${report.summary.avg_rate}%`,                        color: "#FF9500",  sub: `平均利益 ¥${report.summary.avg_profit.toLocaleString()}` },
-              { label: "仕入れ投資", value: `¥${report.purchases.invested.toLocaleString()}`,     color: "#FF3B30",  sub: `${report.purchases.count}件仕入れ` },
+              { label: "平均利益率", value: `${report.summary.avg_rate}%`,                        color: "#E88500",  sub: `平均利益 ¥${report.summary.avg_profit.toLocaleString()}` },
+              { label: "仕入れ投資", value: `¥${report.purchases.invested.toLocaleString()}`,     color: "#E02E24",  sub: `${report.purchases.count}件仕入れ` },
             ].map(({ label, value, color, sub }) => (
               <div key={label} style={{ ...card }}>
-                <div style={{ fontSize: 12, color: "rgba(10,15,30,0.55)", marginBottom: 6 }}>{label}</div>
+                <div style={{ fontSize: 12, color: "rgba(8,13,28,0.70)", marginBottom: 6 }}>{label}</div>
                 <div style={{ fontSize: 20, fontWeight: 900, color, fontFamily: "monospace" }}>{value}</div>
-                <div style={{ fontSize: 11, color: "rgba(10,15,30,0.45)", marginTop: 4 }}>{sub}</div>
+                <div style={{ fontSize: 11, color: "rgba(8,13,28,0.60)", marginTop: 4 }}>{sub}</div>
               </div>
             ))}
           </div>
@@ -405,15 +405,15 @@ function MonthlyTab() {
           {report.goal > 0 && (
             <div style={card}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E" }}>月次目標達成率</div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: "#007AFF", fontFamily: "monospace" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C" }}>月次目標達成率</div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: "#006FE6", fontFamily: "monospace" }}>
                   {report.goal_achievement ?? 0}%
                 </div>
               </div>
               <div style={{ background: "rgba(0,122,255,0.08)", borderRadius: 6, height: 12, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${Math.min(100, report.goal_achievement ?? 0)}%`, background: "linear-gradient(90deg,#409CFF,#007AFF)", borderRadius: 6, transition: "width 0.5s" }} />
+                <div style={{ height: "100%", width: `${Math.min(100, report.goal_achievement ?? 0)}%`, background: "linear-gradient(90deg,#3B8EEA,#006FE6)", borderRadius: 6, transition: "width 0.5s" }} />
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 12, color: "rgba(10,15,30,0.5)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 12, color: "rgba(8,13,28,0.65)" }}>
                 <span>¥{report.summary.total_profit.toLocaleString()}</span>
                 <span>目標 ¥{report.goal.toLocaleString()}</span>
               </div>
@@ -423,19 +423,19 @@ function MonthlyTab() {
           {/* プラットフォーム別 */}
           {report.by_platform.length > 0 && (
             <div style={card}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E", marginBottom: 16 }}>📤 プラットフォーム別実績</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C", marginBottom: 16 }}>📤 プラットフォーム別実績</div>
               {report.by_platform.map((p, i) => {
                 const maxP = Math.max(...report.by_platform.map(x => x.profit), 1);
                 return (
                   <div key={i} style={{ marginBottom: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 13, color: "#0A0F1E", fontWeight: 600 }}>{p.selling_platform}</span>
-                      <span style={{ fontSize: 13, color: "#007AFF", fontFamily: "monospace" }}>¥{p.profit.toLocaleString()}</span>
+                      <span style={{ fontSize: 13, color: "#080D1C", fontWeight: 600 }}>{p.selling_platform}</span>
+                      <span style={{ fontSize: 13, color: "#006FE6", fontFamily: "monospace" }}>¥{p.profit.toLocaleString()}</span>
                     </div>
                     <div style={{ background: "rgba(0,122,255,0.07)", borderRadius: 4, height: 8, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${(p.profit / maxP) * 100}%`, background: "linear-gradient(90deg,#409CFF,#007AFF)", borderRadius: 4 }} />
+                      <div style={{ height: "100%", width: `${(p.profit / maxP) * 100}%`, background: "linear-gradient(90deg,#3B8EEA,#006FE6)", borderRadius: 4 }} />
                     </div>
-                    <div style={{ fontSize: 11, color: "rgba(10,15,30,0.5)", marginTop: 3 }}>{p.count}件 · 平均利益率 {p.avg_rate}%</div>
+                    <div style={{ fontSize: 11, color: "rgba(8,13,28,0.65)", marginTop: 3 }}>{p.count}件 · 平均利益率 {p.avg_rate}%</div>
                   </div>
                 );
               })}
@@ -445,20 +445,20 @@ function MonthlyTab() {
           {/* ベスト商品 */}
           {report.best_products.length > 0 && (
             <div style={card}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E", marginBottom: 16 }}>今月のベスト商品</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C", marginBottom: 16 }}>今月のベスト商品</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {report.best_products.map((p, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: i === 0 ? "rgba(0,122,255,0.05)" : "transparent", borderRadius: 10, border: "1px solid rgba(0,0,0,0.06)" }}>
-                    <div style={{ fontSize: 14, width: 24, textAlign: "center", color: i === 0 ? "#007AFF" : i === 1 ? "#888" : "#FF9500" }}>
+                    <div style={{ fontSize: 14, width: 24, textAlign: "center", color: i === 0 ? "#006FE6" : i === 1 ? "#888" : "#E88500" }}>
                       {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, color: "#0A0F1E", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.product_name}</div>
-                      <div style={{ fontSize: 11, color: "rgba(10,15,30,0.5)" }}>{p.buy_platform} → {p.selling_platform}</div>
+                      <div style={{ fontWeight: 700, color: "#080D1C", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.product_name}</div>
+                      <div style={{ fontSize: 11, color: "rgba(8,13,28,0.65)" }}>{p.buy_platform} → {p.selling_platform}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontFamily: "monospace", fontWeight: 800, color: "#007AFF" }}>¥{p.net_profit.toLocaleString()}</div>
-                      <div style={{ fontSize: 11, color: "rgba(10,15,30,0.45)" }}>{p.profit_rate}%</div>
+                      <div style={{ fontFamily: "monospace", fontWeight: 800, color: "#006FE6" }}>¥{p.net_profit.toLocaleString()}</div>
+                      <div style={{ fontSize: 11, color: "rgba(8,13,28,0.60)" }}>{p.profit_rate}%</div>
                     </div>
                   </div>
                 ))}
@@ -469,7 +469,7 @@ function MonthlyTab() {
           {report.summary.sale_count === 0 && (
             <div style={{ ...card, textAlign: "center", padding: 60 }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
-              <div style={{ color: "rgba(10,15,30,0.45)" }}>{month} の売上データはありません</div>
+              <div style={{ color: "rgba(8,13,28,0.60)" }}>{month} の売上データはありません</div>
             </div>
           )}
         </>
@@ -490,13 +490,13 @@ function RouteMatrixTab() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ ...card, textAlign: "center", padding: 60, color: "rgba(10,15,30,0.45)" }}>読み込み中...</div>;
+  if (loading) return <div style={{ ...card, textAlign: "center", padding: 60, color: "rgba(8,13,28,0.60)" }}>読み込み中...</div>;
 
   if (rows.length === 0) {
     return (
       <div style={{ ...card, textAlign: "center", padding: 60 }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>🗺</div>
-        <div style={{ color: "rgba(10,15,30,0.45)" }}>売上データが溜まると<br />仕入れ先×販売先の収益マトリクスが表示されます</div>
+        <div style={{ color: "rgba(8,13,28,0.60)" }}>売上データが溜まると<br />仕入れ先×販売先の収益マトリクスが表示されます</div>
       </div>
     );
   }
@@ -506,12 +506,12 @@ function RouteMatrixTab() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={card}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#0A0F1E", marginBottom: 4 }}>🗺 仕入れ先 × 販売先 ルート分析</div>
-        <div style={{ fontSize: 12, color: "rgba(10,15,30,0.55)", marginBottom: 20 }}>どのルートが最も利益を生んでいるかを可視化します</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#080D1C", marginBottom: 4 }}>🗺 仕入れ先 × 販売先 ルート分析</div>
+        <div style={{ fontSize: 12, color: "rgba(8,13,28,0.70)", marginBottom: 20 }}>どのルートが最も利益を生んでいるかを可視化します</div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
+              <tr style={{ borderBottom: "1px solid rgba(0,0,0,0.13)" }}>
                 {[
                   { label: "仕入れ元",   align: "left"  as const },
                   { label: "販売先",     align: "left"  as const },
@@ -522,7 +522,7 @@ function RouteMatrixTab() {
                   { label: "平均日数",   align: "right" as const },
                   { label: "利益シェア", align: "left"  as const },
                 ].map(({ label, align }) => (
-                  <th key={label} style={{ padding: "8px 12px", color: "rgba(10,15,30,0.55)", fontWeight: 600, fontSize: 11, textTransform: "uppercase" as const, letterSpacing: "0.07em", textAlign: align }}>
+                  <th key={label} style={{ padding: "8px 12px", color: "rgba(8,13,28,0.70)", fontWeight: 600, fontSize: 11, textTransform: "uppercase" as const, letterSpacing: "0.07em", textAlign: align }}>
                     {label}
                   </th>
                 ))}
@@ -531,30 +531,30 @@ function RouteMatrixTab() {
             <tbody>
               {rows.map((r, i) => {
                 const share = (r.total_profit / maxProfit) * 100;
-                const rateCol = r.avg_rate >= 25 ? "#007AFF" : r.avg_rate >= 15 ? "#34AADC" : r.avg_rate >= 5 ? "#FF9500" : "#FF3B30";
+                const rateCol = r.avg_rate >= 25 ? "#006FE6" : r.avg_rate >= 15 ? "#34AADC" : r.avg_rate >= 5 ? "#E88500" : "#E02E24";
                 return (
                   <tr key={i} style={{ borderBottom: "1px solid rgba(0,0,0,0.05)", transition: "background 0.15s" }}
                     onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,122,255,0.03)")}
                     onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                   >
-                    <td style={{ padding: "12px 12px", color: "#0A0F1E", fontWeight: 600 }}>{r.buy_platform}</td>
-                    <td style={{ padding: "12px 12px", color: "rgba(10,15,30,0.7)" }}>{r.sell_platform}</td>
-                    <td style={{ padding: "12px 12px", textAlign: "right", color: "rgba(10,15,30,0.5)", fontFamily: "monospace" }}>{r.count}</td>
-                    <td style={{ padding: "12px 12px", textAlign: "right", color: "#007AFF", fontFamily: "monospace", fontWeight: 700 }}>
+                    <td style={{ padding: "12px 12px", color: "#080D1C", fontWeight: 600 }}>{r.buy_platform}</td>
+                    <td style={{ padding: "12px 12px", color: "rgba(8,13,28,0.78)" }}>{r.sell_platform}</td>
+                    <td style={{ padding: "12px 12px", textAlign: "right", color: "rgba(8,13,28,0.65)", fontFamily: "monospace" }}>{r.count}</td>
+                    <td style={{ padding: "12px 12px", textAlign: "right", color: "#006FE6", fontFamily: "monospace", fontWeight: 700 }}>
                       ¥{Math.round(r.total_profit).toLocaleString()}
                     </td>
-                    <td style={{ padding: "12px 12px", textAlign: "right", color: "rgba(10,15,30,0.65)", fontFamily: "monospace" }}>
+                    <td style={{ padding: "12px 12px", textAlign: "right", color: "rgba(8,13,28,0.72)", fontFamily: "monospace" }}>
                       ¥{Math.round(r.avg_profit).toLocaleString()}
                     </td>
                     <td style={{ padding: "12px 12px", textAlign: "right", color: rateCol, fontFamily: "monospace", fontWeight: 700 }}>
                       {r.avg_rate.toFixed(1)}%
                     </td>
-                    <td style={{ padding: "12px 12px", textAlign: "right", color: "rgba(10,15,30,0.5)", fontFamily: "monospace" }}>
+                    <td style={{ padding: "12px 12px", textAlign: "right", color: "rgba(8,13,28,0.65)", fontFamily: "monospace" }}>
                       {r.avg_days.toFixed(1)}日
                     </td>
                     <td style={{ padding: "12px 20px 12px 12px", minWidth: 120 }}>
                       <div style={{ background: "rgba(0,122,255,0.07)", borderRadius: 3, height: 6, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${share}%`, background: "linear-gradient(90deg,#409CFF,#007AFF)", borderRadius: 3 }} />
+                        <div style={{ height: "100%", width: `${share}%`, background: "linear-gradient(90deg,#3B8EEA,#006FE6)", borderRadius: 3 }} />
                       </div>
                     </td>
                   </tr>
@@ -572,13 +572,13 @@ function RouteMatrixTab() {
             label: "最高利益ルート",
             value: `${rows[0]?.buy_platform} → ${rows[0]?.sell_platform}`,
             sub: `¥${Math.round(rows[0]?.total_profit ?? 0).toLocaleString()} 総利益`,
-            col: "#007AFF",
+            col: "#006FE6",
           },
           {
             label: "最高利益率ルート",
             value: (() => { const r = [...rows].sort((a,b) => b.avg_rate - a.avg_rate)[0]; return r ? `${r.buy_platform} → ${r.sell_platform}` : "—"; })(),
             sub: (() => { const r = [...rows].sort((a,b) => b.avg_rate - a.avg_rate)[0]; return r ? `平均 ${r.avg_rate.toFixed(1)}% 利益率` : ""; })(),
-            col: "#FF9500",
+            col: "#E88500",
           },
           {
             label: "最速回転ルート",
@@ -588,9 +588,9 @@ function RouteMatrixTab() {
           },
         ].map(({ label, value, sub, col }) => (
           <div key={label} style={{ ...card, padding: "16px 20px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(10,15,30,0.55)", letterSpacing: "0.07em", textTransform: "uppercase" as const, marginBottom: 8 }}>{label}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(8,13,28,0.70)", letterSpacing: "0.07em", textTransform: "uppercase" as const, marginBottom: 8 }}>{label}</div>
             <div style={{ fontSize: 15, fontWeight: 800, color: col, marginBottom: 4, lineHeight: 1.3 }}>{value}</div>
-            <div style={{ fontSize: 11, color: "rgba(10,15,30,0.45)" }}>{sub}</div>
+            <div style={{ fontSize: 11, color: "rgba(8,13,28,0.60)" }}>{sub}</div>
           </div>
         ))}
       </div>

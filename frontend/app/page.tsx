@@ -17,36 +17,36 @@ const LazyChart = lazy(() => import("@/components/ProfitBarChart"));
 // ─────────────────────────────────────────────────────────
 const C = {
   // backgrounds — light, airy
-  bg0:  "#F0F4FA",   // page base
+  bg0:  "#EEF2FA",   // page base
   bg1:  "#FFFFFF",   // card surface
   bg2:  "#F5F8FF",   // elevated / input fill
-  bg3:  "#E8EFFA",   // tooltips, dropdowns
+  bg3:  "#E4ECFA",   // tooltips, dropdowns
 
-  // text — dark on light
-  t1:   "#0A0F1E",
-  t2:   "rgba(10,15,30,0.60)",
-  t3:   "rgba(10,15,30,0.38)",
-  t4:   "rgba(10,15,30,0.20)",
+  // text — dark on light (improved contrast)
+  t1:   "#080D1C",
+  t2:   "rgba(8,13,28,0.75)",
+  t3:   "rgba(8,13,28,0.55)",
+  t4:   "rgba(8,13,28,0.30)",
 
-  // iOS Blue (primary accent)
-  gold:   "#007AFF",
-  goldLt: "#409CFF",
-  goldDm: "#0056CC",
+  // Blue (primary accent — deepened for contrast)
+  gold:   "#006FE6",
+  goldLt: "#3B8EEA",
+  goldDm: "#004EB0",
 
   // secondary accent (sky blue)
-  azure:     "#5AC8FA",
-  azureGlow: "#7DD4FA",
+  azure:     "#40AADF",
+  azureGlow: "#60BFEF",
 
   // signal colors
-  up:    "#28A745",   // green
-  dn:    "#FF3B30",   // iOS red
-  warn:  "#FF9500",   // iOS orange
-  info:  "#007AFF",   // blue
+  up:    "#1E9C3C",   // green
+  dn:    "#E02E24",   // red
+  warn:  "#E88500",   // orange
+  info:  "#006FE6",   // blue
 
-  // borders — subtle on white
-  bd:    "rgba(0,0,0,0.08)",
-  bdSt:  "rgba(0,0,0,0.18)",
-  bdSub: "rgba(0,0,0,0.04)",
+  // borders — more visible on white
+  bd:    "rgba(0,0,0,0.13)",
+  bdSt:  "rgba(0,0,0,0.26)",
+  bdSub: "rgba(0,0,0,0.06)",
 };
 
 // iOS Light card — white with soft shadow
@@ -55,7 +55,7 @@ const card = (extra?: React.CSSProperties): React.CSSProperties => ({
   border: `1px solid ${C.bd}`,
   borderRadius: 28,
   padding: "20px 20px",
-  boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06)",
   ...extra,
 });
 
@@ -128,7 +128,7 @@ function KpiCard({ label, value, diff, sub, icon: Icon, accent, href, loading }:
       height: "100%",
       cursor: href ? "pointer" : "default",
       transition: "border-color 0.2s, box-shadow 0.2s",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06)",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div style={{
@@ -477,7 +477,7 @@ export default function DashboardPage() {
         .arow:hover  { border-color: ${C.bdSt} !important; background: rgba(0,122,255,0.04) !important; }
         .abtn:hover  { opacity: 0.82 !important; }
         .abtn { min-height: 36px; }
-        .slink:hover { background: rgba(0,122,255,0.06) !important; }
+        .slink:hover { background: rgba(0,111,230,0.07) !important; }
         .btn-primary:hover { opacity: 0.85 !important; }
         .btn-secondary:hover { background: rgba(0,0,0,0.06) !important; }
       `}</style>

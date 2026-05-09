@@ -2,21 +2,21 @@
 
 :root {
   /* Light Mode — Cool White × iOS Blue */
-  --bg: #F0F4FA;
+  --bg: #EEF2FA;
   --surface: #FFFFFF;
-  --sidebar-bg: #FFFFFF;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.18);
-  --blue: #007AFF;
-  --blue-lt: #409CFF;
-  --blue-dm: #0056CC;
-  --text: #0A0F1E;
-  --text-2: rgba(10, 15, 30, 0.60);
-  --text-3: rgba(10, 15, 30, 0.38);
-  --text-4: rgba(10, 15, 30, 0.20);
-  --text-muted: rgba(10, 15, 30, 0.60);
-  --nav-hover: rgba(0, 122, 255, 0.06);
-  --nav-active: rgba(0, 122, 255, 0.12);
+  --sidebar-bg: #F8FAFF;
+  --border: rgba(0, 0, 0, 0.13);
+  --border-strong: rgba(0, 0, 0, 0.26);
+  --blue: #006FE6;
+  --blue-lt: #3B8EEA;
+  --blue-dm: #004EB0;
+  --text: #080D1C;
+  --text-2: rgba(8, 13, 28, 0.75);
+  --text-3: rgba(8, 13, 28, 0.55);
+  --text-4: rgba(8, 13, 28, 0.30);
+  --text-muted: rgba(8, 13, 28, 0.75);
+  --nav-hover: rgba(0, 111, 230, 0.07);
+  --nav-active: rgba(0, 111, 230, 0.13);
 
   /* ── Radius scale ── */
   --r-xs:   10px;
@@ -55,8 +55,8 @@ body {
 
 body {
   background-image:
-    radial-gradient(ellipse at 0% 0%,   rgba(0, 122, 255, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 100% 100%, rgba(0, 122, 255, 0.04) 0%, transparent 50%);
+    radial-gradient(ellipse at 0% 0%,   rgba(0, 111, 230, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(0, 111, 230, 0.05) 0%, transparent 50%);
   background-attachment: fixed;
 }
 

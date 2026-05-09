@@ -263,7 +263,7 @@ export default function PricingPage() {
               href="/login"
               style={{ display: "block", textAlign: "center", background: "transparent", border: `1px solid rgba(201,169,107,0.22)`, borderRadius: 10, color: P.t3, padding: "11px", fontSize: 13, fontWeight: 700, textDecoration: "none", marginTop: 16 }}
             >
-              無料で試す
+              無料で始める（カード不要）
             </a>
           </div>
 

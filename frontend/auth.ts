@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Resend from "next-auth/providers/resend";
 import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { prismaAuth } from "@/lib/prisma-auth";
 import { authConfig } from "./auth.config";
@@ -61,30 +62,37 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         try {
+          if (!credentials?.email || !credentials?.password) return null;
+          const email = credentials.email as string;
+          const password = credentials.password as string;
+
+          const user = await prisma.user.findUnique({ where: { email } });
+
+          // ユーザーごとのパスワード認証
+          if (user?.passwordHash) {
+            const valid = await bcrypt.compare(password, user.passwordHash);
+            if (!valid) return null;
+            return { id: user.id, email: user.email, name: user.name };
+          }
+
+          // 管理者パスワード認証（フォールバック）
           const adminPassword = process.env.ADMIN_PASSWORD;
           if (!adminPassword) return null;
-          if (!credentials?.email || !credentials?.password) return null;
-          if (credentials.password !== adminPassword.trim()) return null;
+          if (password !== adminPassword.trim()) return null;
 
-          const email = credentials.email as string;
-          let user = await prisma.user.findUnique({ where: { email } });
           if (!user) {
-            user = await prisma.user.create({
+            const newUser = await prisma.user.create({
               data: { email, name: email.split("@")[0], role: "ADMIN" },
             });
             try {
               await prisma.subscription.create({
-                data: { userId: user.id, plan: "FREE", status: "ACTIVE" },
+                data: { userId: newUser.id, plan: "FREE", status: "ACTIVE" },
               });
-            } catch {
-              // already exists
-            }
-          } else {
-            user = await prisma.user.update({
-              where: { email },
-              data: { role: "ADMIN" },
-            });
+            } catch { /* already exists */ }
+            return { id: newUser.id, email: newUser.email, name: newUser.name };
           }
+
+          await prisma.user.update({ where: { email }, data: { role: "ADMIN" } });
           return { id: user.id, email: user.email, name: user.name };
         } catch (error) {
           console.error("[auth] authorize error:", error);

@@ -33,13 +33,14 @@ export default function AgentsPage() {
   const [goal, setGoal] = useState("");
   const [budget, setBudget] = useState("");
   const [running, setRunning] = useState(false);
+  const [backendDown, setBackendDown] = useState(false);
   const [sessions, setSessions] = useState<AgentSession[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [result, setResult] = useState<{ queued_count: number; scanned_count: number; final_message: string } | null>(null);
   const [progressLog, setProgressLog] = useState<string[]>([]);
 
   useEffect(() => {
-    getAgentSessions().then(setSessions).catch(() => {});
+    getAgentSessions().then(setSessions).catch(() => setBackendDown(true));
     getApprovalQueue("pending").then(d => setPendingCount(d.pending_count)).catch(() => {});
   }, []);
 
@@ -82,7 +83,8 @@ export default function AgentsPage() {
     };
 
     es.onerror = () => {
-      toast("接続エラーが発生しました", "error");
+      setBackendDown(true);
+      setProgressLog(p => [...p, "バックエンドに接続できませんでした。しばらく待ってから再試行してください。"]);
       setRunning(false);
       es.close();
     };
@@ -104,6 +106,14 @@ export default function AgentsPage() {
           <p style={{ color: C.t3, fontSize: 13, margin: 0 }}>AIが利益スキャン → 承認キューへ自動追加。購入はSatoshiが承認。</p>
         </div>
       </div>
+
+      {/* バックエンド接続警告 */}
+      {backendDown && (
+        <div style={{ background: "#2a1a0a", border: "1px solid #f97316", borderRadius: 10, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
+          <AlertCircle size={18} color="#f97316" />
+          <span style={{ color: "#f97316", fontSize: 14 }}>バックエンドサーバーに接続できません。Railwayが起動中の場合は1〜2分待ってから再試行してください。</span>
+        </div>
+      )}
 
       {/* ステータスバー */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
