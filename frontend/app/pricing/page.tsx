@@ -110,6 +110,19 @@ function CurrentPlanBadge() {
   );
 }
 
+function useStickyCta() {
+  const [visible, setVisible] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => setVisible(!e.isIntersecting), { threshold: 0 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return { visible, sentinelRef };
+}
+
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -118,6 +131,7 @@ export default function PricingPage() {
   const { plan: currentPlan, loading: planLoading } = usePlan();
   const isMobile = useIsMobile();
   const autoCheckoutFired = useRef(false);
+  const { visible: showSticky, sentinelRef } = useStickyCta();
 
   useEffect(() => {
     if (status !== "authenticated" || autoCheckoutFired.current) return;
@@ -382,6 +396,9 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* sentinel: plan cards が画面外に出たら sticky CTA を表示 */}
+        <div ref={sentinelRef} style={{ height: 1 }} />
+
         {/* ── 競合比較（価格ではなく価値で訴求）── */}
         <div style={{ marginBottom: isMobile ? 28 : 48, background: "rgba(10,21,48,0.8)", border: "1px solid rgba(201,169,107,0.12)", borderRadius: 14, padding: isMobile ? "20px 16px" : "28px 32px" }}>
           <div style={{ textAlign: "center", marginBottom: 20 }}>
@@ -581,6 +598,50 @@ export default function PricingPage() {
         </div>
 
       </div>
+
+      {/* ── Sticky bottom CTA（プランカードが見えなくなったら表示）── */}
+      {showSticky && currentPlan === "FREE" && (
+        <div style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 200,
+          background: "rgba(7,16,31,0.96)",
+          borderTop: "1px solid rgba(201,169,107,0.30)",
+          backdropFilter: "blur(12px)",
+          padding: isMobile ? "12px 16px" : "14px 32px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 800, color: P.t1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              🎁 7日間無料トライアル
+            </div>
+            <div style={{ fontSize: 11, color: P.t3, marginTop: 1 }}>期間中に解約すれば費用0円</div>
+          </div>
+          <button
+            onClick={() => handleSubscribe("STANDARD")}
+            disabled={loading !== null}
+            style={{
+              flexShrink: 0,
+              background: `linear-gradient(135deg,${P.bg1},${P.bg2})`,
+              border: `2px solid ${P.bdSt}`,
+              borderRadius: 10,
+              color: P.gold,
+              padding: isMobile ? "10px 16px" : "11px 24px",
+              fontSize: isMobile ? 12 : 13,
+              fontWeight: 900,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {loading === "STANDARD" ? "処理中..." : "Standardを無料で試す →"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

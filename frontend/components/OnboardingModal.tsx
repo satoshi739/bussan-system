@@ -2,7 +2,7 @@
 
 import { useState, useEffect, startTransition } from "react";
 import Link from "next/link";
-import { X, ChevronRight, ChevronLeft, ShoppingCart, TrendingUp, Radar, CheckCircle, Circle, Play } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, ShoppingCart, TrendingUp, Radar, CheckCircle, Circle, ExternalLink } from "lucide-react";
 
 const STORAGE_KEY = "bussan_onboarding_done";
 const CHECKLIST_KEY = "bussan_checklist";
@@ -78,8 +78,11 @@ export function useChecklist() {
           typeof (v as Record<string, unknown>).done === "boolean";
         if (Array.isArray(parsed) && parsed.every(isValid)) {
           startTransition(() => setItems(parsed));
+          return;
         }
       }
+      // Initialize localStorage so useAutoChecklist can find it later
+      localStorage.setItem(CHECKLIST_KEY, JSON.stringify(defaultChecklist));
     } catch { /* ignore */ }
   }, []);
 
@@ -101,7 +104,6 @@ interface Props {
 
 export default function OnboardingModal({ onComplete }: Props) {
   const [step, setStep] = useState(0);
-  const [videoPlaying, setVideoPlaying] = useState(false);
   const isLast = step === STEPS.length - 1;
 
   return (
@@ -181,18 +183,23 @@ export default function OnboardingModal({ onComplete }: Props) {
           </p>
         </div>
 
-        {/* Video (step 0 only) */}
+        {/* Help link (step 0 only) */}
         {step === 0 && (
-          <div style={{
-            background: "#07101f",
-            border: "1px solid rgba(201,169,107,0.18)",
-            borderRadius: 10,
-            padding: "14px 18px",
-            marginBottom: 24,
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-          }}>
+          <Link
+            href="/support"
+            onClick={onComplete}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              background: "#07101f",
+              border: "1px solid rgba(201,169,107,0.18)",
+              borderRadius: 10,
+              padding: "14px 18px",
+              marginBottom: 24,
+              textDecoration: "none",
+            }}
+          >
             <div style={{
               width: 40,
               height: 40,
@@ -202,29 +209,16 @@ export default function OnboardingModal({ onComplete }: Props) {
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
+              fontSize: 20,
             }}>
-              <Play size={18} color="#c9a96b" fill="#c9a96b" />
+              📖
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#d0d8e8", marginBottom: 2 }}>3分で使い方を確認</div>
-              <div style={{ fontSize: 11, color: "#8a9ab8" }}>物販チェッカー 入門ガイド動画</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#d0d8e8", marginBottom: 2 }}>使い方ガイドを見る</div>
+              <div style={{ fontSize: 11, color: "#8a9ab8" }}>よくある質問・操作方法はこちら</div>
             </div>
-            <button
-              onClick={() => setVideoPlaying(!videoPlaying)}
-              style={{
-                background: "rgba(201,169,107,0.15)",
-                border: "1px solid rgba(201,169,107,0.30)",
-                borderRadius: 7,
-                color: "#c9a96b",
-                fontSize: 11,
-                fontWeight: 700,
-                padding: "6px 14px",
-                cursor: "pointer",
-              }}
-            >
-              再生
-            </button>
-          </div>
+            <ExternalLink size={14} color="#8a9ab8" />
+          </Link>
         )}
 
         {/* Navigation */}
