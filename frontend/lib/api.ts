@@ -29,6 +29,30 @@ function agentReq<T>(path: string, options?: RequestInit): Promise<T> {
 // Dashboard（Railway cold start 対策: 15秒タイムアウト）
 export const getDashboard = () => req<Dashboard>("/api/dashboard", undefined, 15_000);
 
+// 今日のToDo 5ステージ件数
+export interface TodayCounts {
+  discover: number;
+  listing: number;
+  shipping: number;
+  delivery: number;
+  thanks: number;
+}
+export const getTodayCounts = () => req<TodayCounts>("/api/today/counts", undefined, 10_000);
+
+// お礼メッセージ
+export interface PendingThanks {
+  id: number;
+  sale_price: number;
+  sale_date: string;
+  thanks_sent: boolean | null;
+  selling_platform: string;
+  product_name: string;
+  purchase_price: number;
+}
+export const getPendingThanks = () => req<PendingThanks[]>("/api/thanks/pending", undefined, 10_000);
+export const markThanksSent = (saleId: number) =>
+  req<{ ok: boolean }>(`/api/thanks/${saleId}/mark-sent`, { method: "POST" });
+
 // Purchases
 export const getPurchases = (params?: { status?: string; platform?: string; limit?: number }) => {
   const q = new URLSearchParams();
@@ -330,6 +354,9 @@ export const searchEbaySold = (keyword: string, limit = 10) =>
 
 export const getImportShipping = (weight_g: number, source = "US") =>
   req<{ weight_g: number; source: string; shipping_jpy: number }>(`/api/calc/import-shipping?weight_g=${weight_g}&source=${source}`);
+
+export const getDomesticShipping = (weight_g: number, size_cm: number, carrier = "yamato") =>
+  req<{ fee: number; carrier: string; size_class: string }>(`/api/calc/shipping-estimate?weight_g=${weight_g}&size_cm=${size_cm}&carrier=${carrier}`);
 
 export const barcodeLookup = (code: string) =>
   req<{ found: boolean; code: string; name?: string; price?: number; products: Array<{ name: string; price: number; url: string }> }>(`/api/barcode/lookup?code=${encodeURIComponent(code)}`);

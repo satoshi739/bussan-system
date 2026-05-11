@@ -2,9 +2,16 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { getListings, getPurchases, createListing, createSaleSimple, calcAllPlatforms, type Listing, type ListingCreate, type Purchase } from "@/lib/api";
-import { Plus, DollarSign, X, Tag, TrendingUp, Zap } from "lucide-react";
+import { Plus, DollarSign, X, Tag, TrendingUp, Zap, Copy, Sparkles, FileText } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
+
+type CopyDraft = { title: string; description: string; keywords: string[]; price_tip?: string };
+const COPY_PLATFORMS: { key: string; label: string; api_value: string }[] = [
+  { key: "ebay",    label: "eBay（英語）", api_value: "eBay" },
+  { key: "mercari", label: "メルカリ",      api_value: "メルカリ" },
+  { key: "amazon",  label: "Amazon",        api_value: "Amazon" },
+];
 
 const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "8px 12px", fontSize: 14, width: "100%", outline: "none", boxSizing: "border-box" };
 const lbl: React.CSSProperties = { fontSize: 12, color: "var(--text-3)", fontWeight: 600, display: "block", marginBottom: 4 };
@@ -46,6 +53,58 @@ export default function ListingsPage() {
   const [sellPrice, setSellPrice] = useState("");
   const [sellPlatform, setSellPlatform] = useState("メルカリ");
   const [sellComparison, setSellComparison] = useState<Record<string, { gross_profit: number; profit_rate: number; emoji: string }> | null>(null);
+
+  // 出品文コピーモーダル
+  const [copyModal, setCopyModal] = useState<Listing | null>(null);
+  const [copyPlatform, setCopyPlatform] = useState<string>("mercari");
+  const [copyDrafts, setCopyDrafts] = useState<Record<string, CopyDraft>>({});
+  const [copyLoading, setCopyLoading] = useState(false);
+
+  const openCopyModal = (item: Listing) => {
+    setCopyModal(item);
+    setCopyDrafts({});
+    setCopyPlatform("mercari");
+  };
+
+  const generateDraft = useCallback(async (platformKey: string) => {
+    if (!copyModal) return;
+    const pf = COPY_PLATFORMS.find(p => p.key === platformKey);
+    if (!pf) return;
+    setCopyLoading(true);
+    try {
+      const res = await fetch("/api/ai/listing-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_name: copyModal.product_name,
+          buy_price: copyModal.purchase_price,
+          sell_platform: pf.api_value,
+          condition: "中古",
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setCopyDrafts(prev => ({ ...prev, [platformKey]: data.draft }));
+    } catch (e) {
+      toast(errMsg(e), "error");
+    } finally {
+      setCopyLoading(false);
+    }
+  }, [copyModal]);
+
+  const doCopy = async (text: string, what: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(`${what}をコピーしました`);
+    } catch {
+      toast("コピーに失敗しました", "error");
+    }
+  };
+
+  const copyAll = (d: CopyDraft, price: number) => {
+    const text = `${d.title}\n\n${d.description}\n\n価格: ¥${price.toLocaleString()}${d.keywords?.length ? `\n\nキーワード: ${d.keywords.join(", ")}` : ""}`;
+    doCopy(text, "出品文すべて");
+  };
 
   const load = useCallback(() => {
     getListings().then(setListings).catch(e => toast(errMsg(e), "error"));
@@ -312,6 +371,128 @@ export default function ListingsPage() {
         </div>
       )}
 
+      {/* ── 出品文コピーモーダル ── */}
+      {copyModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={e => e.target === e.currentTarget && setCopyModal(null)}>
+          <div style={{ background: "#0a0a0b", border: "1px solid rgba(64,170,223,0.35)", borderRadius: 16, padding: 28, width: 640, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+            <button onClick={() => setCopyModal(null)} style={{ position: "absolute", top: 14, right: 14, background: "transparent", border: "none", color: "var(--text-3)", cursor: "pointer" }}><X size={18} /></button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <Sparkles size={16} color="#60BFEF" />
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)" }}>AI出品文 ワンクリックコピー</div>
+            </div>
+            <div style={{ background: "rgba(10,10,11,0.8)", borderRadius: 8, padding: "10px 14px", marginBottom: 16, border: "1px solid rgba(64,170,223,0.15)" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{copyModal.product_name}</div>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>仕入 ¥{copyModal.purchase_price.toLocaleString()} · 出品価格 ¥{copyModal.listing_price.toLocaleString()}</div>
+            </div>
+
+            {/* 販路タブ */}
+            <div style={{ display: "flex", gap: 6, marginBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 8 }}>
+              {COPY_PLATFORMS.map(p => (
+                <button key={p.key} onClick={() => setCopyPlatform(p.key)} style={{
+                  flex: 1,
+                  background: copyPlatform === p.key ? "rgba(64,170,223,0.15)" : "transparent",
+                  border: copyPlatform === p.key ? "1px solid rgba(64,170,223,0.4)" : "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 8,
+                  color: copyPlatform === p.key ? "#60BFEF" : "var(--text-3)",
+                  padding: "8px 12px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 生成ボタン or 結果表示 */}
+            {!copyDrafts[copyPlatform] ? (
+              <div style={{ textAlign: "center", padding: "32px 16px" }}>
+                <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 16 }}>
+                  AIが「{COPY_PLATFORMS.find(p => p.key === copyPlatform)?.label}」向けに最適化された<br />
+                  タイトル・説明文・キーワードを自動生成します
+                </div>
+                <button
+                  onClick={() => generateDraft(copyPlatform)}
+                  disabled={copyLoading}
+                  style={{ background: "linear-gradient(135deg,#006FE6,#3B8EEA)", border: "none", borderRadius: 10, color: "#FFFFFF", padding: "12px 28px", fontSize: 14, fontWeight: 700, cursor: copyLoading ? "wait" : "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}
+                >
+                  <Sparkles size={14} />
+                  {copyLoading ? "生成中..." : "AI出品文を生成"}
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {/* タイトル */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.06em" }}>タイトル</span>
+                    <button onClick={() => doCopy(copyDrafts[copyPlatform].title, "タイトル")} style={{ background: "rgba(64,170,223,0.12)", border: "1px solid rgba(64,170,223,0.3)", borderRadius: 6, color: "#60BFEF", padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <Copy size={10} /> コピー
+                    </button>
+                  </div>
+                  <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "var(--text)", lineHeight: 1.5 }}>
+                    {copyDrafts[copyPlatform].title}
+                  </div>
+                </div>
+
+                {/* 説明文 */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.06em" }}>説明文</span>
+                    <button onClick={() => doCopy(copyDrafts[copyPlatform].description, "説明文")} style={{ background: "rgba(64,170,223,0.12)", border: "1px solid rgba(64,170,223,0.3)", borderRadius: 6, color: "#60BFEF", padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <Copy size={10} /> コピー
+                    </button>
+                  </div>
+                  <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--text)", lineHeight: 1.65, whiteSpace: "pre-wrap", maxHeight: 200, overflowY: "auto" }}>
+                    {copyDrafts[copyPlatform].description}
+                  </div>
+                </div>
+
+                {/* 価格 */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.06em" }}>推奨価格</span>
+                    <button onClick={() => doCopy(String(copyModal.listing_price), "価格")} style={{ background: "rgba(64,170,223,0.12)", border: "1px solid rgba(64,170,223,0.3)", borderRadius: 6, color: "#60BFEF", padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <Copy size={10} /> コピー
+                    </button>
+                  </div>
+                  <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "10px 12px", fontSize: 18, fontWeight: 700, color: "#60BFEF", fontFamily: "monospace" }}>
+                    ¥{copyModal.listing_price.toLocaleString()}
+                  </div>
+                  {copyDrafts[copyPlatform].price_tip && (
+                    <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4, fontStyle: "italic" }}>💡 {copyDrafts[copyPlatform].price_tip}</div>
+                  )}
+                </div>
+
+                {/* キーワード */}
+                {copyDrafts[copyPlatform].keywords?.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.06em", marginBottom: 6 }}>関連キーワード</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {copyDrafts[copyPlatform].keywords.map((kw, i) => (
+                        <span key={i} style={{ background: "rgba(64,170,223,0.08)", border: "1px solid rgba(64,170,223,0.2)", borderRadius: 12, padding: "3px 10px", fontSize: 11, color: "#60BFEF" }}>
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 全部コピー + 再生成 */}
+                <div style={{ display: "flex", gap: 8, marginTop: 8, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                  <button onClick={() => copyAll(copyDrafts[copyPlatform], copyModal.listing_price)} style={{ flex: 1, background: "linear-gradient(135deg,#006FE6,#3B8EEA)", border: "none", borderRadius: 8, color: "#FFFFFF", padding: "10px", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                    <Copy size={13} /> 全部まとめてコピー
+                  </button>
+                  <button onClick={() => generateDraft(copyPlatform)} disabled={copyLoading} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "var(--text-3)", padding: "10px 14px", fontSize: 12, cursor: copyLoading ? "wait" : "pointer" }}>
+                    {copyLoading ? "..." : "再生成"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── 出品中一覧 ── */}
       {active.length > 0 && (
         <div style={{ marginBottom: 24 }}>
@@ -335,6 +516,9 @@ export default function ListingsPage() {
                     <div style={{ fontFamily: "monospace", fontWeight: 700, color: "#66ccff", fontSize: 15 }}>¥{item.listing_price.toLocaleString()}</div>
                     <div style={{ fontSize: 10, color: "var(--text-3)" }}>出品価格</div>
                   </div>
+                  <button onClick={() => openCopyModal(item)} style={{ background: "rgba(0,40,80,0.7)", border: "1px solid rgba(64,170,223,0.3)", borderRadius: 8, color: "#60BFEF", cursor: "pointer", padding: "7px 12px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                    <FileText size={12} /> 文章コピー
+                  </button>
                   <button onClick={() => openSell(item)} style={{ background: "rgba(0,80,30,0.7)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, color: "#9A7D25", cursor: "pointer", padding: "7px 14px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                     <DollarSign size={12} /> 売れた
                   </button>

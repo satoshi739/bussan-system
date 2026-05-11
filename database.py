@@ -521,6 +521,11 @@ class Database:
             self.conn.execute("ALTER TABLE purchases ADD COLUMN image_data TEXT")
             self.conn.commit()
 
+        # sales.thanks_sent (お礼メッセージ送信フラグ)
+        if not col_exists("sales", "thanks_sent"):
+            self.conn.execute("ALTER TABLE sales ADD COLUMN thanks_sent BOOLEAN DEFAULT FALSE")
+            self.conn.commit()
+
         # fulfillment extra columns
         new_fulfillment_cols = [
             ("vendor_id", "INTEGER"),
@@ -866,6 +871,80 @@ class Database:
             SELECT platform, COUNT(*) as count FROM purchases WHERE user_id = %s GROUP BY platform
         """, (user_id,)).fetchall()
         return [(r['platform'], r['count']) for r in rows]
+
+    def get_pending_thanks(self, user_id: str = 'default') -> List:
+        """お礼未送信の売却一覧（商品名・販路・売却価格・売却日を含む）"""
+        rows = self.conn.execute("""
+            SELECT s.id, s.sale_price, s.sale_date, s.thanks_sent,
+                   l.selling_platform, p.product_name, p.purchase_price
+            FROM sales s
+            JOIN listings l ON s.listing_id = l.id
+            JOIN purchases p ON l.purchase_id = p.id
+            WHERE p.user_id = %s AND (s.thanks_sent IS NULL OR s.thanks_sent = FALSE)
+            ORDER BY s.sale_date DESC
+            LIMIT 100
+        """, (user_id,)).fetchall()
+        return [dict(r) for r in rows]
+
+    def mark_thanks_sent(self, sale_id: int, user_id: str = 'default') -> bool:
+        """指定の売却 id を thanks_sent=TRUE に更新（user_id の所有権チェック付き）"""
+        self.conn.execute("""
+            UPDATE sales SET thanks_sent = TRUE
+            WHERE id = %s AND id IN (
+                SELECT s.id FROM sales s
+                JOIN listings l ON s.listing_id = l.id
+                JOIN purchases p ON l.purchase_id = p.id
+                WHERE p.user_id = %s
+            )
+        """, (sale_id, user_id))
+        self.conn.commit()
+        return True
+
+    def get_today_counts(self, user_id: str = 'default') -> dict:
+        """今日のToDo 5ステージ件数: 発見/出品待ち/発送待ち/配送中/お礼待ち"""
+        def _count(sql: str, args: tuple) -> int:
+            try:
+                row = self.conn.execute(sql, args).fetchone()
+                return int(row["c"]) if row else 0
+            except Exception:
+                return 0
+
+        discover = _count(
+            "SELECT COUNT(*) AS c FROM agent_approval_queue WHERE user_id = %s AND status = 'pending'",
+            (user_id,),
+        )
+        listing = _count(
+            """
+            SELECT COUNT(*) AS c FROM purchases p
+            WHERE p.user_id = %s AND p.status = 'purchased'
+              AND NOT EXISTS (SELECT 1 FROM listings l WHERE l.purchase_id = p.id)
+            """,
+            (user_id,),
+        )
+        shipping = _count(
+            "SELECT COUNT(*) AS c FROM fulfillment WHERE user_id = %s AND status IN ('waiting','preparing')",
+            (user_id,),
+        )
+        delivery = _count(
+            "SELECT COUNT(*) AS c FROM fulfillment WHERE user_id = %s AND status = 'shipped'",
+            (user_id,),
+        )
+        thanks = _count(
+            """
+            SELECT COUNT(*) AS c FROM sales s
+            JOIN listings l ON s.listing_id = l.id
+            JOIN purchases p ON l.purchase_id = p.id
+            WHERE p.user_id = %s AND (s.thanks_sent IS NULL OR s.thanks_sent = FALSE)
+            """,
+            (user_id,),
+        )
+        return {
+            "discover": discover,
+            "listing": listing,
+            "shipping": shipping,
+            "delivery": delivery,
+            "thanks": thanks,
+        }
 
     # ===== SETTINGS =====
 

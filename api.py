@@ -31,6 +31,7 @@ import os as _os
 import sys
 import io
 import re
+import json
 import subprocess
 import tempfile
 import asyncio
@@ -43,7 +44,7 @@ logger = logging.getLogger(__name__)
 sys.path.insert(0, str(Path(__file__).parent))
 
 from database import Database
-from calculators import calculate_profit, find_breakeven_price, max_purchase_price, SELLING_PLATFORMS, CATEGORIES
+from calculators import calculate_profit, find_breakeven_price, max_purchase_price, SELLING_PLATFORMS, CATEGORIES, estimate_domestic_shipping
 
 _INTERNAL_API_KEY = _os.environ.get("INTERNAL_API_KEY", "")
 _SKIP_AUTH = _os.environ.get("SKIP_AUTH", "false").lower() in ("true", "1", "yes")
@@ -229,6 +230,25 @@ def get_dashboard(user_id: str = Depends(get_user_id)):
         "status_breakdown": [{"status": s, "count": c} for s, c in status_breakdown],
         "platform_breakdown": [{"platform": p, "count": c} for p, c in platform_breakdown],
     }
+
+
+@app.get("/api/today/counts")
+def get_today_counts(user_id: str = Depends(get_user_id)):
+    """今日のToDo 5ステージ件数 — トップダッシュボード用"""
+    return db.get_today_counts(user_id=user_id)
+
+
+@app.get("/api/thanks/pending")
+def get_pending_thanks(user_id: str = Depends(get_user_id)):
+    """お礼メッセージ未送信の売却一覧"""
+    return db.get_pending_thanks(user_id=user_id)
+
+
+@app.post("/api/thanks/{sale_id}/mark-sent")
+def mark_thanks_sent(sale_id: int, user_id: str = Depends(get_user_id)):
+    """お礼メッセージを送信済みとしてマーク"""
+    db.mark_thanks_sent(sale_id, user_id=user_id)
+    return {"ok": True}
 
 
 # ── 仕入れ ───────────────────────────────────────────────
@@ -489,6 +509,10 @@ def calc_profit(body: ProfitCalcRequest):
         selling_platform=body.selling_platform,
     )
     return result
+
+@app.get("/api/calc/shipping-estimate")
+def calc_shipping_estimate(weight_g: float, size_cm: float, carrier: str = "yamato"):
+    return estimate_domestic_shipping(weight_g, size_cm, carrier)
 
 @app.get("/api/calc/platforms")
 def get_platforms():
@@ -1211,6 +1235,7 @@ def search_all_platforms(body: AllPlatformSearchRequest):
                         'condition': it.get('condition', ''),
                     })
         except Exception:
+            logger.exception("domestic scraper failed: platform=%s keyword=%s", pkey, keyword)
             items = []
 
         prices_jpy = [i['price_jpy'] for i in items]
@@ -1280,6 +1305,7 @@ def search_all_platforms(body: AllPlatformSearchRequest):
                         'condition':  it.get('condition', ''),
                     })
         except Exception:
+            logger.exception("global scraper failed: platform=%s keyword=%s", pkey, keyword)
             items = []
 
         prices_local = [i['price_local'] for i in items]
@@ -1875,6 +1901,7 @@ def _generate_listing_deeplinks(
         price_twd = round(jpy_to(price_jpy, "TWD"), 2) if price_jpy else 0
         price_jpy_int = round(price_jpy)
     except Exception:
+        logger.exception("currency conversion failed in deeplink builder (currency=%s, price_local=%s)", currency, price_local)
         price_usd = price_sgd = price_myr = price_thb = price_php = price_idr = price_twd = 0
         price_jpy_int = 0
 
@@ -4173,6 +4200,30 @@ class VideoGenRequest(BaseModel):
     title: str
     body: str
     platform: str = "tiktok"
+
+
+@app.get("/api/top-today")
+def get_top_today():
+    """今日のおすすめ商品トップ20（毎朝06:00の自動スキャンキャッシュ）"""
+    cache_file = Path(__file__).parent / "data" / "top_today.json"
+    if not cache_file.exists():
+        return {"ok": True, "updated_at": None, "items": [], "status": "pending"}
+    try:
+        data = json.loads(cache_file.read_text())
+        return {"ok": True, "status": "ready", **data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/top-today/refresh")
+async def refresh_top_today(user_id: str = Depends(get_user_id)):
+    """今日のおすすめスキャンを手動で実行する"""
+    try:
+        import monitor
+        await asyncio.to_thread(monitor.discovery_scan)
+        return {"ok": True, "message": "スキャン完了"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/generate-video")

@@ -2,8 +2,8 @@
 
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useSession } from "next-auth/react";
-import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type Dashboard, type Purchase } from "@/lib/api";
-import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Search, Bot, Camera, Lightbulb, Flame } from "lucide-react";
+import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, getTodayCounts, type Dashboard, type Purchase, type TodayCounts } from "@/lib/api";
+import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Search, Bot, Camera, Lightbulb, Flame, Truck, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import OnboardingModal, { OnboardingChecklist, useOnboarding } from "@/components/OnboardingModal";
@@ -361,6 +361,7 @@ export default function DashboardPage() {
   const [stale,     setStale]      = useState<Purchase[]>([]);
   const [recent,    setRecent]     = useState<Purchase[]>([]);
   const [goal,      setGoalData]   = useState<{ month: string; goal: number; current_profit: number } | null>(null);
+  const [counts,    setCounts]     = useState<TodayCounts | null>(null);
   const [editGoal,  setEditGoal]   = useState(false);
   const [goalInput, setGoalInput]  = useState("");
   const [error,     setError]      = useState(false);
@@ -379,16 +380,18 @@ export default function DashboardPage() {
       setLoading(true);
       try {
         // 全APIを並列実行 — 直列より高速
-        const [d, stale, recent, goal] = await Promise.all([
+        const [d, stale, recent, goal, counts] = await Promise.all([
           getDashboard(),
           getStalePurchases(14).catch((): Purchase[] => []),
           getPurchases({ limit: 5 }).catch((): Purchase[] => []),
           getGoal().catch(() => null),
+          getTodayCounts().catch((): TodayCounts | null => null),
         ]);
         setData(d); setError(false); setUpdated(new Date());
         setStale(stale ?? []);
         setRecent(recent ?? []);
         if (goal) setGoalData(goal);
+        if (counts) setCounts(counts);
       } catch {
         setError(true);
         setData(p => p ?? { stats: { total_purchases: 0, total_invested: 0, total_sold: 0, total_profit: 0 }, monthly_profit: [], status_breakdown: [], platform_breakdown: [] });
@@ -740,6 +743,78 @@ export default function DashboardPage() {
 
       {/* Onboarding Checklist */}
       {!isEmpty && <OnboardingChecklist />}
+
+      {/* ── 今日のToDo 5ステージ ──────────────────────────── */}
+      {!isGuest && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Flame size={16} color={C.warn} />
+            <span style={{ fontSize: 14, fontWeight: 900, color: C.t1, letterSpacing: "-0.01em" }}>今日のToDo</span>
+            <span style={{ fontSize: 11, color: C.t3 }}>上から順番にやれば1日が完結します</span>
+          </div>
+          <div className="todo-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>
+            {([
+              { n: 1, label: "発見",      sub: "今日のおすすめ", icon: Search,         href: "/discover",    count: counts?.discover ?? 0, accent: C.gold },
+              { n: 2, label: "出品",      sub: "出品待ち",       icon: Tag,            href: "/listings",    count: counts?.listing  ?? 0, accent: C.azure },
+              { n: 3, label: "発送",      sub: "発送待ち",       icon: Package,        href: "/fulfillment", count: counts?.shipping ?? 0, accent: C.warn },
+              { n: 4, label: "到着確認",  sub: "配送中",         icon: Truck,          href: "/inventory",   count: counts?.delivery ?? 0, accent: C.info },
+              { n: 5, label: "お礼",      sub: "メッセージ待ち", icon: MessageCircle,  href: "/thanks",      count: counts?.thanks   ?? 0, accent: C.up    },
+            ] as { n: number; label: string; sub: string; icon: React.ElementType; href: string; count: number; accent: string }[]).map(({ n, label, sub, icon: Icon, href, count, accent }) => (
+              <Link key={n} href={href} style={{ textDecoration: "none", display: "block" }}>
+                <div className="todo-card" style={{
+                  background: C.bg1,
+                  border: `1px solid ${count > 0 ? `${accent}55` : C.bd}`,
+                  borderRadius: 20,
+                  padding: "14px 14px 12px",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  position: "relative",
+                  cursor: "pointer",
+                  transition: "border-color .2s, transform .15s, box-shadow .2s",
+                  boxShadow: count > 0 ? `0 2px 8px ${accent}20` : "0 1px 3px rgba(0,0,0,0.04)",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 10, background: `${accent}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Icon size={16} color={accent} />
+                    </div>
+                    <div style={{
+                      minWidth: 26,
+                      height: 22,
+                      padding: "0 8px",
+                      borderRadius: 11,
+                      background: count > 0 ? accent : C.bg2,
+                      color: count > 0 ? "#FFFFFF" : C.t4,
+                      fontSize: 12,
+                      fontWeight: 900,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: "ui-monospace,'SF Mono',monospace",
+                    }}>
+                      {loading ? "…" : count}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: C.t4, letterSpacing: "0.08em" }}>STEP {n}</div>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: C.t1, letterSpacing: "-0.01em" }}>{label}</div>
+                  <div style={{ fontSize: 11, color: C.t3, marginTop: -2 }}>{sub}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: accent, marginTop: "auto" }}>
+                    {count > 0 ? "対応する" : "確認する"}
+                    <ChevronRight size={12} />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <style>{`
+            @media(max-width:768px){
+              .todo-grid{grid-template-columns:repeat(2,1fr)!important}
+            }
+            .todo-card:hover{transform:translateY(-2px)}
+          `}</style>
+        </div>
+      )}
 
       {/* Mobile Hero — スマホのみ表示 */}
       <div className="mobile-hero" style={{ display: "none", marginBottom: 16 }}>
