@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import OnboardingModal, { useOnboarding } from "@/components/OnboardingModal";
+import CommandPalette from "@/components/CommandPalette";
+import VoiceAssistant from "@/components/VoiceAssistant";
 
 const PUBLIC_PATHS = ["/login", "/pricing", "/deals", "/legal"];
 
@@ -54,6 +56,8 @@ export default function ClientShell({ children }: { children: React.ReactNode })
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
+      {showSidebar && <CommandPalette />}
+      {showSidebar && <VoiceAssistant />}
       {showSidebar && <Sidebar />}
       <main
         key={pathname}

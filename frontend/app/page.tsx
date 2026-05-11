@@ -7,6 +7,7 @@ import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, Ale
 import Link from "next/link";
 import Image from "next/image";
 import OnboardingModal, { OnboardingChecklist, useOnboarding } from "@/components/OnboardingModal";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 
@@ -95,6 +96,59 @@ const SAMPLE_PROFIT_CANDIDATES = [
 ];
 
 // ── Skeleton ─────────────────────────────────────────────
+// ── Morning Briefing — 朝のAI挨拶 + 今日のアクション ────────
+function MorningBriefing() {
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 5  ? "おやすみのところ、起きてますね" :
+    hour < 11 ? "おはようございます" :
+    hour < 17 ? "こんにちは" :
+    hour < 22 ? "こんばんは" :
+                "夜遅くまで、お疲れさまです";
+
+  const actions = [
+    { tag: "OPPORTUNITY", text: "ROI 61% の高利益商品を14件発見しました", href: "/discover", color: C.up },
+    { tag: "ATTENTION",   text: "3週間動いていない在庫が2点 → 値下げを検討",  href: "/inventory", color: C.warn },
+    { tag: "MILESTONE",   text: "月¥100,000バッジまで あと¥21,600",         href: "/achievements", color: C.gold },
+  ];
+
+  return (
+    <div style={{
+      background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24,
+      padding: "24px 28px", marginBottom: 20,
+      boxShadow: "0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: C.gold, letterSpacing: "0.12em" }}>MORNING BRIEFING</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: C.t1, marginTop: 6, letterSpacing: "-0.01em" }}>{greeting}、Satoshiさん。</div>
+          <div style={{ fontSize: 13, color: C.t3, marginTop: 4 }}>今日、AIが見つけたあなたの「やるべき3つ」です。</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {actions.map((a, i) => (
+          <Link key={i} href={a.href} style={{
+            display: "flex", alignItems: "center", gap: 12,
+            padding: "12px 14px", background: C.bg2, borderRadius: 14,
+            textDecoration: "none", border: `1px solid ${C.bdSub}`,
+            transition: "transform 0.15s, border-color 0.15s",
+          }}>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: `${a.color}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: a.color }}>{i + 1}</span>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: a.color, letterSpacing: "0.1em", marginBottom: 2 }}>{a.tag}</div>
+              <div style={{ fontSize: 13, color: C.t1, fontWeight: 500, letterSpacing: "-0.01em" }}>{a.text}</div>
+            </div>
+            <ChevronRight size={16} color={C.t3} />
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Sk({ w = "100%", h = 16, r = 6 }: { w?: string | number; h?: number; r?: number }) {
   return <div style={{ width: w, height: h, borderRadius: r, background: `rgba(0,0,0,0.07)`, animation: "sk 1.6s ease-in-out infinite" }} />;
 }
@@ -744,6 +798,9 @@ export default function DashboardPage() {
       {/* Onboarding Checklist */}
       {!isEmpty && <OnboardingChecklist />}
 
+      {/* ── 朝のブリーフィング ────────────────────────────── */}
+      {!isGuest && <MorningBriefing />}
+
       {/* ── 自動パイプライン Today（iOS風シンプル） ──────────── */}
       {!isGuest && (
         <Link href="/pipeline" style={{ textDecoration: "none", display: "block", marginBottom: 24 }}>
@@ -775,7 +832,9 @@ export default function DashboardPage() {
                 { label: "完了", v: 3 },
               ].map((s, i, arr) => (
                 <div key={s.label} style={{ textAlign: "center", padding: "0 8px", borderRight: i < arr.length - 1 ? `1px solid ${C.bdSub}` : "none" }}>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: C.t1, lineHeight: 1, letterSpacing: "-0.03em", fontFamily: "ui-monospace, 'SF Pro Display', -apple-system, monospace" }}>{s.v}</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: C.t1, lineHeight: 1, letterSpacing: "-0.03em", fontFamily: "ui-monospace, 'SF Pro Display', -apple-system, monospace" }}>
+                    <AnimatedNumber value={s.v} />
+                  </div>
                   <div style={{ fontSize: 11, color: C.t3, marginTop: 6, fontWeight: 500 }}>{s.label}</div>
                 </div>
               ))}
@@ -785,11 +844,15 @@ export default function DashboardPage() {
               <div style={{ display: "flex", gap: 28 }}>
                 <div>
                   <div style={{ fontSize: 10, color: C.t3, fontWeight: 500 }}>今月の自動売上</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: C.t1, marginTop: 2, fontFamily: "ui-monospace, 'SF Pro Display', monospace" }}>¥482,400</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: C.t1, marginTop: 2, fontFamily: "ui-monospace, 'SF Pro Display', monospace" }}>
+                    <AnimatedNumber value={482400} prefix="¥" durationMs={1500} />
+                  </div>
                 </div>
                 <div>
                   <div style={{ fontSize: 10, color: C.t3, fontWeight: 500 }}>削減作業時間</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: C.t1, marginTop: 2, fontFamily: "ui-monospace, 'SF Pro Display', monospace" }}>32.5h</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: C.t1, marginTop: 2, fontFamily: "ui-monospace, 'SF Pro Display', monospace" }}>
+                    <AnimatedNumber value={32.5} decimals={1} suffix="h" durationMs={1500} />
+                  </div>
                 </div>
               </div>
             </div>
