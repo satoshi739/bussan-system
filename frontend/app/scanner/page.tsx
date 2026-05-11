@@ -348,23 +348,19 @@ function SampleResultCard({ name, buy, sell, profit, rate, rating, source, platf
           <ScanStars n={stars} />
         </div>
 
-        {/* ⚡ 1クリック自動出品（プレミアム CTA） */}
+        {/* 1クリック自動出品（iOS風） */}
         <Link href="/pipeline" style={{ display: "block", textDecoration: "none" }}>
           <div style={{
-            background: "linear-gradient(135deg, #006FE6 0%, #40AADF 100%)",
-            color: "#fff", borderRadius: 14, padding: "11px 14px",
+            background: "#007AFF",
+            color: "#fff", borderRadius: 12, padding: "12px 16px",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            fontSize: 13, fontWeight: 800, letterSpacing: 0.02,
-            boxShadow: "0 4px 14px rgba(0,111,230,0.28)",
-            position: "relative", overflow: "hidden",
+            fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em",
           }}>
-            <span style={{ fontSize: 16 }}>⚡</span>
             <span>1クリック自動出品</span>
-            <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", background: "rgba(255,255,255,0.22)", borderRadius: 999, letterSpacing: 0.05 }}>eBay/ヤフオク/Amazon</span>
           </div>
         </Link>
-        <div style={{ marginTop: 6, fontSize: 9, color: "var(--text-3)", textAlign: "center", letterSpacing: 0.04 }}>
-          AI出品文・写真補正・送料計算 すべて自動 ／ あなたは「OK」を押すだけ
+        <div style={{ marginTop: 8, fontSize: 11, color: "var(--text-3)", textAlign: "center" }}>
+          eBay・ヤフオク・Amazon に同時出品
         </div>
       </div>
     </div>
@@ -1300,8 +1296,8 @@ function ScannerPageContent() {
                     </a>
                   )}
                   <button onClick={() => openListing(item)}
-                    style={{ flex: 1.4, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "linear-gradient(135deg, #006FE6 0%, #40AADF 100%)", border: "none", borderRadius: 8, color: "#fff", padding: "8px 0", fontSize: 12, fontWeight: 800, cursor: "pointer", boxShadow: "0 3px 10px rgba(0,111,230,0.30)" }}>
-                    ⚡ 1クリック自動出品
+                    style={{ flex: 1.4, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "#007AFF", border: "none", borderRadius: 8, color: "#fff", padding: "9px 0", fontSize: 12, fontWeight: 600, cursor: "pointer", letterSpacing: "-0.01em" }}>
+                    1クリック自動出品
                   </button>
                   <button onClick={() => openRouteMatrix(item)}
                     style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 8, color: "var(--blue)", padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>

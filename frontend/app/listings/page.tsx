@@ -218,30 +218,31 @@ export default function ListingsPage() {
         </button>
       </div>
 
-      {/* ── マルチチャンネル接続ステータス（プレミアム） ── */}
-      <div style={{ background: "linear-gradient(135deg, rgba(0,111,230,0.06), rgba(64,170,223,0.04))", border: "1px solid rgba(0,111,230,0.18)", borderRadius: 18, padding: "16px 20px", marginBottom: 20 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 16 }}>⚡</span>
-            <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text)" }}>マルチチャンネル同時出品</span>
-            <span style={{ padding: "2px 8px", background: "rgba(30,156,60,0.12)", color: "#1E9C3C", borderRadius: 999, fontSize: 10, fontWeight: 700 }}>● 稼働中</span>
+      {/* ── マルチチャンネル接続ステータス（iOS風） ── */}
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: "20px 22px", marginBottom: 22 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", letterSpacing: "-0.01em" }}>マルチチャンネル同時出品</div>
+            <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>1出品で3チャンネル公開、最初に売れた瞬間に他を自動取下げ</div>
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {[
-              { name: "eBay",     emoji: "🌐", status: "接続済", color: "#1E9C3C" },
-              { name: "ヤフオク",  emoji: "🏷️", status: "接続済", color: "#1E9C3C" },
-              { name: "Amazon",   emoji: "📦", status: "接続済", color: "#1E9C3C" },
-            ].map(c => (
-              <div key={c.name} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 999, fontSize: 12 }}>
-                <span>{c.emoji}</span>
-                <b style={{ color: "var(--text)" }}>{c.name}</b>
-                <span style={{ color: c.color, fontSize: 10, fontWeight: 700 }}>● {c.status}</span>
-              </div>
-            ))}
-          </div>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: "#34C759", fontWeight: 600 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34C759" }} /> 稼働中
+          </span>
         </div>
-        <div style={{ marginTop: 10, fontSize: 11, color: "var(--text-3)" }}>
-          1出品で3チャンネル同時に公開。最初に売れたチャンネル以外は自動取下げ。
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          {[
+            { name: "eBay",     fee: "13%" },
+            { name: "ヤフオク",  fee: "10%" },
+            { name: "Amazon",   fee: "15%" },
+          ].map(c => (
+            <div key={c.name} style={{ padding: "12px 14px", background: "var(--surface-2)", borderRadius: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{c.name}</div>
+                <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>手数料 {c.fee}</div>
+              </div>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#34C759" }} />
+            </div>
+          ))}
         </div>
       </div>
 

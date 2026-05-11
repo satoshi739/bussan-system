@@ -232,20 +232,17 @@ export default function FulfillmentPage() {
         </div>
       </div>
 
-      {/* ── 配送API連携バナー ── */}
-      <div style={{ background: "linear-gradient(135deg, rgba(64,170,223,0.06), rgba(0,111,230,0.04))", border: "1px solid rgba(64,170,223,0.20)", borderRadius: 18, padding: "16px 20px", marginBottom: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 22 }}>📍</span>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text)" }}>配送ステータス自動同期</div>
-              <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>ヤマト・佐川・郵便の追跡APIから集荷〜配達完了までリアルタイム取得</div>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 14, fontSize: 11, alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#1E9C3C", display: "inline-block" }} /> <b style={{ color: "var(--text)" }}>同期中</b></div>
-            <div style={{ color: "var(--text-3)" }}>最終取得 <b style={{ color: "var(--text)" }}>2分前</b></div>
-          </div>
+      {/* ── 配送API連携バナー（iOS風） ── */}
+      <div style={{ background: "var(--surface, #fff)", border: "1px solid var(--border, rgba(0,0,0,0.10))", borderRadius: 18, padding: "18px 22px", marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", letterSpacing: "-0.01em" }}>配送ステータス自動同期</div>
+          <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>ヤマト・佐川・郵便の追跡APIから集荷〜配達完了までリアルタイム取得</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: "#34C759", fontWeight: 600 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34C759" }} /> 同期中
+          </span>
+          <div style={{ fontSize: 11, color: "var(--text-3)" }}>最終取得 <b style={{ color: "var(--text)" }}>2分前</b></div>
         </div>
       </div>
 

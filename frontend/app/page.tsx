@@ -744,53 +744,53 @@ export default function DashboardPage() {
       {/* Onboarding Checklist */}
       {!isEmpty && <OnboardingChecklist />}
 
-      {/* ── 自動パイプライン Today（最高級ウィジェット） ──────────── */}
+      {/* ── 自動パイプライン Today（iOS風シンプル） ──────────── */}
       {!isGuest && (
-        <Link href="/pipeline" style={{ textDecoration: "none", display: "block", marginBottom: 20 }}>
+        <Link href="/pipeline" style={{ textDecoration: "none", display: "block", marginBottom: 24 }}>
           <div style={{
-            background: "linear-gradient(135deg, #006FE6 0%, #40AADF 60%, #1E9C3C 130%)",
-            borderRadius: 28,
-            padding: "22px 26px",
-            color: "#fff",
-            position: "relative",
-            overflow: "hidden",
-            boxShadow: "0 8px 28px rgba(0,111,230,0.30)",
+            background: C.bg1,
+            border: `1px solid ${C.bd}`,
+            borderRadius: 24,
+            padding: "24px 28px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)",
+            transition: "transform 0.2s, box-shadow 0.2s",
             cursor: "pointer",
           }}>
-            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 90% 30%, rgba(255,255,255,0.18), transparent 50%)", pointerEvents: "none" }} />
-            <div style={{ position: "relative", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-              <div style={{ flex: 1, minWidth: 240 }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", background: "rgba(255,255,255,0.22)", borderRadius: 999, fontSize: 10, fontWeight: 800, letterSpacing: 0.1, marginBottom: 8 }}>
-                  <Zap size={11} /> AUTO PIPELINE / TODAY
-                </div>
-                <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.25 }}>
-                  あなたの代わりに、AIが動いています
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.92, marginTop: 6 }}>
-                  発見→出品→販売→配送→利益確定 を1つのパイプラインで自動稼働
-                </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22, gap: 16, flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.gold, letterSpacing: "0.12em", marginBottom: 6 }}>AUTO PIPELINE</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: C.t1, lineHeight: 1.3, letterSpacing: "-0.01em" }}>あなたの代わりに、AIが動いています</div>
               </div>
-              <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                {[
-                  { label: "発見", v: 14 },
-                  { label: "出品中", v: 23 },
-                  { label: "売却", v: 4 },
-                  { label: "配送", v: 6 },
-                  { label: "完了", v: 3 },
-                ].map(s => (
-                  <div key={s.label} style={{ textAlign: "center", minWidth: 56 }}>
-                    <div style={{ fontSize: 28, fontWeight: 900, lineHeight: 1 }}>{s.v}</div>
-                    <div style={{ fontSize: 10, opacity: 0.85, marginTop: 4 }}>{s.label}</div>
-                  </div>
-                ))}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 4, color: C.gold, fontSize: 13, fontWeight: 600 }}>
+                開く <ChevronRight size={16} />
               </div>
             </div>
-            <div style={{ position: "relative", marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.18)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-              <div style={{ fontSize: 12, opacity: 0.95 }}>
-                今月の自動売上 <b style={{ fontSize: 16 }}>¥482,400</b> ／ 削減作業時間 <b style={{ fontSize: 16 }}>32.5時間</b>
-              </div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "rgba(255,255,255,0.22)", borderRadius: 999, fontSize: 12, fontWeight: 800 }}>
-                ▶ パイプラインを開く <ChevronRight size={14} />
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 0, marginBottom: 20 }}>
+              {[
+                { label: "発見", v: 14 },
+                { label: "出品中", v: 23 },
+                { label: "売却", v: 4 },
+                { label: "配送", v: 6 },
+                { label: "完了", v: 3 },
+              ].map((s, i, arr) => (
+                <div key={s.label} style={{ textAlign: "center", padding: "0 8px", borderRight: i < arr.length - 1 ? `1px solid ${C.bdSub}` : "none" }}>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: C.t1, lineHeight: 1, letterSpacing: "-0.03em", fontFamily: "ui-monospace, 'SF Pro Display', -apple-system, monospace" }}>{s.v}</div>
+                  <div style={{ fontSize: 11, color: C.t3, marginTop: 6, fontWeight: 500 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: `1px solid ${C.bdSub}`, gap: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 28 }}>
+                <div>
+                  <div style={{ fontSize: 10, color: C.t3, fontWeight: 500 }}>今月の自動売上</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: C.t1, marginTop: 2, fontFamily: "ui-monospace, 'SF Pro Display', monospace" }}>¥482,400</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: C.t3, fontWeight: 500 }}>削減作業時間</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: C.t1, marginTop: 2, fontFamily: "ui-monospace, 'SF Pro Display', monospace" }}>32.5h</div>
+                </div>
               </div>
             </div>
           </div>
