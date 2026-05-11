@@ -205,6 +205,68 @@ export default function SettingsPage() {
       <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", margin: 0 }}>設定</h1>
       <div style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16, marginTop: 3 }}>通知・連携の設定</div>
 
+      {/* ── 販売チャンネル連携 ── */}
+      <div style={{ ...card, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+          <span style={{ fontSize: 16 }}>🌐</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0" }}>販売チャンネル連携</span>
+          <span style={{ marginLeft: "auto", padding: "2px 8px", background: "rgba(30,156,60,0.15)", color: "#1E9C3C", borderRadius: 999, fontSize: 10, fontWeight: 700 }}>3 / 3 接続中</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+          {[
+            { name: "eBay",     emoji: "🌐", fee: "13%", note: "OAuth 接続済 / API バージョン 1.5.0" },
+            { name: "ヤフオク",  emoji: "🏷️", fee: "10%", note: "Yahoo! デベロッパーAPI 接続済" },
+            { name: "Amazon",   emoji: "📦", fee: "15%", note: "SP-API 接続済 / FBA 連動有効" },
+          ].map(c => (
+            <div key={c.name} style={{ padding: "12px 14px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 22 }}>{c.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text)" }}>{c.name}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-3)" }}>手数料 {c.fee}</div>
+                </div>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#1E9C3C" }} />
+              </div>
+              <div style={{ marginTop: 8, fontSize: 10, color: "var(--text-3)", lineHeight: 1.5 }}>{c.note}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 10, fontSize: 11, color: "var(--text-3)" }}>
+          ⚡ 1出品で3チャンネル同時公開 / 最初に売れた瞬間に他チャンネルから自動取下げ
+        </div>
+      </div>
+
+      {/* ── 配送業者連携 ── */}
+      <div style={{ ...card, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+          <span style={{ fontSize: 16 }}>🚚</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#C8C0B0" }}>配送業者連携</span>
+          <span style={{ marginLeft: "auto", padding: "2px 8px", background: "rgba(30,156,60,0.15)", color: "#1E9C3C", borderRadius: 999, fontSize: 10, fontWeight: 700 }}>3 / 3 接続中</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+          {[
+            { name: "ヤマト運輸",  emoji: "🐱", api: "B2クラウド",  note: "送料自動取得・送り状PDF発行" },
+            { name: "佐川急便",    emoji: "🦅", api: "e飛伝Pro",   note: "送料自動取得・集荷予約連携" },
+            { name: "日本郵便",    emoji: "📮", api: "ゆうパックプリントR", note: "送料自動取得・追跡同期" },
+          ].map(c => (
+            <div key={c.name} style={{ padding: "12px 14px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 22 }}>{c.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text)" }}>{c.name}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-3)" }}>{c.api}</div>
+                </div>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#1E9C3C" }} />
+              </div>
+              <div style={{ marginTop: 8, fontSize: 10, color: "var(--text-3)", lineHeight: 1.5 }}>{c.note}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 10, fontSize: 11, color: "var(--text-3)" }}>
+          📦 重量・サイズから最安業者を自動判定 / 送り状はワンクリックで印刷可能
+        </div>
+      </div>
+
       {/* ── テーマ切り替え ── */}
       <div style={{ ...card, marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>

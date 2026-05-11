@@ -131,6 +131,32 @@ export default function SalesPage() {
         </a>
       </div>
 
+      {/* 配送業者連携バナー */}
+      <div style={{ background: "linear-gradient(135deg, rgba(232,133,0,0.06), rgba(0,111,230,0.04))", border: "1px solid rgba(232,133,0,0.20)", borderRadius: 18, padding: "16px 20px", marginBottom: 18 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 22 }}>🚚</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: C.t1 }}>配送業者ワンクリック連携</div>
+              <div style={{ fontSize: 11, color: C.t3, marginTop: 2 }}>売却済みの取引から送り状を直接発行・最安料金を自動取得</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { name: "ヤマト運輸",  emoji: "🐱", status: "接続済" },
+              { name: "佐川急便",    emoji: "🦅", status: "接続済" },
+              { name: "日本郵便",    emoji: "📮", status: "接続済" },
+            ].map(c => (
+              <div key={c.name} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "var(--surface, #fff)", border: "1px solid var(--border, rgba(0,0,0,0.13))", borderRadius: 999, fontSize: 11 }}>
+                <span>{c.emoji}</span>
+                <b style={{ color: C.t1 }}>{c.name}</b>
+                <span style={{ color: C.up, fontSize: 9, fontWeight: 700 }}>● {c.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* サマリーカード */}
       {!loading && sales.length > 0 && (
         <div className="sales-kpi-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 18 }}>

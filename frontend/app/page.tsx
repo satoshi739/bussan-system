@@ -744,6 +744,59 @@ export default function DashboardPage() {
       {/* Onboarding Checklist */}
       {!isEmpty && <OnboardingChecklist />}
 
+      {/* ── 自動パイプライン Today（最高級ウィジェット） ──────────── */}
+      {!isGuest && (
+        <Link href="/pipeline" style={{ textDecoration: "none", display: "block", marginBottom: 20 }}>
+          <div style={{
+            background: "linear-gradient(135deg, #006FE6 0%, #40AADF 60%, #1E9C3C 130%)",
+            borderRadius: 28,
+            padding: "22px 26px",
+            color: "#fff",
+            position: "relative",
+            overflow: "hidden",
+            boxShadow: "0 8px 28px rgba(0,111,230,0.30)",
+            cursor: "pointer",
+          }}>
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 90% 30%, rgba(255,255,255,0.18), transparent 50%)", pointerEvents: "none" }} />
+            <div style={{ position: "relative", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+              <div style={{ flex: 1, minWidth: 240 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", background: "rgba(255,255,255,0.22)", borderRadius: 999, fontSize: 10, fontWeight: 800, letterSpacing: 0.1, marginBottom: 8 }}>
+                  <Zap size={11} /> AUTO PIPELINE / TODAY
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.25 }}>
+                  あなたの代わりに、AIが動いています
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.92, marginTop: 6 }}>
+                  発見→出品→販売→配送→利益確定 を1つのパイプラインで自動稼働
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                {[
+                  { label: "発見", v: 14 },
+                  { label: "出品中", v: 23 },
+                  { label: "売却", v: 4 },
+                  { label: "配送", v: 6 },
+                  { label: "完了", v: 3 },
+                ].map(s => (
+                  <div key={s.label} style={{ textAlign: "center", minWidth: 56 }}>
+                    <div style={{ fontSize: 28, fontWeight: 900, lineHeight: 1 }}>{s.v}</div>
+                    <div style={{ fontSize: 10, opacity: 0.85, marginTop: 4 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ position: "relative", marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.18)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ fontSize: 12, opacity: 0.95 }}>
+                今月の自動売上 <b style={{ fontSize: 16 }}>¥482,400</b> ／ 削減作業時間 <b style={{ fontSize: 16 }}>32.5時間</b>
+              </div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "rgba(255,255,255,0.22)", borderRadius: 999, fontSize: 12, fontWeight: 800 }}>
+                ▶ パイプラインを開く <ChevronRight size={14} />
+              </div>
+            </div>
+          </div>
+        </Link>
+      )}
+
       {/* ── 今日のToDo 5ステージ ──────────────────────────── */}
       {!isGuest && (
         <div style={{ marginBottom: 20 }}>

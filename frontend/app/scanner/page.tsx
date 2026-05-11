@@ -3,6 +3,7 @@
 import RequirePlan from "@/components/RequirePlan";
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, SlidersHorizontal, TrendingUp, ArrowUpDown, X, Sparkles, ChevronDown, ChevronUp, BarChart2, Activity, GitFork, Crown, Share2 } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
@@ -342,9 +343,28 @@ function SampleResultCard({ name, buy, sell, profit, rate, rating, source, platf
         </div>
 
         {/* おすすめ度 */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 500 }}>おすすめ度</span>
           <ScanStars n={stars} />
+        </div>
+
+        {/* ⚡ 1クリック自動出品（プレミアム CTA） */}
+        <Link href="/pipeline" style={{ display: "block", textDecoration: "none" }}>
+          <div style={{
+            background: "linear-gradient(135deg, #006FE6 0%, #40AADF 100%)",
+            color: "#fff", borderRadius: 14, padding: "11px 14px",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            fontSize: 13, fontWeight: 800, letterSpacing: 0.02,
+            boxShadow: "0 4px 14px rgba(0,111,230,0.28)",
+            position: "relative", overflow: "hidden",
+          }}>
+            <span style={{ fontSize: 16 }}>⚡</span>
+            <span>1クリック自動出品</span>
+            <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", background: "rgba(255,255,255,0.22)", borderRadius: 999, letterSpacing: 0.05 }}>eBay/ヤフオク/Amazon</span>
+          </div>
+        </Link>
+        <div style={{ marginTop: 6, fontSize: 9, color: "var(--text-3)", textAlign: "center", letterSpacing: 0.04 }}>
+          AI出品文・写真補正・送料計算 すべて自動 ／ あなたは「OK」を押すだけ
         </div>
       </div>
     </div>
@@ -1280,8 +1300,8 @@ function ScannerPageContent() {
                     </a>
                   )}
                   <button onClick={() => openListing(item)}
-                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "linear-gradient(135deg,rgba(0,60,20,0.8),rgba(0,80,30,0.8))", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 8, color: "var(--blue)", padding: "8px 0", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                    <ShoppingCart size={12} /> 仕入れ＆出品
+                    style={{ flex: 1.4, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "linear-gradient(135deg, #006FE6 0%, #40AADF 100%)", border: "none", borderRadius: 8, color: "#fff", padding: "8px 0", fontSize: 12, fontWeight: 800, cursor: "pointer", boxShadow: "0 3px 10px rgba(0,111,230,0.30)" }}>
+                    ⚡ 1クリック自動出品
                   </button>
                   <button onClick={() => openRouteMatrix(item)}
                     style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 8, color: "var(--blue)", padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
