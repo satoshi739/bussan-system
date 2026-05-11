@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown, Crown } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown, Crown, Sparkles, Zap } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
@@ -20,16 +20,18 @@ const navGroups = [
     label: "メイン",
     defaultCollapsed: false,
     items: [
-      { href: "/",       label: "ダッシュボード", icon: LayoutDashboard },
-      { href: "/report", label: "レポート",       icon: BarChart2 },
-      { href: "/ai",     label: "AI アシスタント", icon: Bot },
-      { href: "/alerts", label: "価格アラート",   icon: Bell },
+      { href: "/",         label: "ダッシュボード",   icon: LayoutDashboard },
+      { href: "/pipeline", label: "自動パイプライン", icon: Zap },
+      { href: "/report",   label: "レポート",         icon: BarChart2 },
+      { href: "/ai",       label: "AI アシスタント",  icon: Bot },
+      { href: "/alerts",   label: "価格アラート",     icon: Bell },
     ],
   },
   {
     label: "商品リサーチ",
     defaultCollapsed: false,
     items: [
+      { href: "/discover",    label: "今日のおすすめ",    icon: Sparkles },
       { href: "/scanner",     label: "利益スキャナー",    icon: Radar },
       { href: "/barcode",     label: "バーコードスキャン", icon: ScanLine },
       { href: "/search",      label: "相場検索",          icon: Search },
