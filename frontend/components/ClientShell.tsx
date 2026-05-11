@@ -7,6 +7,8 @@ import Sidebar from "@/components/Sidebar";
 import OnboardingModal, { useOnboarding } from "@/components/OnboardingModal";
 import CommandPalette from "@/components/CommandPalette";
 import VoiceAssistant from "@/components/VoiceAssistant";
+import NotificationCenter from "@/components/NotificationCenter";
+import ShortcutsHelp from "@/components/ShortcutsHelp";
 
 const PUBLIC_PATHS = ["/login", "/pricing", "/deals", "/legal"];
 
@@ -57,6 +59,8 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       {showSidebar && <CommandPalette />}
+      {showSidebar && <ShortcutsHelp />}
+      {showSidebar && <NotificationCenter />}
       {showSidebar && <VoiceAssistant />}
       {showSidebar && <Sidebar />}
       <main

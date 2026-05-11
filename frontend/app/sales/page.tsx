@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { getSales, type Sale } from "@/lib/api";
-import { TrendingUp, TrendingDown, BarChart2, Download, Search, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart2, Download, Search, X, ArrowUpDown, ArrowUp, ArrowDown, Sparkles } from "lucide-react";
 import Link from "next/link";
+import SaleCelebration from "@/components/SaleCelebration";
 
 const C = {
   bg1:    "var(--surface)",
@@ -45,6 +46,27 @@ export default function SalesPage() {
   const [month, setMonth]     = useState("");
   const [sort, setSort]       = useState<SortKey>("date_desc");
   const [showSort, setShowSort] = useState(false);
+  const [celebration, setCelebration] = useState<{ amount: number; name?: string } | null>(null);
+  const lastSalesCount = useRef<number | null>(null);
+
+  // 新規売却を検知してセレブレーション発動
+  useEffect(() => {
+    if (loading) return;
+    if (lastSalesCount.current === null) {
+      lastSalesCount.current = sales.length;
+      return;
+    }
+    if (sales.length > lastSalesCount.current) {
+      const latest = sales[0];
+      if (latest) {
+        const payload = { amount: Math.round(latest.net_profit), name: latest.product_name };
+        const t = setTimeout(() => setCelebration(payload), 0);
+        lastSalesCount.current = sales.length;
+        return () => clearTimeout(t);
+      }
+    }
+    lastSalesCount.current = sales.length;
+  }, [sales, loading]);
 
   useEffect(() => {
     getSales()
@@ -111,8 +133,18 @@ export default function SalesPage() {
         }
       `}</style>
 
+      {/* セレブレーションモーダル */}
+      {celebration && (
+        <SaleCelebration
+          show={!!celebration}
+          amount={celebration.amount}
+          productName={celebration.name}
+          onClose={() => setCelebration(null)}
+        />
+      )}
+
       {/* ヘッダー */}
-      <div className="sales-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+      <div className="sales-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 900, color: C.t1, margin: 0 }}>売上履歴</h1>
           <div style={{ fontSize: 12, color: C.t3, marginTop: 3 }}>
@@ -122,6 +154,13 @@ export default function SalesPage() {
             }
           </div>
         </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <button
+          onClick={() => setCelebration({ amount: 7800, name: "セイコー 5 SNXS79 自動巻き" })}
+          style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid rgba(0,0,0,0.13)", borderRadius: 999, color: C.t2, padding: "8px 14px", fontWeight: 600, fontSize: 12, cursor: "pointer" }}
+        >
+          <Sparkles size={13} /> セレブレーションをプレビュー
+        </button>
         <a
           href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/sales/export/csv`}
           download
@@ -129,6 +168,7 @@ export default function SalesPage() {
         >
           <Download size={14} /> CSV
         </a>
+        </div>
       </div>
 
       {/* 配送業者連携バナー（iOS風） */}
