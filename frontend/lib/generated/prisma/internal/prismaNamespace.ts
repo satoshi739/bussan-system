@@ -395,7 +395,8 @@ export const ModelName = {
   ScanHistory: 'ScanHistory',
   ProfitCalcHistory: 'ProfitCalcHistory',
   StripeEvent: 'StripeEvent',
-  ContentItem: 'ContentItem'
+  ContentItem: 'ContentItem',
+  QuickListing: 'QuickListing'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -411,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent" | "contentItem"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent" | "contentItem" | "quickListing"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1303,6 +1304,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    QuickListing: {
+      payload: Prisma.$QuickListingPayload<ExtArgs>
+      fields: Prisma.QuickListingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.QuickListingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.QuickListingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload>
+        }
+        findFirst: {
+          args: Prisma.QuickListingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.QuickListingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload>
+        }
+        findMany: {
+          args: Prisma.QuickListingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload>[]
+        }
+        create: {
+          args: Prisma.QuickListingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload>
+        }
+        createMany: {
+          args: Prisma.QuickListingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.QuickListingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload>[]
+        }
+        delete: {
+          args: Prisma.QuickListingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload>
+        }
+        update: {
+          args: Prisma.QuickListingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload>
+        }
+        deleteMany: {
+          args: Prisma.QuickListingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.QuickListingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.QuickListingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload>[]
+        }
+        upsert: {
+          args: Prisma.QuickListingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuickListingPayload>
+        }
+        aggregate: {
+          args: Prisma.QuickListingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateQuickListing>
+        }
+        groupBy: {
+          args: Prisma.QuickListingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.QuickListingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.QuickListingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.QuickListingCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1510,6 +1585,36 @@ export const ContentItemScalarFieldEnum = {
 export type ContentItemScalarFieldEnum = (typeof ContentItemScalarFieldEnum)[keyof typeof ContentItemScalarFieldEnum]
 
 
+export const QuickListingScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  sourceUrl: 'sourceUrl',
+  productName: 'productName',
+  buyPrice: 'buyPrice',
+  estPrice: 'estPrice',
+  condition: 'condition',
+  category: 'category',
+  notes: 'notes',
+  weightG: 'weightG',
+  sizeCode: 'sizeCode',
+  imageUrls: 'imageUrls',
+  aiTitle: 'aiTitle',
+  aiDescription: 'aiDescription',
+  aiCategories: 'aiCategories',
+  aiKeywords: 'aiKeywords',
+  aiSuggestedPrice: 'aiSuggestedPrice',
+  aiProfitEstimate: 'aiProfitEstimate',
+  aiShippingEstimate: 'aiShippingEstimate',
+  aiWarnings: 'aiWarnings',
+  targetPlatform: 'targetPlatform',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type QuickListingScalarFieldEnum = (typeof QuickListingScalarFieldEnum)[keyof typeof QuickListingScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1637,6 +1742,20 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
+
+/**
+ * Reference to a field of type 'QuickListingStatus'
+ */
+export type EnumQuickListingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QuickListingStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'QuickListingStatus[]'
+ */
+export type ListEnumQuickListingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QuickListingStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -1744,6 +1863,7 @@ export type GlobalOmitConfig = {
   profitCalcHistory?: Prisma.ProfitCalcHistoryOmit
   stripeEvent?: Prisma.StripeEventOmit
   contentItem?: Prisma.ContentItemOmit
+  quickListing?: Prisma.QuickListingOmit
 }
 
 /* Types for Logging */

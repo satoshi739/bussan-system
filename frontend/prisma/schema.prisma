@@ -24,14 +24,15 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts          Account[]
-  sessions          Session[]
-  subscription      Subscription?
-  activeSessions    ActiveSession[]
-  purchaseRecords   PurchaseRecord[]
-  saleRecords       SaleRecord[]
-  scanHistories     ScanHistory[]
+  accounts            Account[]
+  sessions            Session[]
+  subscription        Subscription?
+  activeSessions      ActiveSession[]
+  purchaseRecords     PurchaseRecord[]
+  saleRecords         SaleRecord[]
+  scanHistories       ScanHistory[]
   profitCalcHistories ProfitCalcHistory[]
+  quickListings       QuickListing[]
 }
 
 model Account {
@@ -190,4 +191,55 @@ enum SubscriptionStatus {
   CANCELED
   PAST_DUE
   TRIALING
+}
+
+// ============================================================
+// 確認付きワンクリック出品 MVP (Quick Listing)
+// ============================================================
+
+model QuickListing {
+  id              String              @id @default(cuid())
+  userId          String
+
+  // 入力データ
+  sourceUrl       String?
+  productName     String
+  buyPrice        Int?
+  estPrice        Int?
+  condition       String?
+  category        String?
+  notes           String?
+  weightG         Int?
+  sizeCode        String?
+  imageUrls       String[]            @default([])
+
+  // AI生成データ
+  aiTitle         String?
+  aiDescription   String?             @db.Text
+  aiCategories    String[]            @default([])
+  aiKeywords      String[]            @default([])
+  aiSuggestedPrice Int?
+  aiProfitEstimate Int?
+  aiShippingEstimate Int?
+  aiWarnings      String[]            @default([])
+
+  // 出品設定
+  targetPlatform  String              @default("none")
+  status          QuickListingStatus  @default(DRAFT)
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, updatedAt])
+}
+
+enum QuickListingStatus {
+  DRAFT
+  CONFIRMED
+  CSV_EXPORTED
+  API_PENDING
+  PUBLISHED
 }

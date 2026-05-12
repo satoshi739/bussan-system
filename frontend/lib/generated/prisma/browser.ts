@@ -77,3 +77,8 @@ export type StripeEvent = Prisma.StripeEventModel
  * 
  */
 export type ContentItem = Prisma.ContentItemModel
+/**
+ * Model QuickListing
+ * 
+ */
+export type QuickListing = Prisma.QuickListingModel

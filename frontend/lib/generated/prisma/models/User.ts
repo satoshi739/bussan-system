@@ -222,6 +222,7 @@ export type UserWhereInput = {
   saleRecords?: Prisma.SaleRecordListRelationFilter
   scanHistories?: Prisma.ScanHistoryListRelationFilter
   profitCalcHistories?: Prisma.ProfitCalcHistoryListRelationFilter
+  quickListings?: Prisma.QuickListingListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -242,6 +243,7 @@ export type UserOrderByWithRelationInput = {
   saleRecords?: Prisma.SaleRecordOrderByRelationAggregateInput
   scanHistories?: Prisma.ScanHistoryOrderByRelationAggregateInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryOrderByRelationAggregateInput
+  quickListings?: Prisma.QuickListingOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -265,6 +267,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   saleRecords?: Prisma.SaleRecordListRelationFilter
   scanHistories?: Prisma.ScanHistoryListRelationFilter
   profitCalcHistories?: Prisma.ProfitCalcHistoryListRelationFilter
+  quickListings?: Prisma.QuickListingListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -315,6 +318,7 @@ export type UserCreateInput = {
   saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -335,6 +339,7 @@ export type UserUncheckedCreateInput = {
   saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -355,6 +360,7 @@ export type UserUpdateInput = {
   saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -375,6 +381,7 @@ export type UserUncheckedUpdateInput = {
   saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -586,6 +593,20 @@ export type UserUpdateOneRequiredWithoutProfitCalcHistoriesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProfitCalcHistoriesInput, Prisma.UserUpdateWithoutProfitCalcHistoriesInput>, Prisma.UserUncheckedUpdateWithoutProfitCalcHistoriesInput>
 }
 
+export type UserCreateNestedOneWithoutQuickListingsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutQuickListingsInput, Prisma.UserUncheckedCreateWithoutQuickListingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutQuickListingsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutQuickListingsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutQuickListingsInput, Prisma.UserUncheckedCreateWithoutQuickListingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutQuickListingsInput
+  upsert?: Prisma.UserUpsertWithoutQuickListingsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutQuickListingsInput, Prisma.UserUpdateWithoutQuickListingsInput>, Prisma.UserUncheckedUpdateWithoutQuickListingsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   name?: string | null
@@ -603,6 +624,7 @@ export type UserCreateWithoutAccountsInput = {
   saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -622,6 +644,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -657,6 +680,7 @@ export type UserUpdateWithoutAccountsInput = {
   saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -676,6 +700,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -695,6 +720,7 @@ export type UserCreateWithoutSessionsInput = {
   saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -714,6 +740,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -749,6 +776,7 @@ export type UserUpdateWithoutSessionsInput = {
   saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -768,6 +796,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSubscriptionInput = {
@@ -787,6 +816,7 @@ export type UserCreateWithoutSubscriptionInput = {
   saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSubscriptionInput = {
@@ -806,6 +836,7 @@ export type UserUncheckedCreateWithoutSubscriptionInput = {
   saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSubscriptionInput = {
@@ -841,6 +872,7 @@ export type UserUpdateWithoutSubscriptionInput = {
   saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubscriptionInput = {
@@ -860,6 +892,7 @@ export type UserUncheckedUpdateWithoutSubscriptionInput = {
   saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutActiveSessionsInput = {
@@ -879,6 +912,7 @@ export type UserCreateWithoutActiveSessionsInput = {
   saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutActiveSessionsInput = {
@@ -898,6 +932,7 @@ export type UserUncheckedCreateWithoutActiveSessionsInput = {
   saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutActiveSessionsInput = {
@@ -933,6 +968,7 @@ export type UserUpdateWithoutActiveSessionsInput = {
   saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActiveSessionsInput = {
@@ -952,6 +988,7 @@ export type UserUncheckedUpdateWithoutActiveSessionsInput = {
   saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPurchaseRecordsInput = {
@@ -971,6 +1008,7 @@ export type UserCreateWithoutPurchaseRecordsInput = {
   saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPurchaseRecordsInput = {
@@ -990,6 +1028,7 @@ export type UserUncheckedCreateWithoutPurchaseRecordsInput = {
   saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPurchaseRecordsInput = {
@@ -1025,6 +1064,7 @@ export type UserUpdateWithoutPurchaseRecordsInput = {
   saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPurchaseRecordsInput = {
@@ -1044,6 +1084,7 @@ export type UserUncheckedUpdateWithoutPurchaseRecordsInput = {
   saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSaleRecordsInput = {
@@ -1063,6 +1104,7 @@ export type UserCreateWithoutSaleRecordsInput = {
   purchaseRecords?: Prisma.PurchaseRecordCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSaleRecordsInput = {
@@ -1082,6 +1124,7 @@ export type UserUncheckedCreateWithoutSaleRecordsInput = {
   purchaseRecords?: Prisma.PurchaseRecordUncheckedCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSaleRecordsInput = {
@@ -1117,6 +1160,7 @@ export type UserUpdateWithoutSaleRecordsInput = {
   purchaseRecords?: Prisma.PurchaseRecordUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSaleRecordsInput = {
@@ -1136,6 +1180,7 @@ export type UserUncheckedUpdateWithoutSaleRecordsInput = {
   purchaseRecords?: Prisma.PurchaseRecordUncheckedUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutScanHistoriesInput = {
@@ -1155,6 +1200,7 @@ export type UserCreateWithoutScanHistoriesInput = {
   purchaseRecords?: Prisma.PurchaseRecordCreateNestedManyWithoutUserInput
   saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutScanHistoriesInput = {
@@ -1174,6 +1220,7 @@ export type UserUncheckedCreateWithoutScanHistoriesInput = {
   purchaseRecords?: Prisma.PurchaseRecordUncheckedCreateNestedManyWithoutUserInput
   saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutScanHistoriesInput = {
@@ -1209,6 +1256,7 @@ export type UserUpdateWithoutScanHistoriesInput = {
   purchaseRecords?: Prisma.PurchaseRecordUpdateManyWithoutUserNestedInput
   saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutScanHistoriesInput = {
@@ -1228,6 +1276,7 @@ export type UserUncheckedUpdateWithoutScanHistoriesInput = {
   purchaseRecords?: Prisma.PurchaseRecordUncheckedUpdateManyWithoutUserNestedInput
   saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutProfitCalcHistoriesInput = {
@@ -1247,6 +1296,7 @@ export type UserCreateWithoutProfitCalcHistoriesInput = {
   purchaseRecords?: Prisma.PurchaseRecordCreateNestedManyWithoutUserInput
   saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProfitCalcHistoriesInput = {
@@ -1266,6 +1316,7 @@ export type UserUncheckedCreateWithoutProfitCalcHistoriesInput = {
   purchaseRecords?: Prisma.PurchaseRecordUncheckedCreateNestedManyWithoutUserInput
   saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
   scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProfitCalcHistoriesInput = {
@@ -1301,6 +1352,7 @@ export type UserUpdateWithoutProfitCalcHistoriesInput = {
   purchaseRecords?: Prisma.PurchaseRecordUpdateManyWithoutUserNestedInput
   saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProfitCalcHistoriesInput = {
@@ -1320,6 +1372,103 @@ export type UserUncheckedUpdateWithoutProfitCalcHistoriesInput = {
   purchaseRecords?: Prisma.PurchaseRecordUncheckedUpdateManyWithoutUserNestedInput
   saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
   scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutQuickListingsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  role?: $Enums.UserRole
+  passwordHash?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  activeSessions?: Prisma.ActiveSessionCreateNestedManyWithoutUserInput
+  purchaseRecords?: Prisma.PurchaseRecordCreateNestedManyWithoutUserInput
+  saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
+  scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
+  profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutQuickListingsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  role?: $Enums.UserRole
+  passwordHash?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  activeSessions?: Prisma.ActiveSessionUncheckedCreateNestedManyWithoutUserInput
+  purchaseRecords?: Prisma.PurchaseRecordUncheckedCreateNestedManyWithoutUserInput
+  saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
+  scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
+  profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutQuickListingsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutQuickListingsInput, Prisma.UserUncheckedCreateWithoutQuickListingsInput>
+}
+
+export type UserUpsertWithoutQuickListingsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutQuickListingsInput, Prisma.UserUncheckedUpdateWithoutQuickListingsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutQuickListingsInput, Prisma.UserUncheckedCreateWithoutQuickListingsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutQuickListingsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutQuickListingsInput, Prisma.UserUncheckedUpdateWithoutQuickListingsInput>
+}
+
+export type UserUpdateWithoutQuickListingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  activeSessions?: Prisma.ActiveSessionUpdateManyWithoutUserNestedInput
+  purchaseRecords?: Prisma.PurchaseRecordUpdateManyWithoutUserNestedInput
+  saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
+  scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
+  profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutQuickListingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  activeSessions?: Prisma.ActiveSessionUncheckedUpdateManyWithoutUserNestedInput
+  purchaseRecords?: Prisma.PurchaseRecordUncheckedUpdateManyWithoutUserNestedInput
+  saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
+  scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
+  profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1335,6 +1484,7 @@ export type UserCountOutputType = {
   saleRecords: number
   scanHistories: number
   profitCalcHistories: number
+  quickListings: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1345,6 +1495,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   saleRecords?: boolean | UserCountOutputTypeCountSaleRecordsArgs
   scanHistories?: boolean | UserCountOutputTypeCountScanHistoriesArgs
   profitCalcHistories?: boolean | UserCountOutputTypeCountProfitCalcHistoriesArgs
+  quickListings?: boolean | UserCountOutputTypeCountQuickListingsArgs
 }
 
 /**
@@ -1406,6 +1557,13 @@ export type UserCountOutputTypeCountProfitCalcHistoriesArgs<ExtArgs extends runt
   where?: Prisma.ProfitCalcHistoryWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountQuickListingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.QuickListingWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1425,6 +1583,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   saleRecords?: boolean | Prisma.User$saleRecordsArgs<ExtArgs>
   scanHistories?: boolean | Prisma.User$scanHistoriesArgs<ExtArgs>
   profitCalcHistories?: boolean | Prisma.User$profitCalcHistoriesArgs<ExtArgs>
+  quickListings?: boolean | Prisma.User$quickListingsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1474,6 +1633,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   saleRecords?: boolean | Prisma.User$saleRecordsArgs<ExtArgs>
   scanHistories?: boolean | Prisma.User$scanHistoriesArgs<ExtArgs>
   profitCalcHistories?: boolean | Prisma.User$profitCalcHistoriesArgs<ExtArgs>
+  quickListings?: boolean | Prisma.User$quickListingsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1490,6 +1650,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     saleRecords: Prisma.$SaleRecordPayload<ExtArgs>[]
     scanHistories: Prisma.$ScanHistoryPayload<ExtArgs>[]
     profitCalcHistories: Prisma.$ProfitCalcHistoryPayload<ExtArgs>[]
+    quickListings: Prisma.$QuickListingPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1903,6 +2064,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   saleRecords<T extends Prisma.User$saleRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$saleRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaleRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   scanHistories<T extends Prisma.User$scanHistoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$scanHistoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ScanHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   profitCalcHistories<T extends Prisma.User$profitCalcHistoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$profitCalcHistoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProfitCalcHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  quickListings<T extends Prisma.User$quickListingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$quickListingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuickListingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2518,6 +2680,30 @@ export type User$profitCalcHistoriesArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.ProfitCalcHistoryScalarFieldEnum | Prisma.ProfitCalcHistoryScalarFieldEnum[]
+}
+
+/**
+ * User.quickListings
+ */
+export type User$quickListingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the QuickListing
+   */
+  select?: Prisma.QuickListingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the QuickListing
+   */
+  omit?: Prisma.QuickListingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuickListingInclude<ExtArgs> | null
+  where?: Prisma.QuickListingWhereInput
+  orderBy?: Prisma.QuickListingOrderByWithRelationInput | Prisma.QuickListingOrderByWithRelationInput[]
+  cursor?: Prisma.QuickListingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.QuickListingScalarFieldEnum | Prisma.QuickListingScalarFieldEnum[]
 }
 
 /**

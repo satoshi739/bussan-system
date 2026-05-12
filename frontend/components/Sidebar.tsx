@@ -47,6 +47,8 @@ const navGroups = [
     items: [
       { href: "/purchases", label: "仕入れ管理",   icon: ShoppingCart },
       { href: "/listings",  label: "出品管理",     icon: Tag },
+      { href: "/listings/quick", label: "出品作成（AI）", icon: Sparkles },
+      { href: "/listings/quick/history", label: "出品履歴",  icon: BarChart2 },
       { href: "/fba",       label: "FBA 納品",     icon: Package },
       { href: "/inventory", label: "在庫管理",     icon: Warehouse },
     ],

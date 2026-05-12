@@ -62,7 +62,8 @@ export const ModelName = {
   ScanHistory: 'ScanHistory',
   ProfitCalcHistory: 'ProfitCalcHistory',
   StripeEvent: 'StripeEvent',
-  ContentItem: 'ContentItem'
+  ContentItem: 'ContentItem',
+  QuickListing: 'QuickListing'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -247,6 +248,36 @@ export const ContentItemScalarFieldEnum = {
 } as const
 
 export type ContentItemScalarFieldEnum = (typeof ContentItemScalarFieldEnum)[keyof typeof ContentItemScalarFieldEnum]
+
+
+export const QuickListingScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  sourceUrl: 'sourceUrl',
+  productName: 'productName',
+  buyPrice: 'buyPrice',
+  estPrice: 'estPrice',
+  condition: 'condition',
+  category: 'category',
+  notes: 'notes',
+  weightG: 'weightG',
+  sizeCode: 'sizeCode',
+  imageUrls: 'imageUrls',
+  aiTitle: 'aiTitle',
+  aiDescription: 'aiDescription',
+  aiCategories: 'aiCategories',
+  aiKeywords: 'aiKeywords',
+  aiSuggestedPrice: 'aiSuggestedPrice',
+  aiProfitEstimate: 'aiProfitEstimate',
+  aiShippingEstimate: 'aiShippingEstimate',
+  aiWarnings: 'aiWarnings',
+  targetPlatform: 'targetPlatform',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type QuickListingScalarFieldEnum = (typeof QuickListingScalarFieldEnum)[keyof typeof QuickListingScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -36,3 +36,14 @@ export const SubscriptionStatus = {
 } as const
 
 export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus]
+
+
+export const QuickListingStatus = {
+  DRAFT: 'DRAFT',
+  CONFIRMED: 'CONFIRMED',
+  CSV_EXPORTED: 'CSV_EXPORTED',
+  API_PENDING: 'API_PENDING',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type QuickListingStatus = (typeof QuickListingStatus)[keyof typeof QuickListingStatus]
