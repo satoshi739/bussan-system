@@ -44,6 +44,7 @@ const COMPARISON = [
   { label: "AIアドバイス",           free: "一部",       lite: "基本",       standard: "全項目",   pro: "全項目"   },
   { label: "利益計算（送料・手数料込）",  free: true,        lite: true,         standard: true,       pro: true       },
   { label: "対応プラットフォーム",     free: "基本",       lite: "メルカリ/Amazon", standard: "メルカリ/Amazon/eBay", pro: "全プラットフォーム" },
+  { label: "AI出品作成（確認付きワンクリック出品）", free: "月3件", lite: "月20件", standard: "月200件", pro: "無制限" },
   { label: "履歴保存",               free: "3件",         lite: "50件",       standard: "無制限",   pro: "無制限"   },
   { label: "相場検索",               free: false,         lite: true,         standard: true,       pro: true       },
   { label: "ウォッチリスト",          free: false,         lite: false,        standard: true,       pro: true       },
@@ -61,6 +62,10 @@ const FAQS = [
   {
     q: "Liteプランとはどう違うのですか？",
     a: "Liteは月100スキャン・基本AIアドバイスのエントリープランです。StandardはAIアドバイスが全項目に広がり、ウォッチリスト・CSV出力など本格的な機能が使えます。月500スキャン以上使いたい方や、より精度の高い仕入れ判断をしたい方はStandardが最適です。",
+  },
+  {
+    q: "AI出品作成（確認付きワンクリック出品）はどのプランで使えますか？",
+    a: "Free・Lite・Standard・Pro 全プランでお試しいただけます（プランごとに月あたりの作成上限あり）。商品名・URL・画像のいずれかを入力するとAIがタイトル・商品説明・推奨販売価格・利益見込み・送料目安・出品時の注意点まで自動生成し、内容をご確認のうえワンクリックで出品準備、またはCSVでの書き出しが可能です。勝手に出品されることはなく、必ずユーザーの確認を挟む設計です。",
   },
   {
     q: "途中でプランを変更できますか？",
@@ -215,6 +220,7 @@ export default function PricingPage() {
               { icon: "🛡️", text: "赤字仕入れを防ぐ" },
               { icon: "⚡", text: "3秒で買い/注意/見送り判定" },
               { icon: "🤖", text: "AIが利益を計算" },
+              { icon: "✍️", text: "AIがそのまま出品文を作成" },
               { icon: "🎁", text: "7日間無料トライアル" },
             ].map(({ icon, text }) => (
               <span key={text} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(201,169,107,0.08)", border: "1px solid rgba(201,169,107,0.18)", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: P.t2, fontWeight: 600 }}>
@@ -338,7 +344,7 @@ export default function PricingPage() {
             </div>
             {/* 価値訴求 */}
             <div style={{ background: "rgba(201,169,107,0.06)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: P.t2, lineHeight: 1.6 }}>
-              赤字仕入れ1回（想定損失¥10,000〜）を防ぐだけで、月額代を回収できます。※モデルケース
+              赤字仕入れ1回（想定損失¥10,000〜）を防ぐ、または出品作業を月10時間短縮するだけで、月額代を十分に回収できます。※モデルケース
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: "auto", paddingBottom: 24 }}>
               {PLANS.STANDARD.features.map((f) => (
