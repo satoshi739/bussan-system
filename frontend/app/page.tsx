@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState, useSyncExternalStore, lazy, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, getTodayCounts, type Dashboard, type Purchase, type TodayCounts } from "@/lib/api";
 import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Search, Bot, Camera, Lightbulb, Flame, Truck, MessageCircle } from "lucide-react";
@@ -94,6 +94,87 @@ const SAMPLE_PROFIT_CANDIDATES = [
   { id: 2, name: "ポケモンカード 旧裏面 まとめ 16枚", buy: 2800, sell: 6500,  profit: 3200, rate: 49, stars: 4 },
   { id: 3, name: "レゴ テクニック 42083 中古",        buy: 8500, sell: 18900, profit: 9200, rate: 49, stars: 4 },
 ];
+
+// ── Simple Start — おばちゃんでも分かる「まずはこれから」カード ────
+const SIMPLE_START_KEY = "bcg_simple_start_dismissed";
+const noop = () => () => {};
+function SimpleStartCard() {
+  // SSR時は表示せず、CSR時のみlocalStorage確認 — React 19のuseSyncExternalStore で
+  const hidden = useSyncExternalStore(
+    (cb) => {
+      if (typeof window === "undefined") return noop();
+      window.addEventListener("storage", cb);
+      return () => window.removeEventListener("storage", cb);
+    },
+    () => (typeof window === "undefined" ? true : localStorage.getItem(SIMPLE_START_KEY) === "1"),
+    () => true,
+  );
+  const [forceHidden, setForceHidden] = useState(false);
+  const dismiss = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SIMPLE_START_KEY, "1");
+      // 別タブにも通知する用（同一タブにはstorageイベントが飛ばないのでforce）
+      window.dispatchEvent(new StorageEvent("storage", { key: SIMPLE_START_KEY }));
+    }
+    setForceHidden(true);
+  };
+  if (hidden || forceHidden) return null;
+  return (
+    <div style={{
+      position: "relative",
+      background: `linear-gradient(135deg, ${C.gold} 0%, ${C.azure} 100%)`,
+      borderRadius: 28,
+      padding: "32px 28px 28px",
+      marginBottom: 20,
+      boxShadow: "0 10px 28px rgba(0,111,230,0.22)",
+      color: "#fff",
+      overflow: "hidden",
+    }}>
+      <button
+        onClick={dismiss}
+        aria-label="このご案内を閉じる"
+        style={{
+          position: "absolute", top: 14, right: 14,
+          width: 34, height: 34, borderRadius: 17,
+          background: "rgba(255,255,255,0.20)",
+          border: "none", color: "#fff",
+          cursor: "pointer", fontSize: 20, lineHeight: 1,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >×</button>
+
+      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.14em", opacity: 0.92, marginBottom: 10 }}>
+        ✨ まずはこれから
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 800, marginBottom: 10, letterSpacing: "-0.02em", lineHeight: 1.3 }}>
+        商品を1つだけ、<br />調べてみましょう
+      </div>
+      <div style={{ fontSize: 14, opacity: 0.95, marginBottom: 22, lineHeight: 1.7 }}>
+        商品の名前を入れるだけ。<br />
+        「<b>いくら儲かるか</b>」が、45秒でわかります。
+      </div>
+
+      <Link href="/scanner" style={{ textDecoration: "none", display: "inline-block" }}>
+        <span style={{
+          background: "#fff", color: C.gold,
+          borderRadius: 20,
+          padding: "20px 36px",
+          fontSize: 18, fontWeight: 800,
+          cursor: "pointer",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.14)",
+          display: "inline-flex", alignItems: "center", gap: 10,
+          letterSpacing: "-0.01em",
+        }}>
+          <Search size={20} /> 商品を1つ調べる
+        </span>
+      </Link>
+
+      <div style={{ fontSize: 11, opacity: 0.78, marginTop: 16 }}>
+        ※ 困ったときは、左メニューの「困ったとき」を押してください
+      </div>
+    </div>
+  );
+}
 
 // ── Skeleton ─────────────────────────────────────────────
 // ── Morning Briefing — 朝のAI挨拶 + 今日のアクション ────────
@@ -794,6 +875,9 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── まずはこれから（おばちゃん向け超シンプル導線） ───── */}
+      {!isGuest && <SimpleStartCard />}
 
       {/* Onboarding Checklist */}
       {!isEmpty && <OnboardingChecklist />}

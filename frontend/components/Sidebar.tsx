@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown, Crown, Sparkles, Zap, Award, Calendar, Megaphone } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
@@ -15,76 +15,109 @@ const GROUP_LABEL = "var(--text-3)";
 const PLAN_LABELS: Record<string, string> = { FREE: "フリー", LITE: "Lite", STANDARD: "Standard", PRO: "Pro" };
 const PLAN_COLORS: Record<string, string> = { FREE: T.t3, LITE: "#7eb0e8", STANDARD: T.gold, PRO: T.goldLt };
 
+// 全機能を見せる「ふつうモード」のナビ — おばちゃん語に書き換え済み
 const navGroups = [
   {
-    label: "メイン",
+    label: "ホーム",
     defaultCollapsed: false,
     items: [
-      { href: "/",             label: "ダッシュボード",   icon: LayoutDashboard },
-      { href: "/pipeline",     label: "自動パイプライン", icon: Zap },
-      { href: "/weekly",       label: "今週の振り返り",   icon: Calendar },
-      { href: "/achievements", label: "達成バッジ",       icon: Award },
-      { href: "/report",       label: "レポート",         icon: BarChart2 },
-      { href: "/ai",           label: "AI アシスタント",  icon: Bot },
-      { href: "/monetize",     label: "コンテンツ生成",   icon: Megaphone },
-      { href: "/alerts",       label: "価格アラート",     icon: Bell },
+      { href: "/",             label: "ホーム",            icon: LayoutDashboard },
+      { href: "/pipeline",     label: "自動おまかせ",       icon: Zap },
+      { href: "/weekly",       label: "今週どうだった？",   icon: Calendar },
+      { href: "/achievements", label: "できたこと",         icon: Award },
+      { href: "/report",       label: "数字まとめ",         icon: BarChart2 },
+      { href: "/ai",           label: "AIに相談",           icon: Bot },
+      { href: "/monetize",     label: "SNS投稿のもと",      icon: Megaphone },
+      { href: "/alerts",       label: "値段の変化通知",     icon: Bell },
     ],
   },
   {
-    label: "商品リサーチ",
+    label: "商品を探す",
     defaultCollapsed: false,
     items: [
-      { href: "/discover",    label: "今日のおすすめ",    icon: Sparkles },
-      { href: "/scanner",     label: "利益スキャナー",    icon: Radar },
-      { href: "/barcode",     label: "バーコードスキャン", icon: ScanLine },
-      { href: "/search",      label: "相場検索",          icon: Search },
-      { href: "/competition", label: "競合分析",          icon: Target },
-      { href: "/watchlist",   label: "ウォッチリスト",    icon: Eye },
+      { href: "/discover",    label: "今日のおすすめ商品",   icon: Sparkles },
+      { href: "/scanner",     label: "商品の利益を調べる",   icon: Radar },
+      { href: "/barcode",     label: "バーコードで調べる",   icon: ScanLine },
+      { href: "/search",      label: "いくらで売れてるか",   icon: Search },
+      { href: "/competition", label: "ライバルを調べる",     icon: Target },
+      { href: "/watchlist",   label: "気になる商品",         icon: Eye },
     ],
   },
   {
-    label: "FBA 業務",
+    label: "売る作業",
     defaultCollapsed: false,
     items: [
-      { href: "/purchases", label: "仕入れ管理",   icon: ShoppingCart },
-      { href: "/listings",  label: "出品管理",     icon: Tag },
-      { href: "/listings/quick", label: "出品作成（AI）", icon: Sparkles },
-      { href: "/listings/quick/history", label: "出品履歴",  icon: BarChart2 },
-      { href: "/fba",       label: "FBA 納品",     icon: Package },
-      { href: "/inventory", label: "在庫管理",     icon: Warehouse },
+      { href: "/purchases", label: "買った商品の記録",   icon: ShoppingCart },
+      { href: "/listings",  label: "出品中の商品",       icon: Tag },
+      { href: "/listings/quick", label: "AIで出品文を作る", icon: Sparkles },
+      { href: "/listings/quick/history", label: "過去の出品",  icon: BarChart2 },
+      { href: "/fba",       label: "Amazon倉庫に送る",   icon: Package },
+      { href: "/inventory", label: "在庫の一覧",         icon: Warehouse },
     ],
   },
   {
-    label: "AI エージェント",
+    label: "AIお手伝い",
     defaultCollapsed: true,
     items: [
-      { href: "/agents",           label: "AI CEO",          icon: Brain },
-      { href: "/agents/approvals", label: "仕入れ承認",      icon: CheckCircle },
-      { href: "/agents/sns",       label: "SNS コンテンツ",  icon: Share2 },
-      { href: "/agents/monitor",   label: "自動監視",        icon: Activity },
-      { href: "/agents/memory",    label: "エージェント記憶", icon: Database },
+      { href: "/agents",           label: "おまかせAI",          icon: Brain },
+      { href: "/agents/approvals", label: "仕入れていいか確認", icon: CheckCircle },
+      { href: "/agents/sns",       label: "SNSの投稿",          icon: Share2 },
+      { href: "/agents/monitor",   label: "自動で見張り",       icon: Activity },
+      { href: "/agents/memory",    label: "AIの記憶",           icon: Database },
     ],
   },
   {
-    label: "分析・管理",
+    label: "数字を見る",
     defaultCollapsed: true,
     items: [
-      { href: "/sales",             label: "売上履歴",    icon: TrendingUp },
-      { href: "/platform-analysis", label: "PF 分析",    icon: PieChart   },
-      { href: "/calculator",        label: "利益計算",   icon: Calculator },
-      { href: "/fulfillment",       label: "外注管理",   icon: Truck      },
+      { href: "/sales",             label: "売れた商品",     icon: TrendingUp },
+      { href: "/platform-analysis", label: "お店ごとの売上", icon: PieChart   },
+      { href: "/calculator",        label: "利益を計算",     icon: Calculator },
+      { href: "/fulfillment",       label: "外注スタッフ",   icon: Truck      },
     ],
   },
 ];
 
-// モバイル下部5タブ
-const BOTTOM_TABS = [
-  { href: "/",          label: "ホーム",  icon: LayoutDashboard },
-  { href: "/scanner",   label: "検索",    icon: Search },
-  { href: "/barcode",   label: "スキャン", icon: ScanLine },
-  { href: "/purchases", label: "仕入れ",  icon: ShoppingCart },
-  { href: "/support",   label: "ヘルプ",  icon: HelpCircle },
+// かんたんモード — おばちゃんでも迷わない最小ナビ
+const EASY_NAV = [
+  { href: "/",          label: "ホーム",            icon: LayoutDashboard },
+  { href: "/scanner",   label: "商品の利益を調べる", icon: Radar },
+  { href: "/purchases", label: "買った商品の記録",   icon: ShoppingCart },
+  { href: "/support",   label: "困ったとき",         icon: HelpCircle },
 ];
+
+// モバイル下部5タブ（おばちゃん語に整理）
+const BOTTOM_TABS = [
+  { href: "/",          label: "ホーム",      icon: LayoutDashboard },
+  { href: "/scanner",   label: "利益を調べる", icon: Search },
+  { href: "/barcode",   label: "バーコード",   icon: ScanLine },
+  { href: "/purchases", label: "記録",        icon: ShoppingCart },
+  { href: "/support",   label: "困った時",    icon: HelpCircle },
+];
+
+// ── かんたんモード state（localStorage で記憶） ─────────────
+const EASY_MODE_KEY = "bcg_easy_mode";
+const noop = () => () => {};
+function useEasyMode() {
+  return useSyncExternalStore(
+    (cb) => {
+      if (typeof window === "undefined") return noop();
+      window.addEventListener("storage", cb);
+      window.addEventListener("bcg-easy-mode-change", cb);
+      return () => {
+        window.removeEventListener("storage", cb);
+        window.removeEventListener("bcg-easy-mode-change", cb);
+      };
+    },
+    () => (typeof window === "undefined" ? false : localStorage.getItem(EASY_MODE_KEY) === "1"),
+    () => false,
+  );
+}
+function setEasyMode(on: boolean) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(EASY_MODE_KEY, on ? "1" : "0");
+  window.dispatchEvent(new Event("bcg-easy-mode-change"));
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -92,6 +125,7 @@ export default function Sidebar() {
   const { plan, error: planError } = usePlan();
   const { theme, setTheme } = useTheme();
   const [mobileMenu, setMobileMenu] = useState(false);
+  const easyMode = useEasyMode();
   const [collapsed, setCollapsed] = useState<Set<string>>(
     () => new Set(navGroups.filter(g => g.defaultCollapsed).map(g => g.label))
   );
@@ -151,9 +185,92 @@ export default function Sidebar() {
         </button>
       </div>
 
+      {/* ── かんたんモード トグル ── */}
+      <div style={{ padding: "8px 10px 4px" }}>
+        <button
+          onClick={() => setEasyMode(!easyMode)}
+          aria-pressed={easyMode}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            width: "100%",
+            background: easyMode ? `${T.gold}14` : "transparent",
+            border: `1px solid ${easyMode ? T.gold + "60" : "var(--border)"}`,
+            borderRadius: 12,
+            padding: "8px 10px",
+            cursor: "pointer",
+            transition: "all 0.15s",
+          }}
+          title={easyMode ? "かんたんモードON — クリックで全機能表示" : "かんたんモードOFF — クリックで4項目に絞る"}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <Sparkles size={12} color={easyMode ? T.gold : "var(--text-3)"} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: easyMode ? T.gold : "var(--text-2)", letterSpacing: "0.04em" }}>
+              かんたんモード
+            </span>
+          </span>
+          <span style={{
+            display: "inline-flex",
+            width: 28, height: 16,
+            borderRadius: 10,
+            background: easyMode ? T.gold : "var(--border-strong)",
+            position: "relative",
+            transition: "background 0.2s",
+          }}>
+            <span style={{
+              position: "absolute",
+              top: 2,
+              left: easyMode ? 14 : 2,
+              width: 12, height: 12,
+              borderRadius: 6,
+              background: "#fff",
+              transition: "left 0.2s",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            }} />
+          </span>
+        </button>
+      </div>
+
       {/* ── ナビゲーション ── */}
       <div style={{ flex: 1, overflowY: "auto", padding: "4px 8px" }}>
-        {navGroups.map((group, gi) => {
+        {easyMode ? (
+          <div>
+            {EASY_NAV.map(({ href, label, icon: Icon }) => {
+              const active = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  title={label}
+                  className={active ? "" : "nav-link"}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "12px 12px",
+                    borderRadius: 14,
+                    fontWeight: active ? 700 : 600,
+                    fontSize: 14,
+                    color:      active ? "var(--text)" : "var(--text-2)",
+                    background: active ? "var(--nav-active)" : "transparent",
+                    border:     active ? "1px solid var(--border-strong)" : "1px solid transparent",
+                    textDecoration: "none",
+                    transition: "all 0.15s",
+                    marginBottom: 4,
+                  }}
+                >
+                  <Icon size={16} style={{ flexShrink: 0 }} color={active ? T.gold : "var(--text-3)"} />
+                  <span>{label}</span>
+                  {active && (
+                    <div style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: T.gold, flexShrink: 0 }} />
+                  )}
+                </Link>
+              );
+            })}
+            <div style={{ marginTop: 16, padding: "10px 12px", background: "var(--surface-2, rgba(0,0,0,0.03))", borderRadius: 12, fontSize: 11, color: "var(--text-3)", lineHeight: 1.6 }}>
+              💡 慣れてきたら、上のスイッチをOFFにすると全機能が見られます
+            </div>
+          </div>
+        ) : navGroups.map((group, gi) => {
           const isCollapsed = collapsed.has(group.label);
           const hasActive = group.items.some(i => i.href === pathname);
           return (
@@ -371,7 +488,75 @@ export default function Sidebar() {
             overflowY: "auto",
           }}>
             <div style={{ width: 36, height: 3, background: "var(--text-4)", borderRadius: 2, margin: "0 auto 16px" }} />
-            {navGroups.map((group) => (
+
+            {/* かんたんモード トグル（モバイル） */}
+            <button
+              onClick={() => setEasyMode(!easyMode)}
+              aria-pressed={easyMode}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                width: "100%",
+                background: easyMode ? `${T.gold}14` : "rgba(255,255,255,0.03)",
+                border: `1px solid ${easyMode ? T.gold + "60" : "var(--border)"}`,
+                borderRadius: 14,
+                padding: "12px 14px",
+                marginBottom: 12,
+                cursor: "pointer",
+              }}
+            >
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Sparkles size={14} color={easyMode ? T.gold : "var(--text-3)"} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: easyMode ? T.gold : "var(--text-2)" }}>
+                  かんたんモード {easyMode ? "ON" : "OFF"}
+                </span>
+              </span>
+              <span style={{
+                display: "inline-flex",
+                width: 32, height: 18,
+                borderRadius: 12,
+                background: easyMode ? T.gold : "var(--border-strong)",
+                position: "relative",
+              }}>
+                <span style={{
+                  position: "absolute",
+                  top: 2,
+                  left: easyMode ? 16 : 2,
+                  width: 14, height: 14,
+                  borderRadius: 7,
+                  background: "#fff",
+                  transition: "left 0.2s",
+                }} />
+              </span>
+            </button>
+
+            {easyMode ? (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {EASY_NAV.map(({ href, label, icon: Icon }) => {
+                    const active = pathname === href;
+                    return (
+                      <Link
+                        key={href}
+                        href={href}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          padding: "14px 14px",
+                          borderRadius: 14,
+                          fontSize: 14, fontWeight: active ? 700 : 600,
+                          color: active ? "var(--text)" : "var(--text-2)",
+                          background: active ? "var(--nav-active)" : "rgba(255,255,255,0.03)",
+                          border: active ? "1px solid var(--border-strong)" : "1px solid var(--border)",
+                          textDecoration: "none", minHeight: 56,
+                        }}
+                      >
+                        <Icon size={15} color={active ? T.gold : "var(--text-3)"} />
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : navGroups.map((group) => (
               <div key={group.label} style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 9, fontWeight: 700, color: GROUP_LABEL, letterSpacing: "0.14em", textTransform: "uppercase", padding: "4px 8px 6px" }}>
                   {group.label}
