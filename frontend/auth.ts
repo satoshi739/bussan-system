@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { prismaAuth } from "@/lib/prisma-auth";
+import { sendOnboardingWelcome } from "@/lib/email";
 import { authConfig } from "./auth.config";
 
 const MAX_SESSIONS = 2;
@@ -162,6 +163,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
         } catch {
           // already exists
+        }
+      }
+      // オンボメール送信（失敗してもユーザー登録は止めない）
+      if (user.email) {
+        try {
+          await sendOnboardingWelcome({ to: user.email, userName: user.name });
+        } catch (error) {
+          console.error("[auth] sendOnboardingWelcome failed:", error);
         }
       }
     },
