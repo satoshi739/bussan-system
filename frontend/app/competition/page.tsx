@@ -54,10 +54,10 @@ export default function CompetitionPage() {
           onClick={analyze}
           disabled={loading}
           style={{
-            background: loading ? "rgba(20,18,8,0.6)" : "linear-gradient(135deg,#1e1608,#2a1e08)",
-            border: "1px solid rgba(212,175,55,0.4)",
+            background: loading ? "var(--surface-2)" : "var(--blue)",
+            border: "1px solid var(--border-strong)",
             borderRadius: 10,
-            color: loading ? "#8A8278" : "#D4AF37",
+            color: loading ? "var(--text-3)" : "#fff",
             padding: "13px 32px",
             fontSize: 14,
             fontWeight: 800,

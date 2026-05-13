@@ -55,7 +55,7 @@ export default function VoiceAssistant() {
         style={{
           position: "fixed", bottom: 88, right: 24, zIndex: 50,
           width: 56, height: 56, borderRadius: "50%",
-          background: "linear-gradient(135deg, #006FE6, #40AADF)",
+          background: "var(--blue)",
           border: "none", color: "#fff",
           display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer",
@@ -83,7 +83,7 @@ export default function VoiceAssistant() {
         >
           <div onClick={e => e.stopPropagation()} style={{
             width: "100%", maxWidth: 480,
-            background: "rgba(255,255,255,0.98)",
+            background: "var(--surface)",
             borderRadius: 28,
             padding: "32px 28px 24px",
             boxShadow: "0 24px 80px rgba(0,0,0,0.30)",
@@ -159,8 +159,8 @@ export default function VoiceAssistant() {
                 style={{
                   marginTop: 24,
                   padding: "14px 32px",
-                  background: listening ? "rgba(0,0,0,0.06)" : "#080D1C",
-                  color: listening ? "rgba(8,13,28,0.55)" : "#fff",
+                  background: listening ? "var(--surface-2)" : "var(--blue)",
+                  color: listening ? "var(--text-3)" : "#fff",
                   border: "none", borderRadius: 999, fontSize: 14, fontWeight: 700,
                   cursor: listening ? "default" : "pointer",
                   display: "inline-flex", alignItems: "center", gap: 8,

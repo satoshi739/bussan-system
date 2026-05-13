@@ -1296,7 +1296,7 @@ function ScannerPageContent() {
                     </a>
                   )}
                   <button onClick={() => openListing(item)}
-                    style={{ flex: 1.4, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "#007AFF", border: "none", borderRadius: 8, color: "#fff", padding: "9px 0", fontSize: 12, fontWeight: 600, cursor: "pointer", letterSpacing: "-0.01em" }}>
+                    style={{ flex: 1.4, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "var(--blue)", border: "none", borderRadius: 8, color: "#fff", padding: "9px 0", fontSize: 12, fontWeight: 600, cursor: "pointer", letterSpacing: "-0.01em" }}>
                     1クリック自動出品
                   </button>
                   <button onClick={() => openRouteMatrix(item)}

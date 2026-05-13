@@ -159,7 +159,7 @@ export default function DiscoverPage() {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            style={{ background: "#D4AF37", border: "none", borderRadius: 8, padding: "10px 20px", color: "#000", fontWeight: 800, fontSize: 14, cursor: "pointer" }}
+            style={{ background: "var(--blue)", border: "none", borderRadius: 8, padding: "10px 20px", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}
           >
             {refreshing ? "スキャン中..." : "今すぐスキャン"}
           </button>

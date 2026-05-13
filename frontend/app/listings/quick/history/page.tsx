@@ -123,7 +123,7 @@ export default function QuickListingHistoryPage() {
           </div>
         </div>
         <button onClick={() => router.push("/listings/quick")}
-          style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#006FE6,#3B8EEA)", border: "none", borderRadius: 10, color: "#fff", padding: "10px 18px", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>
+          style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--blue)", border: "none", borderRadius: 10, color: "#fff", padding: "10px 18px", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>
           <Plus size={14} /> 新規出品作成
         </button>
       </div>
@@ -160,7 +160,7 @@ export default function QuickListingHistoryPage() {
             AIが商品情報から出品文を自動生成します。まずは1件作ってみましょう。
           </div>
           <button onClick={() => router.push("/listings/quick")}
-            style={{ background: "linear-gradient(135deg,#006FE6,#3B8EEA)", border: "none", borderRadius: 9, color: "#fff", padding: "10px 22px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+            style={{ background: "var(--blue)", border: "none", borderRadius: 9, color: "#fff", padding: "10px 22px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
             出品作成を開始 →
           </button>
         </div>

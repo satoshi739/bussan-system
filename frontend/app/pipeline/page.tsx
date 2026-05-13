@@ -15,23 +15,23 @@ import {
 //  Design Tokens — Light Mode: White × iOS Blue
 // ─────────────────────────────────────────────────────────
 const C = {
-  bg0: "#EEF2FA",
-  bg1: "#FFFFFF",
-  bg2: "#F5F8FF",
-  bg3: "#E4ECFA",
-  t1: "#080D1C",
-  t2: "rgba(8,13,28,0.75)",
-  t3: "rgba(8,13,28,0.55)",
-  t4: "rgba(8,13,28,0.30)",
-  blue: "#006FE6",
-  blueLt: "#3B8EEA",
-  blueDm: "#004EB0",
-  azure: "#40AADF",
+  bg0: "var(--bg)",
+  bg1: "var(--surface)",
+  bg2: "var(--surface-2)",
+  bg3: "var(--surface-2)",
+  t1: "var(--text)",
+  t2: "var(--text-2)",
+  t3: "var(--text-3)",
+  t4: "var(--text-4)",
+  blue: "var(--blue)",
+  blueLt: "var(--blue-lt)",
+  blueDm: "var(--blue-dm)",
+  azure: "var(--blue-lt)",
   up: "#1E9C3C",
   dn: "#E02E24",
   warn: "#E88500",
-  bd: "rgba(0,0,0,0.13)",
-  bdSub: "rgba(0,0,0,0.06)",
+  bd: "var(--border)",
+  bdSub: "var(--border-sub)",
 };
 
 const card = (extra?: React.CSSProperties): React.CSSProperties => ({
@@ -1124,14 +1124,14 @@ function Sparkline({ values, highlight }: { values: number[]; highlight?: number
     <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 80 }} preserveAspectRatio="none">
       <defs>
         <linearGradient id="spark" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#006FE6" stopOpacity={0.30} />
-          <stop offset="100%" stopColor="#006FE6" stopOpacity={0} />
+          <stop offset="0%" stopColor="var(--blue)" stopOpacity={0.30} />
+          <stop offset="100%" stopColor="var(--blue)" stopOpacity={0} />
         </linearGradient>
       </defs>
       <path d={area} fill="url(#spark)" />
-      <path d={path} fill="none" stroke="#006FE6" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+      <path d={path} fill="none" stroke="var(--blue)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
       {values.map((v, i) => (
-        <circle key={i} cx={xs(i)} cy={ys(v)} r={2} fill="#006FE6" />
+        <circle key={i} cx={xs(i)} cy={ys(v)} r={2} fill="var(--blue)" />
       ))}
       {highlight && (
         <line x1={pad} x2={w - pad} y1={ys(highlight)} y2={ys(highlight)} stroke="#1E9C3C" strokeDasharray="4 4" strokeWidth={1.5} />

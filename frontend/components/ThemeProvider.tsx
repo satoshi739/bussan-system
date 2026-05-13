@@ -5,10 +5,10 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 export type Theme = "light" | "dark" | "green" | "purple";
 
 export const THEMES: { id: Theme; label: string; color: string; bg: string }[] = [
-  { id: "light",  label: "ブルー",    color: "#006FE6", bg: "#EEF2FA" },
-  { id: "green",  label: "グリーン",  color: "#009955", bg: "#EDF7F2" },
-  { id: "purple", label: "ラベンダー", color: "#6C35E0", bg: "#F2EEFF" },
-  { id: "dark",   label: "ナイト",    color: "#4DA3FF", bg: "#0b0c12" },
+  { id: "light",  label: "ブルー",    color: "#3D6FA8", bg: "#F4F2EC" },
+  { id: "green",  label: "グリーン",  color: "#5C8A6E", bg: "#F2F4EE" },
+  { id: "purple", label: "ラベンダー", color: "#7866A8", bg: "#F0EDF5" },
+  { id: "dark",   label: "ナイト",    color: "#7AA8D4", bg: "#1E1C24" },
 ];
 
 interface ThemeContextValue {

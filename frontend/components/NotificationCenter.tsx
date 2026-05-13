@@ -57,9 +57,9 @@ export default function NotificationCenter() {
         aria-label="通知"
         style={{
           width: 40, height: 40, borderRadius: "50%",
-          background: open ? "rgba(0,111,230,0.10)" : "rgba(255,255,255,0.95)",
-          border: "1px solid rgba(0,0,0,0.10)",
-          color: open ? "#006FE6" : "rgba(8,13,28,0.75)",
+          background: open ? "var(--nav-active)" : "var(--surface)",
+          border: "1px solid var(--border)",
+          color: open ? "var(--blue)" : "var(--text-2)",
           display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer", position: "relative",
           boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
@@ -83,7 +83,7 @@ export default function NotificationCenter() {
         <div style={{
           position: "absolute", top: 50, right: 0,
           width: 380, maxWidth: "calc(100vw - 32px)",
-          background: "#fff",
+          background: "var(--surface)",
           borderRadius: 18,
           boxShadow: "0 16px 48px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.06)",
           border: "1px solid rgba(0,0,0,0.06)",
@@ -93,11 +93,11 @@ export default function NotificationCenter() {
           {/* Header */}
           <div style={{ padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#080D1C", letterSpacing: "-0.01em" }}>通知</div>
-              <div style={{ fontSize: 11, color: "rgba(8,13,28,0.55)", marginTop: 1 }}>{unread > 0 ? `${unread}件の未読` : "すべて既読"}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", letterSpacing: "-0.01em" }}>通知</div>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 1 }}>{unread > 0 ? `${unread}件の未読` : "すべて既読"}</div>
             </div>
             {unread > 0 && (
-              <button onClick={markAllRead} style={{ background: "transparent", border: "none", color: "#006FE6", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+              <button onClick={markAllRead} style={{ background: "transparent", border: "none", color: "var(--blue)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
                 <Check size={12} /> すべて既読
               </button>
             )}

@@ -122,7 +122,7 @@ export default function SalesPage() {
         .sale-row:hover { background: rgba(212,175,55,0.05) !important; border-color: rgba(212,175,55,0.38) !important; }
         .sale-row { transition: all 0.15s; }
         .sort-opt:hover { background: rgba(212,175,55,0.08) !important; }
-        .ptab:hover { border-color: rgba(212,175,55,0.35) !important; color: #C8C0B0 !important; }
+        .ptab:hover { border-color: var(--border-strong) !important; color: var(--text-2) !important; }
         @media (max-width: 768px) {
           .sales-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px; }
           .sales-kpi-grid { grid-template-columns: repeat(2,1fr) !important; }

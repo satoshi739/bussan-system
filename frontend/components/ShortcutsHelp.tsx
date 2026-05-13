@@ -67,7 +67,7 @@ export default function ShortcutsHelp() {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: "#fff",
+          background: "var(--surface)",
           borderRadius: 22,
           padding: "28px 32px 24px",
           maxWidth: 560, width: "100%",
@@ -88,8 +88,8 @@ export default function ShortcutsHelp() {
         ><X size={16} color="rgba(8,13,28,0.55)" /></button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-          <Keyboard size={20} color="#006FE6" />
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#080D1C", letterSpacing: "-0.02em" }}>キーボードショートカット</div>
+          <Keyboard size={20} color="var(--blue)" />
+          <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text)", letterSpacing: "-0.02em" }}>キーボードショートカット</div>
         </div>
         <div style={{ fontSize: 13, color: "rgba(8,13,28,0.55)", marginBottom: 24 }}>マウス無しでも全機能を素早く操作</div>
 

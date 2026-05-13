@@ -4,18 +4,18 @@ import { Award, Lock, Sparkles, TrendingUp, ShoppingBag, Package, Star, Zap, Fla
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 
 const C = {
-  bg0: "#EEF2FA",
-  bg1: "#FFFFFF",
-  bg2: "#F5F8FF",
-  t1: "#080D1C",
-  t2: "rgba(8,13,28,0.75)",
-  t3: "rgba(8,13,28,0.55)",
-  t4: "rgba(8,13,28,0.30)",
-  blue: "#006FE6",
+  bg0: "var(--bg)",
+  bg1: "var(--surface)",
+  bg2: "var(--surface-2)",
+  t1: "var(--text)",
+  t2: "var(--text-2)",
+  t3: "var(--text-3)",
+  t4: "var(--text-4)",
+  blue: "var(--blue)",
   gold: "#C9A96B",
   up: "#1E9C3C",
-  bd: "rgba(0,0,0,0.13)",
-  bdSub: "rgba(0,0,0,0.06)",
+  bd: "var(--border)",
+  bdSub: "var(--border-sub)",
 };
 
 type Tier = "bronze" | "silver" | "gold" | "platinum";
@@ -154,13 +154,13 @@ function BadgeCard({ badge, tierBg, tierColor }: { badge: Badge; tierBg: string;
       position: "relative", overflow: "hidden",
     }}>
       {!badge.unlocked && (
-        <div style={{ position: "absolute", top: 12, right: 12, background: "rgba(0,0,0,0.06)", borderRadius: 999, padding: 6 }}>
+        <div style={{ position: "absolute", top: 12, right: 12, background: "var(--border-sub)", borderRadius: 999, padding: 6 }}>
           <Lock size={11} color={C.t3} />
         </div>
       )}
       <div style={{
         width: 56, height: 56, borderRadius: "50%",
-        background: badge.unlocked ? tierBg : "rgba(0,0,0,0.06)",
+        background: badge.unlocked ? tierBg : "var(--border-sub)",
         display: "flex", alignItems: "center", justifyContent: "center",
         marginBottom: 14,
         boxShadow: badge.unlocked ? `0 6px 18px ${tierColor}40` : "none",

@@ -7,97 +7,97 @@
 
 :root,
 [data-theme="light"] {
-  --bg:           #EEF2FA;
-  --surface:      #FFFFFF;
-  --surface-2:    #F5F8FF;
-  --sidebar-bg:   #F8FAFF;
-  --border:       rgba(0, 0, 0, 0.13);
-  --border-strong:rgba(0, 0, 0, 0.26);
-  --border-sub:   rgba(0, 0, 0, 0.06);
-  --blue:         #006FE6;
-  --blue-lt:      #3B8EEA;
-  --blue-dm:      #004EB0;
-  --text:         #080D1C;
-  --text-2:       rgba(8, 13, 28, 0.75);
-  --text-3:       rgba(8, 13, 28, 0.55);
-  --text-4:       rgba(8, 13, 28, 0.30);
-  --text-muted:   rgba(8, 13, 28, 0.75);
-  --nav-hover:    rgba(0, 111, 230, 0.07);
-  --nav-active:   rgba(0, 111, 230, 0.13);
-  --glow-a:       rgba(0, 111, 230, 0.07);
-  --glow-b:       rgba(0, 111, 230, 0.05);
-  --card-shadow:  0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  --bg:           #F4F2EC;
+  --surface:      #FBF9F5;
+  --surface-2:    #F0EEE8;
+  --sidebar-bg:   #EFEDE7;
+  --border:       rgba(42, 40, 37, 0.13);
+  --border-strong:rgba(42, 40, 37, 0.26);
+  --border-sub:   rgba(42, 40, 37, 0.06);
+  --blue:         #3D6FA8;
+  --blue-lt:      #5C8AC2;
+  --blue-dm:      #2A5081;
+  --text:         #2A2825;
+  --text-2:       rgba(42, 40, 37, 0.78);
+  --text-3:       rgba(42, 40, 37, 0.58);
+  --text-4:       rgba(42, 40, 37, 0.32);
+  --text-muted:   rgba(42, 40, 37, 0.78);
+  --nav-hover:    rgba(61, 111, 168, 0.07);
+  --nav-active:   rgba(61, 111, 168, 0.13);
+  --glow-a:       rgba(61, 111, 168, 0.06);
+  --glow-b:       rgba(61, 111, 168, 0.04);
+  --card-shadow:  0 1px 4px rgba(42,40,37,0.05), 0 4px 16px rgba(42,40,37,0.05);
 }
 
 [data-theme="dark"] {
-  --bg:           #0b0c12;
-  --surface:      #13141c;
-  --surface-2:    #1a1c28;
-  --sidebar-bg:   #0f1018;
-  --border:       rgba(255, 255, 255, 0.10);
-  --border-strong:rgba(255, 255, 255, 0.20);
-  --border-sub:   rgba(255, 255, 255, 0.05);
-  --blue:         #4DA3FF;
-  --blue-lt:      #70BAFF;
-  --blue-dm:      #2080E0;
+  --bg:           #1E1C24;
+  --surface:      #26242E;
+  --surface-2:    #2E2C38;
+  --sidebar-bg:   #1A1822;
+  --border:       rgba(240, 237, 232, 0.10);
+  --border-strong:rgba(240, 237, 232, 0.20);
+  --border-sub:   rgba(240, 237, 232, 0.05);
+  --blue:         #7AA8D4;
+  --blue-lt:      #9BBED4;
+  --blue-dm:      #5A8AB4;
   --text:         #F0EDE8;
   --text-2:       rgba(240, 237, 232, 0.78);
   --text-3:       rgba(240, 237, 232, 0.55);
   --text-4:       rgba(240, 237, 232, 0.28);
   --text-muted:   rgba(240, 237, 232, 0.78);
-  --nav-hover:    rgba(77, 163, 255, 0.09);
-  --nav-active:   rgba(77, 163, 255, 0.16);
-  --glow-a:       rgba(77, 163, 255, 0.06);
-  --glow-b:       rgba(77, 163, 255, 0.04);
-  --card-shadow:  0 1px 4px rgba(0,0,0,0.24), 0 4px 20px rgba(0,0,0,0.20);
+  --nav-hover:    rgba(122, 168, 212, 0.09);
+  --nav-active:   rgba(122, 168, 212, 0.16);
+  --glow-a:       rgba(122, 168, 212, 0.05);
+  --glow-b:       rgba(122, 168, 212, 0.03);
+  --card-shadow:  0 1px 4px rgba(0,0,0,0.20), 0 4px 20px rgba(0,0,0,0.16);
 }
 
-/* グリーンテーマ — ライト × フレッシュグリーン */
+/* グリーンテーマ — ライト × セージグリーン（彩度抑え目） */
 [data-theme="green"] {
-  --bg:           #EDF7F2;
-  --surface:      #FFFFFF;
-  --surface-2:    #F2FAF6;
-  --sidebar-bg:   #F6FCF9;
-  --border:       rgba(0, 0, 0, 0.11);
-  --border-strong:rgba(0, 0, 0, 0.22);
-  --border-sub:   rgba(0, 0, 0, 0.05);
-  --blue:         #009955;
-  --blue-lt:      #00C96E;
-  --blue-dm:      #007040;
-  --text:         #0A1F10;
-  --text-2:       rgba(10, 31, 16, 0.75);
-  --text-3:       rgba(10, 31, 16, 0.52);
-  --text-4:       rgba(10, 31, 16, 0.30);
-  --text-muted:   rgba(10, 31, 16, 0.75);
-  --nav-hover:    rgba(0, 153, 85, 0.07);
-  --nav-active:   rgba(0, 153, 85, 0.13);
-  --glow-a:       rgba(0, 153, 85, 0.07);
-  --glow-b:       rgba(0, 153, 85, 0.05);
-  --card-shadow:  0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  --bg:           #F2F4EE;
+  --surface:      #FBF9F5;
+  --surface-2:    #EEF2EA;
+  --sidebar-bg:   #EBEFE7;
+  --border:       rgba(40, 48, 43, 0.11);
+  --border-strong:rgba(40, 48, 43, 0.22);
+  --border-sub:   rgba(40, 48, 43, 0.05);
+  --blue:         #5C8A6E;
+  --blue-lt:      #7AA88C;
+  --blue-dm:      #3F6D52;
+  --text:         #28302B;
+  --text-2:       rgba(40, 48, 43, 0.78);
+  --text-3:       rgba(40, 48, 43, 0.56);
+  --text-4:       rgba(40, 48, 43, 0.32);
+  --text-muted:   rgba(40, 48, 43, 0.78);
+  --nav-hover:    rgba(92, 138, 110, 0.07);
+  --nav-active:   rgba(92, 138, 110, 0.13);
+  --glow-a:       rgba(92, 138, 110, 0.06);
+  --glow-b:       rgba(92, 138, 110, 0.04);
+  --card-shadow:  0 1px 4px rgba(40,48,43,0.05), 0 4px 16px rgba(40,48,43,0.05);
 }
 
-/* パープルテーマ — ライト × ラベンダー */
+/* パープルテーマ — ライト × ダスティラベンダー（彩度抑え目） */
 [data-theme="purple"] {
-  --bg:           #F2EEFF;
-  --surface:      #FFFFFF;
-  --surface-2:    #F7F3FF;
-  --sidebar-bg:   #FAF7FF;
-  --border:       rgba(0, 0, 0, 0.11);
-  --border-strong:rgba(0, 0, 0, 0.22);
-  --border-sub:   rgba(0, 0, 0, 0.05);
-  --blue:         #6C35E0;
-  --blue-lt:      #9B6DFF;
-  --blue-dm:      #4D1FB0;
-  --text:         #100820;
-  --text-2:       rgba(16, 8, 32, 0.75);
-  --text-3:       rgba(16, 8, 32, 0.52);
-  --text-4:       rgba(16, 8, 32, 0.30);
-  --text-muted:   rgba(16, 8, 32, 0.75);
-  --nav-hover:    rgba(108, 53, 224, 0.07);
-  --nav-active:   rgba(108, 53, 224, 0.13);
-  --glow-a:       rgba(108, 53, 224, 0.07);
-  --glow-b:       rgba(108, 53, 224, 0.05);
-  --card-shadow:  0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  --bg:           #F0EDF5;
+  --surface:      #FBF9F5;
+  --surface-2:    #ECE8F2;
+  --sidebar-bg:   #E8E5EF;
+  --border:       rgba(44, 39, 56, 0.11);
+  --border-strong:rgba(44, 39, 56, 0.22);
+  --border-sub:   rgba(44, 39, 56, 0.05);
+  --blue:         #7866A8;
+  --blue-lt:      #9588C2;
+  --blue-dm:      #5A4F82;
+  --text:         #2C2738;
+  --text-2:       rgba(44, 39, 56, 0.78);
+  --text-3:       rgba(44, 39, 56, 0.56);
+  --text-4:       rgba(44, 39, 56, 0.32);
+  --text-muted:   rgba(44, 39, 56, 0.78);
+  --nav-hover:    rgba(120, 102, 168, 0.07);
+  --nav-active:   rgba(120, 102, 168, 0.13);
+  --glow-a:       rgba(120, 102, 168, 0.06);
+  --glow-b:       rgba(120, 102, 168, 0.04);
+  --card-shadow:  0 1px 4px rgba(44,39,56,0.05), 0 4px 16px rgba(44,39,56,0.05);
 }
 
 /* ── Radius scale ── */

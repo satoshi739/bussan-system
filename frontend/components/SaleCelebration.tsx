@@ -72,7 +72,7 @@ export default function SaleCelebration({ show, amount, productName, onClose }: 
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: "#fff",
+          background: "var(--surface)",
           borderRadius: 28,
           padding: "44px 40px 36px",
           maxWidth: 440,
@@ -112,7 +112,7 @@ export default function SaleCelebration({ show, amount, productName, onClose }: 
           onClick={onClose}
           style={{
             padding: "12px 32px",
-            background: "#080D1C",
+            background: "var(--blue)",
             color: "#fff", border: "none", borderRadius: 999,
             fontSize: 13, fontWeight: 700, cursor: "pointer",
             letterSpacing: "-0.01em",

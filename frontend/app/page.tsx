@@ -19,36 +19,36 @@ const LazyChart = lazy(() => import("@/components/ProfitBarChart"));
 // ─────────────────────────────────────────────────────────
 const C = {
   // backgrounds — light, airy
-  bg0:  "#EEF2FA",   // page base
-  bg1:  "#FFFFFF",   // card surface
-  bg2:  "#F5F8FF",   // elevated / input fill
-  bg3:  "#E4ECFA",   // tooltips, dropdowns
+  bg0:  "var(--bg)",   // page base
+  bg1:  "var(--surface)",   // card surface
+  bg2:  "var(--surface-2)",   // elevated / input fill
+  bg3:  "var(--surface-2)",   // tooltips, dropdowns
 
   // text — dark on light (improved contrast)
-  t1:   "#080D1C",
-  t2:   "rgba(8,13,28,0.75)",
-  t3:   "rgba(8,13,28,0.55)",
-  t4:   "rgba(8,13,28,0.30)",
+  t1:   "var(--text)",
+  t2:   "var(--text-2)",
+  t3:   "var(--text-3)",
+  t4:   "var(--text-4)",
 
   // Blue (primary accent — deepened for contrast)
-  gold:   "#006FE6",
-  goldLt: "#3B8EEA",
-  goldDm: "#004EB0",
+  gold:   "var(--blue)",
+  goldLt: "var(--blue-lt)",
+  goldDm: "var(--blue-dm)",
 
   // secondary accent (sky blue)
-  azure:     "#40AADF",
+  azure:     "var(--blue-lt)",
   azureGlow: "#60BFEF",
 
   // signal colors
   up:    "#1E9C3C",   // green
   dn:    "#E02E24",   // red
   warn:  "#E88500",   // orange
-  info:  "#006FE6",   // blue
+  info:  "var(--blue)",   // blue
 
   // borders — more visible on white
-  bd:    "rgba(0,0,0,0.13)",
-  bdSt:  "rgba(0,0,0,0.26)",
-  bdSub: "rgba(0,0,0,0.06)",
+  bd:    "var(--border)",
+  bdSt:  "var(--border-strong)",
+  bdSub: "var(--border-sub)",
 };
 
 // iOS Light card — white with soft shadow
@@ -471,7 +471,7 @@ function AICEOHero() {
       <div style={{ display: "flex", gap: 10, padding: "14px 20px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
         <Link href="/scanner" style={{
           flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-          gap: 8, background: C.gold, borderRadius: 16, color: "#FFFFFF",
+          gap: 8, background: C.gold, borderRadius: 16, color: "var(--surface)",
           padding: "12px 20px", fontSize: 14, fontWeight: 700, textDecoration: "none",
         }}>
           <Zap size={15} /> 今すぐ利益を調べる
@@ -640,7 +640,7 @@ export default function DashboardPage() {
           </span>
           <Link
             href="/scanner"
-            style={{ display: "flex", alignItems: "center", gap: 6, background: C.gold, borderRadius: 16, color: "#FFFFFF", padding: "9px 18px", fontSize: 13, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: C.gold, borderRadius: 16, color: "var(--surface)", padding: "9px 18px", fontSize: 13, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
           >
             今すぐ利益を調べる
           </Link>
@@ -673,7 +673,7 @@ export default function DashboardPage() {
           {!error && (
           <Link
             href="/purchases"
-            style={{ display: "flex", alignItems: "center", gap: 5, background: C.gold, borderRadius: 16, color: "#FFFFFF", padding: "9px 18px", fontSize: 12, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
+            style={{ display: "flex", alignItems: "center", gap: 5, background: C.gold, borderRadius: 16, color: "var(--surface)", padding: "9px 18px", fontSize: 12, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
           >
             仕入れを登録する
           </Link>
@@ -797,7 +797,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/pricing"
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.gold, borderRadius: 18, color: "#FFFFFF", padding: "12px 24px", fontSize: 13, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.gold, borderRadius: 18, color: "var(--surface)", padding: "12px 24px", fontSize: 13, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
             >
               料金プランを見る
             </Link>
@@ -831,7 +831,7 @@ export default function DashboardPage() {
           <Link href="/calculator" className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: 5, background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 18, color: C.t2, padding: "10px 16px", fontSize: 13, textDecoration: "none", fontWeight: 600, minHeight: 40 }}>
             利益計算
           </Link>
-          <Link href="/scanner" className="btn-primary" style={{ display: "flex", alignItems: "center", gap: 6, background: C.gold, borderRadius: 18, color: "#FFFFFF", padding: "10px 22px", fontSize: 14, textDecoration: "none", fontWeight: 700, minHeight: 40 }}>
+          <Link href="/scanner" className="btn-primary" style={{ display: "flex", alignItems: "center", gap: 6, background: C.gold, borderRadius: 18, color: "var(--surface)", padding: "10px 22px", fontSize: 14, textDecoration: "none", fontWeight: 700, minHeight: 40 }}>
             今すぐ利益を調べる
           </Link>
         </div>
@@ -866,7 +866,7 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className="onboard-cta" style={{ display: "flex", gap: 10 }}>
-            <Link href="/purchases" className="btn-primary" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: C.gold, borderRadius: 20, color: "#FFFFFF", padding: "14px 28px", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
+            <Link href="/purchases" className="btn-primary" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: C.gold, borderRadius: 20, color: "var(--surface)", padding: "14px 28px", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
               仕入れを登録する
             </Link>
             <button onClick={() => setSample(true)} className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 20, color: C.t2, padding: "14px 20px", fontSize: 13, cursor: "pointer" }}>
@@ -985,7 +985,7 @@ export default function DashboardPage() {
                       padding: "0 8px",
                       borderRadius: 11,
                       background: count > 0 ? accent : C.bg2,
-                      color: count > 0 ? "#FFFFFF" : C.t4,
+                      color: count > 0 ? "var(--surface)" : C.t4,
                       fontSize: 12,
                       fontWeight: 900,
                       display: "flex",
@@ -1178,7 +1178,7 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 11, color: C.t3 }}>{a.sub}</div>
                 </div>
                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                  <Link href={a.link} className="abtn" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#FFFFFF", background: C.gold, borderRadius: 12, padding: "5px 12px", textDecoration: "none", transition: "opacity .15s" }}>
+                  <Link href={a.link} className="abtn" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "var(--surface)", background: C.gold, borderRadius: 12, padding: "5px 12px", textDecoration: "none", transition: "opacity .15s" }}>
                     <Tag size={9} /> {a.action}
                   </Link>
                   {a.pid !== null && (
