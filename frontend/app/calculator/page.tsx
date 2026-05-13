@@ -11,6 +11,15 @@ import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 import { SHIPPING_OPTIONS, getShippingFee } from "@/lib/shipping";
 import { getDomesticShipping } from "@/lib/api";
+import {
+  PREFECTURES,
+  SIZE_CODES,
+  estimateShippingDetailed,
+  PREFECTURE_TO_YAMATO_ZONE,
+  type Prefecture,
+  type SizeCode,
+  type Carrier as ShippingCarrier,
+} from "@/lib/shipping-rates-detailed";
 
 const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
 const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "10px 12px", fontSize: 15, width: "100%", outline: "none", fontFamily: "monospace" };
@@ -94,6 +103,18 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
   const [autoCarrier, setAutoCarrier] = useState("yamato");
   const [autoShipping, setAutoShipping] = useState<{ fee: number; carrier: string; size_class: string } | null>(null);
   const [autoShippingLoading, setAutoShippingLoading] = useState(false);
+
+  // 発地・着地別の正確料金計算
+  const [preciseCarrier, setPreciseCarrier] = useState<ShippingCarrier>("yamato");
+  const [preciseFromPref, setPreciseFromPref] = useState<Prefecture>("東京");
+  const [preciseToPref, setPreciseToPref] = useState<Prefecture>("大阪");
+  const [preciseSize, setPreciseSize] = useState<SizeCode>("60");
+  const preciseResult = estimateShippingDetailed({
+    carrier: preciseCarrier,
+    size: preciseSize,
+    fromPref: preciseFromPref,
+    toPref: preciseToPref,
+  });
 
   const recalc = useCallback(async (f: typeof form) => {
     if (!f.purchase_price || !f.selling_price) { setResult(null); return; }
@@ -245,6 +266,57 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
                 <button onClick={() => { upd("shipping_to_platform", String(autoShipping.fee)); setShippingMethod("manual"); }} style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 5, color: "var(--blue)", padding: "3px 10px", fontSize: 11, cursor: "pointer" }}>この送料を使う</button>
               </div>
             )}
+          </div>
+
+          {/* 発地・着地別の正確料金計算 */}
+          <div style={{ marginTop: 8, padding: "10px 12px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8 }}>
+            <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+              <span>📍 発地・着地から正確料金を計算</span>
+              <span style={{ fontSize: 10, color: "var(--text-4)" }}>(ヤマト関東発のみ実装)</span>
+            </div>
+            <div className="calc-form-3col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+              <div>
+                <label style={lbl}>配送会社</label>
+                <select style={{ ...inp, fontSize: 12 }} value={preciseCarrier} onChange={e => setPreciseCarrier(e.target.value as ShippingCarrier)}>
+                  <option value="yamato">ヤマト</option>
+                  <option value="sagawa" disabled>佐川（準備中）</option>
+                  <option value="japanpost" disabled>郵便（準備中）</option>
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>発地</label>
+                <select style={{ ...inp, fontSize: 12 }} value={preciseFromPref} onChange={e => setPreciseFromPref(e.target.value as Prefecture)}>
+                  {PREFECTURES.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>着地</label>
+                <select style={{ ...inp, fontSize: 12 }} value={preciseToPref} onChange={e => setPreciseToPref(e.target.value as Prefecture)}>
+                  {PREFECTURES.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>サイズ</label>
+                <select style={{ ...inp, fontSize: 12 }} value={preciseSize} onChange={e => setPreciseSize(e.target.value as SizeCode)}>
+                  {SIZE_CODES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, fontSize: 12, flexWrap: "wrap" }}>
+              {preciseResult ? (
+                <>
+                  <span style={{ color: "var(--text-3)" }}>
+                    {PREFECTURE_TO_YAMATO_ZONE[preciseFromPref]}→{PREFECTURE_TO_YAMATO_ZONE[preciseToPref]} {preciseSize}サイズ:
+                  </span>
+                  <span style={{ color: "var(--blue)", fontWeight: 700 }}>¥{preciseResult.fee.toLocaleString()}</span>
+                  <button onClick={() => { upd("shipping_to_platform", String(preciseResult.fee)); setShippingMethod("manual"); }} style={{ background: "var(--nav-active)", border: "1px solid var(--border-strong)", borderRadius: 5, color: "var(--blue)", padding: "3px 10px", fontSize: 11, cursor: "pointer" }}>この送料を使う</button>
+                </>
+              ) : (
+                <span style={{ color: "var(--text-4)", fontSize: 11 }}>
+                  この組み合わせは未対応（{PREFECTURE_TO_YAMATO_ZONE[preciseFromPref]}発は次回追加予定）
+                </span>
+              )}
+            </div>
           </div>
           {form.selling_platform === "Amazon" && (
             <div style={{ marginTop: 12 }}>
