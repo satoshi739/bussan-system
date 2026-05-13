@@ -120,21 +120,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         Date.now() - (token.roleCheckedAt as number) > ROLE_TTL;
 
       if (token.id && shouldRefresh) {
-        if (token.sessionKey) {
-          const activeSession = await prisma.activeSession.findUnique({
-            where: { sessionKey: token.sessionKey as string },
-          });
-          if (!activeSession || activeSession.expiresAt < new Date()) {
-            return null;
+        try {
+          if (token.sessionKey) {
+            const activeSession = await prisma.activeSession.findUnique({
+              where: { sessionKey: token.sessionKey as string },
+            });
+            if (!activeSession || activeSession.expiresAt < new Date()) {
+              return null;
+            }
           }
-        }
 
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { role: true },
-        });
-        token.role = dbUser?.role ?? "USER";
-        token.roleCheckedAt = Date.now();
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true },
+          });
+          token.role = dbUser?.role ?? "USER";
+          token.roleCheckedAt = Date.now();
+        } catch (error) {
+          // Neon cold start や一時的な DB エラーで 500 を返すと全ページが落ちるため、
+          // 既存トークンを維持してログインを継続する。roleCheckedAt を更新しないので
+          // 次のリクエストで自動的に再試行される。
+          console.error("[auth] jwt refresh failed (DB unavailable, keeping token):", error);
+        }
       }
       return token;
     },

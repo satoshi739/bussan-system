@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/generated/prisma/client";
 import type Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -33,15 +34,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  try {
-    // イベントの重複チェック（atomic: unique制約違反をキャッチ）
-    try {
-      await prisma.stripeEvent.create({ data: { eventId: event.id } });
-    } catch {
-      // unique制約違反 = 既処理（レースコンディション含む）
-      return NextResponse.json({ received: true });
-    }
+  // 重複イベントの検出: ハンドラ実行前に findUnique で既処理かチェック。
+  // 既処理ならスキップ。ここではまだ stripeEvent.create はしない（ハンドラ成功後に commit する）。
+  const existing = await prisma.stripeEvent.findUnique({
+    where: { eventId: event.id },
+  });
+  if (existing) {
+    return NextResponse.json({ received: true, duplicate: true });
+  }
 
+  try {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -71,10 +73,21 @@ export async function POST(req: NextRequest) {
       default:
         console.log(`[webhook] unhandled event type: ${event.type}`);
     }
+
+    // ハンドラ成功後に eventId を登録（commit 相当）。
+    // 同時受信のレース時に発生する P2002 は無視する（ハンドラは upsert/updateMany で冪等）。
+    try {
+      await prisma.stripeEvent.create({ data: { eventId: event.id } });
+    } catch (err) {
+      if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) {
+        throw err;
+      }
+    }
   } catch (err) {
     Sentry.captureException(err, { tags: { context: "stripe_webhook" } });
-    // Stripe のリトライを防ぐため、ビジネスロジックエラーは 200 を返す
-    return NextResponse.json({ received: true, warning: "Handler error logged" });
+    // ハンドラ失敗時は 500 を返して Stripe にリトライさせる。
+    // stripeEvent は未登録のため、リトライは duplicate 扱いにならず再度ハンドラが走る。
+    return NextResponse.json({ error: "Handler failed" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });
@@ -209,13 +222,13 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 function getPlanFromPriceId(priceId: string) {
-  if (!process.env.STRIPE_LITE_PRICE_ID || !process.env.STRIPE_STANDARD_PRICE_ID || !process.env.STRIPE_PRO_PRICE_ID) {
-    throw new Error("Stripe Price IDs not configured");
-  }
-  if (priceId === process.env.STRIPE_LITE_PRICE_ID) return "LITE" as const;
-  if (priceId === process.env.STRIPE_STANDARD_PRICE_ID) return "STANDARD" as const;
-  if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "PRO" as const;
-  throw new Error(`Unknown priceId: ${priceId}`);
+  const map: Record<string, "LITE" | "STANDARD" | "PRO"> = {};
+  if (process.env.STRIPE_LITE_PRICE_ID) map[process.env.STRIPE_LITE_PRICE_ID] = "LITE";
+  if (process.env.STRIPE_STANDARD_PRICE_ID) map[process.env.STRIPE_STANDARD_PRICE_ID] = "STANDARD";
+  if (process.env.STRIPE_PRO_PRICE_ID) map[process.env.STRIPE_PRO_PRICE_ID] = "PRO";
+  const plan = map[priceId];
+  if (!plan) throw new Error(`Unknown priceId: ${priceId}`);
+  return plan;
 }
 
 function mapStripeStatus(status: Stripe.Subscription.Status) {

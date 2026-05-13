@@ -162,8 +162,8 @@ export default function SalesPage() {
           <Sparkles size={13} /> セレブレーションをプレビュー
         </button>
         <a
-          href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/sales/export/csv`}
-          download
+          href="/api/proxy/api/sales/export/csv"
+          download="sales.csv"
           style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,40,15,0.8)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10, color: C.t3, padding: "8px 14px", fontWeight: 700, fontSize: 13, textDecoration: "none" }}
         >
           <Download size={14} /> CSV
