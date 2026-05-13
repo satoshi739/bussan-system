@@ -62,7 +62,11 @@ export const ModelName = {
   ScanHistory: 'ScanHistory',
   ProfitCalcHistory: 'ProfitCalcHistory',
   StripeEvent: 'StripeEvent',
+  EbayAccount: 'EbayAccount',
   ContentItem: 'ContentItem',
+  MonetizeProject: 'MonetizeProject',
+  GenerationResult: 'GenerationResult',
+  GenerationHistory: 'GenerationHistory',
   QuickListing: 'QuickListing'
 } as const
 
@@ -235,6 +239,22 @@ export const StripeEventScalarFieldEnum = {
 export type StripeEventScalarFieldEnum = (typeof StripeEventScalarFieldEnum)[keyof typeof StripeEventScalarFieldEnum]
 
 
+export const EbayAccountScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  ebayUserId: 'ebayUserId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  tokenExpiresAt: 'tokenExpiresAt',
+  scopes: 'scopes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type EbayAccountScalarFieldEnum = (typeof EbayAccountScalarFieldEnum)[keyof typeof EbayAccountScalarFieldEnum]
+
+
 export const ContentItemScalarFieldEnum = {
   id: 'id',
   platform: 'platform',
@@ -248,6 +268,62 @@ export const ContentItemScalarFieldEnum = {
 } as const
 
 export type ContentItemScalarFieldEnum = (typeof ContentItemScalarFieldEnum)[keyof typeof ContentItemScalarFieldEnum]
+
+
+export const MonetizeProjectScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  genre: 'genre',
+  target: 'target',
+  productUrl: 'productUrl',
+  lpUrl: 'lpUrl',
+  blogUrl: 'blogUrl',
+  affiliateLink: 'affiliateLink',
+  memo: 'memo',
+  latestGenerationResultId: 'latestGenerationResultId',
+  latestGeneratedAt: 'latestGeneratedAt',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonetizeProjectScalarFieldEnum = (typeof MonetizeProjectScalarFieldEnum)[keyof typeof MonetizeProjectScalarFieldEnum]
+
+
+export const GenerationResultScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  analysisJson: 'analysisJson',
+  articleJson: 'articleJson',
+  snsJson: 'snsJson',
+  reelJson: 'reelJson',
+  lineJson: 'lineJson',
+  ctaJson: 'ctaJson',
+  complianceJson: 'complianceJson',
+  rawOutputJson: 'rawOutputJson',
+  promptVersion: 'promptVersion',
+  createdAt: 'createdAt'
+} as const
+
+export type GenerationResultScalarFieldEnum = (typeof GenerationResultScalarFieldEnum)[keyof typeof GenerationResultScalarFieldEnum]
+
+
+export const GenerationHistoryScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  generationResultId: 'generationResultId',
+  inputSnapshotJson: 'inputSnapshotJson',
+  status: 'status',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  promptVersion: 'promptVersion',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type GenerationHistoryScalarFieldEnum = (typeof GenerationHistoryScalarFieldEnum)[keyof typeof GenerationHistoryScalarFieldEnum]
 
 
 export const QuickListingScalarFieldEnum = {
@@ -288,6 +364,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -302,4 +385,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

@@ -73,10 +73,30 @@ export type ProfitCalcHistory = Prisma.ProfitCalcHistoryModel
  */
 export type StripeEvent = Prisma.StripeEventModel
 /**
+ * Model EbayAccount
+ * 
+ */
+export type EbayAccount = Prisma.EbayAccountModel
+/**
  * Model ContentItem
  * 
  */
 export type ContentItem = Prisma.ContentItemModel
+/**
+ * Model MonetizeProject
+ * 
+ */
+export type MonetizeProject = Prisma.MonetizeProjectModel
+/**
+ * Model GenerationResult
+ * 
+ */
+export type GenerationResult = Prisma.GenerationResultModel
+/**
+ * Model GenerationHistory
+ * 
+ */
+export type GenerationHistory = Prisma.GenerationHistoryModel
 /**
  * Model QuickListing
  * 

@@ -395,7 +395,11 @@ export const ModelName = {
   ScanHistory: 'ScanHistory',
   ProfitCalcHistory: 'ProfitCalcHistory',
   StripeEvent: 'StripeEvent',
+  EbayAccount: 'EbayAccount',
   ContentItem: 'ContentItem',
+  MonetizeProject: 'MonetizeProject',
+  GenerationResult: 'GenerationResult',
+  GenerationHistory: 'GenerationHistory',
   QuickListing: 'QuickListing'
 } as const
 
@@ -412,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent" | "contentItem" | "quickListing"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent" | "ebayAccount" | "contentItem" | "monetizeProject" | "generationResult" | "generationHistory" | "quickListing"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1230,6 +1234,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EbayAccount: {
+      payload: Prisma.$EbayAccountPayload<ExtArgs>
+      fields: Prisma.EbayAccountFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EbayAccountFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EbayAccountFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload>
+        }
+        findFirst: {
+          args: Prisma.EbayAccountFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EbayAccountFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload>
+        }
+        findMany: {
+          args: Prisma.EbayAccountFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload>[]
+        }
+        create: {
+          args: Prisma.EbayAccountCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload>
+        }
+        createMany: {
+          args: Prisma.EbayAccountCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EbayAccountCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload>[]
+        }
+        delete: {
+          args: Prisma.EbayAccountDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload>
+        }
+        update: {
+          args: Prisma.EbayAccountUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload>
+        }
+        deleteMany: {
+          args: Prisma.EbayAccountDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EbayAccountUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EbayAccountUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload>[]
+        }
+        upsert: {
+          args: Prisma.EbayAccountUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbayAccountPayload>
+        }
+        aggregate: {
+          args: Prisma.EbayAccountAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEbayAccount>
+        }
+        groupBy: {
+          args: Prisma.EbayAccountGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EbayAccountGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EbayAccountCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EbayAccountCountAggregateOutputType> | number
+        }
+      }
+    }
     ContentItem: {
       payload: Prisma.$ContentItemPayload<ExtArgs>
       fields: Prisma.ContentItemFieldRefs
@@ -1301,6 +1379,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ContentItemCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ContentItemCountAggregateOutputType> | number
+        }
+      }
+    }
+    MonetizeProject: {
+      payload: Prisma.$MonetizeProjectPayload<ExtArgs>
+      fields: Prisma.MonetizeProjectFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MonetizeProjectFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MonetizeProjectFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload>
+        }
+        findFirst: {
+          args: Prisma.MonetizeProjectFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MonetizeProjectFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload>
+        }
+        findMany: {
+          args: Prisma.MonetizeProjectFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload>[]
+        }
+        create: {
+          args: Prisma.MonetizeProjectCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload>
+        }
+        createMany: {
+          args: Prisma.MonetizeProjectCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MonetizeProjectCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload>[]
+        }
+        delete: {
+          args: Prisma.MonetizeProjectDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload>
+        }
+        update: {
+          args: Prisma.MonetizeProjectUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload>
+        }
+        deleteMany: {
+          args: Prisma.MonetizeProjectDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MonetizeProjectUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MonetizeProjectUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload>[]
+        }
+        upsert: {
+          args: Prisma.MonetizeProjectUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonetizeProjectPayload>
+        }
+        aggregate: {
+          args: Prisma.MonetizeProjectAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMonetizeProject>
+        }
+        groupBy: {
+          args: Prisma.MonetizeProjectGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MonetizeProjectGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MonetizeProjectCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MonetizeProjectCountAggregateOutputType> | number
+        }
+      }
+    }
+    GenerationResult: {
+      payload: Prisma.$GenerationResultPayload<ExtArgs>
+      fields: Prisma.GenerationResultFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GenerationResultFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GenerationResultFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload>
+        }
+        findFirst: {
+          args: Prisma.GenerationResultFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GenerationResultFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload>
+        }
+        findMany: {
+          args: Prisma.GenerationResultFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload>[]
+        }
+        create: {
+          args: Prisma.GenerationResultCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload>
+        }
+        createMany: {
+          args: Prisma.GenerationResultCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GenerationResultCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload>[]
+        }
+        delete: {
+          args: Prisma.GenerationResultDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload>
+        }
+        update: {
+          args: Prisma.GenerationResultUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload>
+        }
+        deleteMany: {
+          args: Prisma.GenerationResultDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GenerationResultUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GenerationResultUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload>[]
+        }
+        upsert: {
+          args: Prisma.GenerationResultUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationResultPayload>
+        }
+        aggregate: {
+          args: Prisma.GenerationResultAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGenerationResult>
+        }
+        groupBy: {
+          args: Prisma.GenerationResultGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GenerationResultGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GenerationResultCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GenerationResultCountAggregateOutputType> | number
+        }
+      }
+    }
+    GenerationHistory: {
+      payload: Prisma.$GenerationHistoryPayload<ExtArgs>
+      fields: Prisma.GenerationHistoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GenerationHistoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GenerationHistoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload>
+        }
+        findFirst: {
+          args: Prisma.GenerationHistoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GenerationHistoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload>
+        }
+        findMany: {
+          args: Prisma.GenerationHistoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload>[]
+        }
+        create: {
+          args: Prisma.GenerationHistoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload>
+        }
+        createMany: {
+          args: Prisma.GenerationHistoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GenerationHistoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload>[]
+        }
+        delete: {
+          args: Prisma.GenerationHistoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload>
+        }
+        update: {
+          args: Prisma.GenerationHistoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.GenerationHistoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GenerationHistoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GenerationHistoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.GenerationHistoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GenerationHistoryPayload>
+        }
+        aggregate: {
+          args: Prisma.GenerationHistoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGenerationHistory>
+        }
+        groupBy: {
+          args: Prisma.GenerationHistoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GenerationHistoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GenerationHistoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GenerationHistoryCountAggregateOutputType> | number
         }
       }
     }
@@ -1570,6 +1870,22 @@ export const StripeEventScalarFieldEnum = {
 export type StripeEventScalarFieldEnum = (typeof StripeEventScalarFieldEnum)[keyof typeof StripeEventScalarFieldEnum]
 
 
+export const EbayAccountScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  ebayUserId: 'ebayUserId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  tokenExpiresAt: 'tokenExpiresAt',
+  scopes: 'scopes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type EbayAccountScalarFieldEnum = (typeof EbayAccountScalarFieldEnum)[keyof typeof EbayAccountScalarFieldEnum]
+
+
 export const ContentItemScalarFieldEnum = {
   id: 'id',
   platform: 'platform',
@@ -1583,6 +1899,62 @@ export const ContentItemScalarFieldEnum = {
 } as const
 
 export type ContentItemScalarFieldEnum = (typeof ContentItemScalarFieldEnum)[keyof typeof ContentItemScalarFieldEnum]
+
+
+export const MonetizeProjectScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  genre: 'genre',
+  target: 'target',
+  productUrl: 'productUrl',
+  lpUrl: 'lpUrl',
+  blogUrl: 'blogUrl',
+  affiliateLink: 'affiliateLink',
+  memo: 'memo',
+  latestGenerationResultId: 'latestGenerationResultId',
+  latestGeneratedAt: 'latestGeneratedAt',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonetizeProjectScalarFieldEnum = (typeof MonetizeProjectScalarFieldEnum)[keyof typeof MonetizeProjectScalarFieldEnum]
+
+
+export const GenerationResultScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  analysisJson: 'analysisJson',
+  articleJson: 'articleJson',
+  snsJson: 'snsJson',
+  reelJson: 'reelJson',
+  lineJson: 'lineJson',
+  ctaJson: 'ctaJson',
+  complianceJson: 'complianceJson',
+  rawOutputJson: 'rawOutputJson',
+  promptVersion: 'promptVersion',
+  createdAt: 'createdAt'
+} as const
+
+export type GenerationResultScalarFieldEnum = (typeof GenerationResultScalarFieldEnum)[keyof typeof GenerationResultScalarFieldEnum]
+
+
+export const GenerationHistoryScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  generationResultId: 'generationResultId',
+  inputSnapshotJson: 'inputSnapshotJson',
+  status: 'status',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  promptVersion: 'promptVersion',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type GenerationHistoryScalarFieldEnum = (typeof GenerationHistoryScalarFieldEnum)[keyof typeof GenerationHistoryScalarFieldEnum]
 
 
 export const QuickListingScalarFieldEnum = {
@@ -1623,6 +1995,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -1637,6 +2016,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -1740,6 +2128,48 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProjectStatus'
+ */
+export type EnumProjectStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ProjectStatus[]'
+ */
+export type ListEnumProjectStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'GenerationHistoryStatus'
+ */
+export type EnumGenerationHistoryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GenerationHistoryStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'GenerationHistoryStatus[]'
+ */
+export type ListEnumGenerationHistoryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GenerationHistoryStatus[]'>
     
 
 
@@ -1862,7 +2292,11 @@ export type GlobalOmitConfig = {
   scanHistory?: Prisma.ScanHistoryOmit
   profitCalcHistory?: Prisma.ProfitCalcHistoryOmit
   stripeEvent?: Prisma.StripeEventOmit
+  ebayAccount?: Prisma.EbayAccountOmit
   contentItem?: Prisma.ContentItemOmit
+  monetizeProject?: Prisma.MonetizeProjectOmit
+  generationResult?: Prisma.GenerationResultOmit
+  generationHistory?: Prisma.GenerationHistoryOmit
   quickListing?: Prisma.QuickListingOmit
 }
 

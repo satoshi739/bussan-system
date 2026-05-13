@@ -38,6 +38,27 @@ export const SubscriptionStatus = {
 export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus]
 
 
+export const ProjectStatus = {
+  DRAFT: 'DRAFT',
+  READY: 'READY',
+  GENERATING: 'GENERATING',
+  GENERATED: 'GENERATED',
+  ERROR: 'ERROR'
+} as const
+
+export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus]
+
+
+export const GenerationHistoryStatus = {
+  QUEUED: 'QUEUED',
+  PROCESSING: 'PROCESSING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+} as const
+
+export type GenerationHistoryStatus = (typeof GenerationHistoryStatus)[keyof typeof GenerationHistoryStatus]
+
+
 export const QuickListingStatus = {
   DRAFT: 'DRAFT',
   CONFIRMED: 'CONFIRMED',

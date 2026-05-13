@@ -32,6 +32,8 @@ model User {
   saleRecords         SaleRecord[]
   scanHistories       ScanHistory[]
   profitCalcHistories ProfitCalcHistory[]
+  ebayAccount         EbayAccount?
+  monetizeProjects    MonetizeProject[]
   quickListings       QuickListing[]
 }
 
@@ -102,33 +104,33 @@ model ActiveSession {
 
 // ユーザー活動記録
 model PurchaseRecord {
-  id            String   @id @default(cuid())
-  userId        String
-  itemName      String
-  platform      String
-  buyPrice      Float
-  shippingCost  Float    @default(0)
-  otherFees     Float    @default(0)
-  sellPrice     Float    @default(0)
-  profit        Float    @default(0)
-  roi           Float    @default(0)
-  memo          String?
-  createdAt     DateTime @default(now())
+  id           String   @id @default(cuid())
+  userId       String
+  itemName     String
+  platform     String
+  buyPrice     Float
+  shippingCost Float    @default(0)
+  otherFees    Float    @default(0)
+  sellPrice    Float    @default(0)
+  profit       Float    @default(0)
+  roi          Float    @default(0)
+  memo         String?
+  createdAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SaleRecord {
-  id          String   @id @default(cuid())
-  userId      String
-  itemName    String
-  platform    String
-  sellPrice   Float
-  buyPrice    Float    @default(0)
-  profit      Float
-  roi         Float    @default(0)
-  memo        String?
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  itemName  String
+  platform  String
+  sellPrice Float
+  buyPrice  Float    @default(0)
+  profit    Float
+  roi       Float    @default(0)
+  memo      String?
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -147,15 +149,15 @@ model ScanHistory {
 }
 
 model ProfitCalcHistory {
-  id           String   @id @default(cuid())
-  userId       String
-  itemName     String
-  buyPrice     Float
-  sellPrice    Float
-  profit       Float
-  roi          Float
-  platform     String
-  createdAt    DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  itemName  String
+  buyPrice  Float
+  sellPrice Float
+  profit    Float
+  roi       Float
+  platform  String
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -166,9 +168,26 @@ model StripeEvent {
   createdAt DateTime @default(now())
 }
 
+model EbayAccount {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  ebayUserId     String
+  accessToken    String
+  refreshToken   String
+  tokenExpiresAt DateTime
+  scopes         String[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ebayUserId])
+}
+
 model ContentItem {
   id          String    @id @default(cuid())
-  platform    String    // tiktok | instagram | x | dm
+  platform    String // tiktok | instagram | x | dm
   theme       String    @default("")
   title       String
   body        String
@@ -191,6 +210,99 @@ enum SubscriptionStatus {
   CANCELED
   PAST_DUE
   TRIALING
+}
+
+// ============================================================
+// AI収益化コンテンツ生成機能 (MVP)
+// ============================================================
+
+model MonetizeProject {
+  id                       String        @id @default(uuid()) @db.Uuid
+  userId                   String        @map("user_id")
+  name                     String        @db.VarChar(200)
+  genre                    String        @db.VarChar(100)
+  target                   String        @db.Text
+  productUrl               String?       @map("product_url") @db.Text
+  lpUrl                    String?       @map("lp_url") @db.Text
+  blogUrl                  String?       @map("blog_url") @db.Text
+  affiliateLink            String?       @map("affiliate_link") @db.Text
+  memo                     String?       @db.Text
+  latestGenerationResultId String?       @unique @map("latest_generation_result_id") @db.Uuid
+  latestGeneratedAt        DateTime?     @map("latest_generated_at")
+  status                   ProjectStatus @default(DRAFT)
+  createdAt                DateTime      @default(now()) @map("created_at")
+  updatedAt                DateTime      @updatedAt @map("updated_at")
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  latestResult GenerationResult?   @relation("ProjectLatestResult", fields: [latestGenerationResultId], references: [id], onDelete: SetNull)
+  results      GenerationResult[]  @relation("ProjectResults")
+  histories    GenerationHistory[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("monetize_projects")
+}
+
+model GenerationResult {
+  id             String   @id @default(uuid()) @db.Uuid
+  projectId      String   @map("project_id") @db.Uuid
+  analysisJson   Json     @map("analysis_json")
+  articleJson    Json     @map("article_json")
+  snsJson        Json     @map("sns_json")
+  reelJson       Json     @map("reel_json")
+  lineJson       Json     @map("line_json")
+  ctaJson        Json     @map("cta_json")
+  complianceJson Json     @map("compliance_json")
+  rawOutputJson  Json     @map("raw_output_json")
+  promptVersion  String   @map("prompt_version") @db.VarChar(50)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  project          MonetizeProject    @relation("ProjectResults", fields: [projectId], references: [id], onDelete: Cascade)
+  latestForProject MonetizeProject?   @relation("ProjectLatestResult")
+  history          GenerationHistory?
+
+  @@index([projectId])
+  @@map("monetize_generation_results")
+}
+
+model GenerationHistory {
+  id                 String                  @id @default(uuid()) @db.Uuid
+  projectId          String                  @map("project_id") @db.Uuid
+  generationResultId String?                 @unique @map("generation_result_id") @db.Uuid
+  inputSnapshotJson  Json                    @map("input_snapshot_json")
+  status             GenerationHistoryStatus
+  errorCode          String?                 @map("error_code") @db.VarChar(50)
+  errorMessage       String?                 @map("error_message") @db.Text
+  promptVersion      String                  @map("prompt_version") @db.VarChar(50)
+  startedAt          DateTime                @map("started_at")
+  completedAt        DateTime?               @map("completed_at")
+  createdAt          DateTime                @default(now()) @map("created_at")
+
+  project MonetizeProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  result  GenerationResult? @relation(fields: [generationResultId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([status])
+  @@map("monetize_generation_histories")
+}
+
+enum ProjectStatus {
+  DRAFT
+  READY
+  GENERATING
+  GENERATED
+  ERROR
+
+  @@map("project_status")
+}
+
+enum GenerationHistoryStatus {
+  QUEUED
+  PROCESSING
+  SUCCESS
+  FAILED
+
+  @@map("generation_history_status")
 }
 
 // ============================================================
