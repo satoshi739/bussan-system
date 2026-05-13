@@ -9,6 +9,7 @@ import CommandPalette from "@/components/CommandPalette";
 import VoiceAssistant from "@/components/VoiceAssistant";
 import NotificationCenter from "@/components/NotificationCenter";
 import ShortcutsHelp from "@/components/ShortcutsHelp";
+import LaunchBanner from "@/components/LaunchBanner";
 
 const PUBLIC_PATHS = ["/login", "/pricing", "/deals", "/legal"];
 
@@ -57,8 +58,10 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   useAutoChecklist(pathname);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      {showSidebar && <CommandPalette />}
+    <>
+      <LaunchBanner />
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        {showSidebar && <CommandPalette />}
       {showSidebar && <ShortcutsHelp />}
       {showSidebar && <NotificationCenter />}
       {showSidebar && <VoiceAssistant />}
@@ -83,10 +86,11 @@ export default function ClientShell({ children }: { children: React.ReactNode })
         `}</style>
       )}
 
-      {/* オンボーディングモーダル（初回ログイン時のみ） */}
-      {showSidebar && session?.user && showOnboarding && (
-        <OnboardingModal onComplete={completeOnboarding} />
-      )}
-    </div>
+        {/* オンボーディングモーダル（初回ログイン時のみ） */}
+        {showSidebar && session?.user && showOnboarding && (
+          <OnboardingModal onComplete={completeOnboarding} />
+        )}
+      </div>
+    </>
   );
 }
