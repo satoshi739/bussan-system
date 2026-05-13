@@ -230,6 +230,39 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* ── ロンチ記念キャンペーンバナー ── */}
+        <div style={{
+          marginBottom: isMobile ? 24 : 36,
+          padding: isMobile ? "18px 20px" : "24px 32px",
+          background: "linear-gradient(135deg, rgba(201,169,107,0.18), rgba(201,169,107,0.06))",
+          border: "2px solid rgba(201,169,107,0.45)",
+          borderRadius: 16,
+          textAlign: "center",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          <div style={{ fontSize: 10, color: P.gold, fontWeight: 800, letterSpacing: 3, marginBottom: 8 }}>
+            🎉 LAUNCH CAMPAIGN
+          </div>
+          <div style={{ fontSize: isMobile ? 19 : 24, fontWeight: 900, color: P.t1, marginBottom: 10, lineHeight: 1.3 }}>
+            通常7日 → <span style={{ color: P.gold }}>14日間</span> 無料トライアルに延長
+          </div>
+          <div style={{ display: "inline-flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 10 }}>
+            {[
+              "🎁 トライアル期間2倍",
+              "👤 創業者サポート1時間付き",
+              "🚀 機能リクエスト優先対応",
+            ].map(t => (
+              <span key={t} style={{ background: "rgba(201,169,107,0.12)", border: "1px solid rgba(201,169,107,0.3)", borderRadius: 999, padding: "5px 12px", fontSize: 11, color: P.t2, fontWeight: 700 }}>
+                {t}
+              </span>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: P.t3, fontWeight: 600 }}>
+            先着50名・2026年5月31日まで｜カード登録不要
+          </div>
+        </div>
+
         {/* ── 社会的証明バー ── */}
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 8 : 10, marginBottom: isMobile ? 28 : 44 }}>
           {[
