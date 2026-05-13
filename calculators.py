@@ -41,6 +41,57 @@ def estimate_weight_by_category(category: str) -> float:
     """カテゴリから標準重量(g)を推定する。500g固定より送料誤差を大幅削減。"""
     return float(CATEGORY_WEIGHT_G.get(category, 500))
 
+
+# ===== 国内送料自動計算 =====
+# 重量(g)・三辺合計(cm)から送料を推定するローカルテーブル
+
+_YAMATO_TIERS = [
+    (60,  2000,  1650),
+    (80,  5000,  1870),
+    (100, 10000, 2200),
+    (120, 15000, 2530),
+    (140, 20000, 2860),
+    (160, 25000, 3190),
+]
+
+_YUPACK_TIERS = [
+    (60,  25000, 1020),
+    (80,  25000, 1320),
+    (100, 25000, 1620),
+    (120, 25000, 1920),
+    (140, 25000, 2220),
+    (160, 25000, 2520),
+    (170, 25000, 2820),
+]
+
+
+def estimate_domestic_shipping(
+    weight_g: float,
+    size_cm: float,
+    carrier: str = "yamato",
+) -> dict:
+    """
+    重量(g)・三辺合計(cm)から国内送料を推定する。
+    carrier: "yamato" | "yupacket" | "clickpost"
+    """
+    if carrier == "clickpost":
+        if size_cm <= 60 and weight_g <= 1000:
+            return {"fee": 185, "carrier": "クリックポスト", "size_class": "-"}
+
+    if carrier == "yupacket":
+        if size_cm <= 60 and weight_g <= 1000:
+            return {"fee": 230, "carrier": "ゆうパケット", "size_class": "-"}
+        for max_size, max_g, fee in _YUPACK_TIERS:
+            if size_cm <= max_size and weight_g <= max_g:
+                return {"fee": fee, "carrier": "ゆうパック", "size_class": f"{max_size}サイズ"}
+        return {"fee": 2820, "carrier": "ゆうパック", "size_class": "170サイズ"}
+
+    # yamato（デフォルト）
+    for max_size, max_g, fee in _YAMATO_TIERS:
+        if size_cm <= max_size and weight_g <= max_g:
+            return {"fee": fee, "carrier": "ヤマト宅急便", "size_class": f"{max_size}サイズ"}
+    return {"fee": 3190, "carrier": "ヤマト宅急便", "size_class": "160サイズ"}
+
 # ===== Amazon FBA 料金表（2024年・Amazon.co.jp） =====
 # 区分: (最大重量g, 手数料円)
 # 重量が超えるたびに次の段階へ

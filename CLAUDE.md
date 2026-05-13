@@ -63,13 +63,14 @@ bussan-system/
 副業せどらー〜専業物販プレイヤー（初心者〜中級者）
 
 ### 料金プラン（月額サブスク）
-| プラン | 月額 | 内部キー | 特記 |
-|--------|------|----------|------|
-| フリー | ¥0 | `PLANS.FREE` | 仕入れ30件まで |
-| Standard | ¥9,800 | `PLANS.PRO` | 7日間無料トライアル |
-| Pro | ¥19,800 | `PLANS.BUSINESS` | 7日間無料トライアル |
+| プラン | 月額 | 内部キー | Price ID env | 特記 |
+|--------|------|----------|--------------|------|
+| フリー | ¥0 | `PLANS.FREE` | （なし） | 月10スキャン・履歴3件 |
+| Lite | ¥4,980 | `PLANS.LITE` | `STRIPE_LITE_PRICE_ID` | 月100スキャン・履歴50件 |
+| Standard | ¥9,800 | `PLANS.STANDARD` | `STRIPE_STANDARD_PRICE_ID` | 月500スキャン・無制限機能 |
+| Pro | ¥19,800 | `PLANS.PRO` | `STRIPE_PRO_PRICE_ID` | Standardの全機能＋高度分析 |
 
-> **注意**: `lib/stripe.ts` の内部キー名（FREE/PRO/BUSINESS）と表示名（フリー/Standard/Pro）が一致していない。混同しないこと。
+内部キーと表示名は一致している（`lib/plans.ts` 参照）。DB の `Plan` enum も同名4値（`FREE / LITE / STANDARD / PRO`）。
 
 ### 決済・集客
 - 決済: Stripe

@@ -7,9 +7,12 @@
 
 import time
 import json
+import logging
 from typing import List, Dict, Optional
 from datetime import datetime
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from scrapers import (
     search_mercari, search_yahoo_auction, search_rakuma,
@@ -368,7 +371,7 @@ def scan_keyword(
                     "sample": amazon_market.get("sample_count"),
                 }
         except Exception:
-            pass
+            logger.exception("amazon market price fallback failed: keyword=%s target=%s", keyword, target_platform)
 
     # スコアリング
     scored = []

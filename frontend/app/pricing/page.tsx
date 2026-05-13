@@ -300,6 +300,11 @@ export default function PricingPage() {
               <span style={{ fontSize: 32, fontWeight: 900, color: P.lite, fontFamily: "monospace" }}>¥4,980</span>
               <span style={{ fontSize: 13, color: P.t3, marginLeft: 5 }}>/月</span>
             </div>
+            <div style={{ marginBottom: 14 }}>
+              <span style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 20, padding: "2px 10px", fontWeight: 700 }}>
+                🎁 7日間無料トライアル
+              </span>
+            </div>
             <p style={{ fontSize: 12, color: P.t3, marginBottom: 18, lineHeight: 1.6 }}>
               物販を始めたばかりの方向けのエントリープラン。
             </p>
@@ -316,7 +321,7 @@ export default function PricingPage() {
               disabled={loading === "LITE"}
               style={{ width: "100%", background: "transparent", border: `1px solid rgba(126,176,232,0.35)`, borderRadius: 10, color: P.lite, padding: "11px", fontSize: 13, fontWeight: 700, cursor: loading === "LITE" ? "not-allowed" : "pointer", marginTop: 16, opacity: loading === "LITE" ? 0.6 : 1 }}
             >
-              {loading === "LITE" ? "処理中..." : "初心者プランで始める"}
+              {loading === "LITE" ? "処理中..." : "7日間無料で試す →"}
             </button>
           </div>
 
@@ -359,7 +364,7 @@ export default function PricingPage() {
               disabled={loading === "STANDARD"}
               style={{ width: "100%", background: loading === "STANDARD" ? "rgba(0,20,10,0.5)" : `linear-gradient(135deg,${P.bg1},${P.bg2})`, border: `2px solid ${P.bdSt}`, borderRadius: 10, color: P.gold, padding: "13px", fontSize: 14, fontWeight: 900, cursor: loading === "STANDARD" ? "not-allowed" : "pointer", marginTop: 16, letterSpacing: "0.02em" }}
             >
-              {loading === "STANDARD" ? "処理中..." : "一番人気で始める →"}
+              {loading === "STANDARD" ? "処理中..." : "7日間無料で試す →"}
             </button>
           </div>
 
@@ -397,7 +402,7 @@ export default function PricingPage() {
               disabled={loading === "PRO"}
               style={{ width: "100%", background: "transparent", border: "1px solid rgba(74,127,193,0.40)", borderRadius: 10, color: "#7eb0e8", padding: "11px", fontSize: 13, fontWeight: 700, cursor: loading === "PRO" ? "not-allowed" : "pointer", marginTop: 16, opacity: loading === "PRO" ? 0.6 : 1 }}
             >
-              {loading === "PRO" ? "処理中..." : "Proで本格運用する"}
+              {loading === "PRO" ? "処理中..." : "7日間無料で試す →"}
             </button>
           </div>
         </div>
@@ -558,7 +563,7 @@ export default function PricingPage() {
             まずは7日間、無料で試してみませんか？
           </div>
           <div style={{ fontSize: 13, color: P.t3, marginBottom: 20 }}>
-            クレジットカード登録後すぐ開始。期間中に解約すれば費用0円。
+            カード登録は必要ですが、7日以内に解約すれば一切請求されません。
           </div>
           <button
             onClick={() => handleSubscribe("STANDARD")}

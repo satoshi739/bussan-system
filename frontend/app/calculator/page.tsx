@@ -10,6 +10,7 @@ import {
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 import { SHIPPING_OPTIONS, getShippingFee } from "@/lib/shipping";
+import { getDomesticShipping } from "@/lib/api";
 
 const card: React.CSSProperties = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 24px" };
 const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "10px 12px", fontSize: 15, width: "100%", outline: "none", fontFamily: "monospace" };
@@ -87,6 +88,13 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
   // 輸入送料
   const [importShipping, setImportShipping] = useState<number | null>(null);
 
+  // 国内送料自動計算
+  const [autoWeight, setAutoWeight] = useState("");
+  const [autoSize, setAutoSize] = useState("");
+  const [autoCarrier, setAutoCarrier] = useState("yamato");
+  const [autoShipping, setAutoShipping] = useState<{ fee: number; carrier: string; size_class: string } | null>(null);
+  const [autoShippingLoading, setAutoShippingLoading] = useState(false);
+
   const recalc = useCallback(async (f: typeof form) => {
     if (!f.purchase_price || !f.selling_price) { setResult(null); return; }
     try {
@@ -119,6 +127,18 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
     } else {
       setImportShipping(null);
     }
+  };
+
+  const handleAutoShipping = async () => {
+    const w = Number(autoWeight);
+    const s = Number(autoSize);
+    if (!w || !s) { toast("重量とサイズを入力してください", "error"); return; }
+    setAutoShippingLoading(true);
+    try {
+      const r = await getDomesticShipping(w, s, autoCarrier);
+      setAutoShipping(r);
+    } catch (e) { toast(errMsg(e), "error"); }
+    setAutoShippingLoading(false);
   };
 
   return (
@@ -192,6 +212,39 @@ function ProfitTab({ domestic, overseas, categories }: { domestic: [string, Plat
                 </div>
               )}
             </div>
+          </div>
+          <div style={{ marginTop: 4, padding: "10px 12px", background: "rgba(0,20,10,0.4)", border: "1px solid rgba(212,175,55,0.1)", borderRadius: 8 }}>
+            <div style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600, marginBottom: 8 }}>重量・サイズから送料を自動計算</div>
+            <div className="calc-form-3col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8 }}>
+              <div>
+                <label style={lbl}>重量 (g)</label>
+                <input type="number" style={{ ...inp, fontSize: 13 }} value={autoWeight} onChange={e => setAutoWeight(e.target.value)} placeholder="500" />
+              </div>
+              <div>
+                <label style={lbl}>三辺合計 (cm)</label>
+                <input type="number" style={{ ...inp, fontSize: 13 }} value={autoSize} onChange={e => setAutoSize(e.target.value)} placeholder="60" />
+              </div>
+              <div>
+                <label style={lbl}>配送会社</label>
+                <select style={{ ...inp, fontSize: 13 }} value={autoCarrier} onChange={e => setAutoCarrier(e.target.value)}>
+                  <option value="yamato">ヤマト宅急便</option>
+                  <option value="yupacket">ゆうパケット/ゆうパック</option>
+                  <option value="clickpost">クリックポスト</option>
+                </select>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-end" }}>
+                <button onClick={handleAutoShipping} disabled={autoShippingLoading} style={{ background: "linear-gradient(135deg,#1e1608,#2a1e08)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 7, color: "var(--blue)", padding: "10px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+                  {autoShippingLoading ? "計算中..." : "計算"}
+                </button>
+              </div>
+            </div>
+            {autoShipping && (
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, fontSize: 12, flexWrap: "wrap" }}>
+                <span style={{ color: "var(--text-3)" }}>{autoShipping.carrier} {autoShipping.size_class}:</span>
+                <span style={{ color: "var(--blue)", fontWeight: 700 }}>¥{autoShipping.fee.toLocaleString()}</span>
+                <button onClick={() => { upd("shipping_to_platform", String(autoShipping.fee)); setShippingMethod("manual"); }} style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 5, color: "var(--blue)", padding: "3px 10px", fontSize: 11, cursor: "pointer" }}>この送料を使う</button>
+              </div>
+            )}
           </div>
           {form.selling_platform === "Amazon" && (
             <div style={{ marginTop: 12 }}>

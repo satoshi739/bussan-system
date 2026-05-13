@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown, Crown, Sparkles, Zap, Award, Calendar } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown, Crown, Sparkles, Zap, Award, Calendar, Megaphone } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
@@ -26,6 +26,7 @@ const navGroups = [
       { href: "/achievements", label: "達成バッジ",       icon: Award },
       { href: "/report",       label: "レポート",         icon: BarChart2 },
       { href: "/ai",           label: "AI アシスタント",  icon: Bot },
+      { href: "/monetize",     label: "コンテンツ生成",   icon: Megaphone },
       { href: "/alerts",       label: "価格アラート",     icon: Bell },
     ],
   },

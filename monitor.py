@@ -277,6 +277,55 @@ def weekly_report():
             db.close()
 
 
+_TOP_TODAY_FILE = Path(__file__).parent / "data" / "top_today.json"
+
+_DISCOVERY_GENRES = [
+    {"keyword": "腕時計 セイコー 中古",        "platform": "eBay", "max_price": 20000, "label": "セイコー"},
+    {"keyword": "腕時計 カシオ G-SHOCK 中古",  "platform": "eBay", "max_price": 15000, "label": "G-SHOCK"},
+    {"keyword": "フィルムカメラ 中古",          "platform": "eBay", "max_price": 15000, "label": "フィルムカメラ"},
+    {"keyword": "ポケモンカード",              "platform": "eBay", "max_price": 5000,  "label": "ポケモンカード"},
+    {"keyword": "LEGO レゴ 廃盤",            "platform": "eBay", "max_price": 12000, "label": "LEGO廃盤"},
+    {"keyword": "プラモデル ガンダム 旧キット", "platform": "eBay", "max_price": 5000,  "label": "ガンプラ"},
+    {"keyword": "ファミコン ソフト 希少",       "platform": "eBay", "max_price": 5000,  "label": "ファミコン"},
+    {"keyword": "ギター エレキ 日本製 中古",    "platform": "eBay", "max_price": 30000, "label": "エレキギター"},
+    {"keyword": "骨董品 アンティーク",         "platform": "eBay", "max_price": 20000, "label": "骨董品"},
+    {"keyword": "レコード LP 中古",           "platform": "eBay", "max_price": 5000,  "label": "レコード"},
+]
+
+
+def discovery_scan():
+    """毎朝6時: 人気ジャンルを自動スキャンしてトップ商品をJSONキャッシュに保存"""
+    print(f"[Monitor] discovery_scan 開始: {datetime.now().isoformat()}")
+    try:
+        from profit_scanner import scan_keyword
+        all_results: list = []
+        for genre in _DISCOVERY_GENRES:
+            try:
+                results = scan_keyword(
+                    genre["keyword"],
+                    target_platform=genre["platform"],
+                    max_buy_price=genre["max_price"],
+                    limit=5,
+                )
+                for r in results:
+                    r["genre_label"] = genre["label"]
+                all_results.extend(results)
+            except Exception as e:
+                print(f"[Monitor] discovery_scan genre={genre['keyword']} エラー: {e}")
+
+        all_results.sort(key=lambda x: x.get("score", 0), reverse=True)
+        top20 = all_results[:20]
+
+        _TOP_TODAY_FILE.parent.mkdir(exist_ok=True)
+        _TOP_TODAY_FILE.write_text(json.dumps({
+            "updated_at": datetime.now().isoformat(),
+            "items": top20,
+        }, ensure_ascii=False, indent=2))
+        print(f"[Monitor] discovery_scan 完了: {len(top20)}件キャッシュ")
+    except Exception as e:
+        print(f"[Monitor] discovery_scan エラー: {e}")
+
+
 def cleanup_memory():
     """期限切れの記憶を定期削除"""
     db = None
@@ -327,6 +376,10 @@ def setup_schedules():
     # 毎朝スキャン
     schedule.every().day.at(cfg["daily_scan_time"]).do(daily_scan)
     print(f"[Monitor] 毎朝スキャン: {cfg['daily_scan_time']}")
+
+    # 今日のおすすめ自動発見スキャン（毎朝6時）
+    schedule.every().day.at("06:00").do(discovery_scan)
+    print("[Monitor] 今日のおすすめスキャン: 毎日06:00")
 
     # 売れ残りチェック（毎日18時）
     if cfg["stale_check_enabled"]:
