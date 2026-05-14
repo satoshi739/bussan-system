@@ -126,7 +126,7 @@ export default function FulfillmentPage() {
 
     setReqLoading(true);
     try {
-      await createShippingRequest(requestTask.id, {
+      const res = await createShippingRequest(requestTask.id, {
         vendor_id: Number(reqForm.vendor_id),
         shipping_method: reqForm.shipping_method,
         shipping_cost: selectedMethod.price,
@@ -139,7 +139,11 @@ export default function FulfillmentPage() {
         request_options: requestOptionsStr,
         notes: reqForm.notes || undefined,
       });
-      toast(`${selectedVendor?.name ?? "業者"} に依頼を送信しました`);
+      if (isOpenlogi && res.vendor_task_id) {
+        toast(`オープンロジに送信完了（出荷ID: ${res.vendor_task_id}）`);
+      } else {
+        toast(`${selectedVendor?.name ?? "業者"} に依頼を送信しました`);
+      }
       setRequestTask(null);
       load();
     } catch (e) { toast(errMsg(e) || "依頼の送信に失敗しました", "error"); }
@@ -412,6 +416,11 @@ export default function FulfillmentPage() {
                     </div>
                   ) : (
                     <div style={{ fontSize: 11, color: "#3A3830" }}>未登録</div>
+                  )}
+                  {item.vendor_task_id && (
+                    <div title="業者側 出荷ID" style={{ fontSize: 10, fontFamily: "monospace", color: "var(--text-3)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      #{item.vendor_task_id}
+                    </div>
                   )}
                 </div>
 

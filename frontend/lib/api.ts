@@ -467,6 +467,9 @@ export interface Fulfillment {
   pack_date?: string;
   ship_date?: string;
   notes?: string;
+  vendor_id?: number;
+  vendor_task_id?: string;
+  shipping_method?: string;
   created_at: string;
   product_name: string;
   platform: string;
@@ -579,7 +582,7 @@ export const deleteFulfillmentVendor = (id: number) =>
 export const testFulfillmentVendor = (id: number) =>
   req<{ ok: boolean; message: string }>("/api/fulfillment/vendors/" + id + "/test", { method: "POST" });
 export const createShippingRequest = (taskId: number, body: ShippingRequest) =>
-  req<{ ok: boolean }>("/api/fulfillment/" + taskId + "/request", { method: "POST", body: JSON.stringify(body) });
+  req<{ ok: boolean; vendor_task_id?: string | null }>("/api/fulfillment/" + taskId + "/request", { method: "POST", body: JSON.stringify(body) });
 export const getStatusLogs = (taskId: number) =>
   req<StatusLog[]>("/api/fulfillment/" + taskId + "/logs");
 
