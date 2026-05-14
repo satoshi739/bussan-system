@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Calculator, BarChart2, Eye, Search, Settings, Radar, LogOut, CreditCard, Bell, Target, Bot, X, MoreHorizontal, Truck, Package, Warehouse, PieChart, Brain, CheckCircle, Share2, Activity, Database, ScanLine, HelpCircle, ChevronDown, Crown, Sparkles, Zap, Award, Calendar, Megaphone } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Settings, Radar, LogOut, CreditCard, X, MoreHorizontal, HelpCircle, ChevronDown, Crown, Sparkles } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
@@ -15,65 +15,19 @@ const GROUP_LABEL = "var(--text-3)";
 const PLAN_LABELS: Record<string, string> = { FREE: "フリー", LITE: "Lite", STANDARD: "Standard", PRO: "Pro" };
 const PLAN_COLORS: Record<string, string> = { FREE: T.t3, LITE: "#7eb0e8", STANDARD: T.gold, PRO: T.goldLt };
 
-// 全機能を見せる「ふつうモード」のナビ — おばちゃん語に書き換え済み
+// 必要最低限のナビ — 仕入→出品→売上の業務サイクルが回る7項目
 const navGroups = [
   {
-    label: "ホーム",
+    label: "メニュー",
     defaultCollapsed: false,
     items: [
-      { href: "/",             label: "ホーム",            icon: LayoutDashboard },
-      { href: "/pipeline",     label: "自動おまかせ",       icon: Zap },
-      { href: "/weekly",       label: "今週どうだった？",   icon: Calendar },
-      { href: "/achievements", label: "できたこと",         icon: Award },
-      { href: "/report",       label: "数字まとめ",         icon: BarChart2 },
-      { href: "/ai",           label: "AIに相談",           icon: Bot },
-      { href: "/monetize",     label: "SNS投稿のもと",      icon: Megaphone },
-      { href: "/alerts",       label: "値段の変化通知",     icon: Bell },
-    ],
-  },
-  {
-    label: "商品を探す",
-    defaultCollapsed: false,
-    items: [
-      { href: "/discover",    label: "今日のおすすめ商品",   icon: Sparkles },
-      { href: "/scanner",     label: "商品の利益を調べる",   icon: Radar },
-      { href: "/barcode",     label: "バーコードで調べる",   icon: ScanLine },
-      { href: "/search",      label: "いくらで売れてるか",   icon: Search },
-      { href: "/competition", label: "ライバルを調べる",     icon: Target },
-      { href: "/watchlist",   label: "気になる商品",         icon: Eye },
-    ],
-  },
-  {
-    label: "売る作業",
-    defaultCollapsed: false,
-    items: [
-      { href: "/purchases", label: "買った商品の記録",   icon: ShoppingCart },
-      { href: "/listings",  label: "出品中の商品",       icon: Tag },
-      { href: "/listings/quick", label: "AIで出品文を作る", icon: Sparkles },
-      { href: "/listings/quick/history", label: "過去の出品",  icon: BarChart2 },
-      { href: "/fba",       label: "Amazon倉庫に送る",   icon: Package },
-      { href: "/inventory", label: "在庫の一覧",         icon: Warehouse },
-    ],
-  },
-  {
-    label: "AIお手伝い",
-    defaultCollapsed: true,
-    items: [
-      { href: "/agents",           label: "おまかせAI",          icon: Brain },
-      { href: "/agents/approvals", label: "仕入れていいか確認", icon: CheckCircle },
-      { href: "/agents/sns",       label: "SNSの投稿",          icon: Share2 },
-      { href: "/agents/monitor",   label: "自動で見張り",       icon: Activity },
-      { href: "/agents/memory",    label: "AIの記憶",           icon: Database },
-    ],
-  },
-  {
-    label: "数字を見る",
-    defaultCollapsed: true,
-    items: [
-      { href: "/sales",             label: "売れた商品",     icon: TrendingUp },
-      { href: "/platform-analysis", label: "お店ごとの売上", icon: PieChart   },
-      { href: "/calculator",        label: "利益を計算",     icon: Calculator },
-      { href: "/fulfillment",       label: "外注スタッフ",   icon: Truck      },
+      { href: "/",               label: "ホーム",              icon: LayoutDashboard },
+      { href: "/scanner",        label: "商品の利益を調べる",  icon: Radar },
+      { href: "/discover",       label: "今日のおすすめ商品",  icon: Sparkles },
+      { href: "/listings/quick", label: "AIで出品文を作る",    icon: Sparkles },
+      { href: "/purchases",      label: "買った商品の記録",    icon: ShoppingCart },
+      { href: "/listings",       label: "出品中の商品",        icon: Tag },
+      { href: "/sales",          label: "売れた商品",          icon: TrendingUp },
     ],
   },
 ];
@@ -86,13 +40,12 @@ const EASY_NAV = [
   { href: "/support",   label: "困ったとき",         icon: HelpCircle },
 ];
 
-// モバイル下部5タブ（おばちゃん語に整理）
+// モバイル下部タブ（中核動線に揃える・末尾に「メニュー」ボタンが自動で追加されて5タブ）
 const BOTTOM_TABS = [
-  { href: "/",          label: "ホーム",      icon: LayoutDashboard },
-  { href: "/scanner",   label: "利益を調べる", icon: Search },
-  { href: "/barcode",   label: "バーコード",   icon: ScanLine },
-  { href: "/purchases", label: "記録",        icon: ShoppingCart },
-  { href: "/support",   label: "困った時",    icon: HelpCircle },
+  { href: "/",               label: "ホーム",       icon: LayoutDashboard },
+  { href: "/scanner",        label: "利益を調べる", icon: Radar },
+  { href: "/listings/quick", label: "AI出品",       icon: Sparkles },
+  { href: "/sales",          label: "売れた",       icon: TrendingUp },
 ];
 
 // ── かんたんモード state（localStorage で記憶） ─────────────
