@@ -151,6 +151,8 @@ class Database:
         if needs_init:
             self._create_tables()
             self._add_indexes()
+        # 既存DBでも新カラム追加 migration を毎回チェック（col_exists で二重ガード済み）
+        self._migrate()
 
     def close(self):
         try:
