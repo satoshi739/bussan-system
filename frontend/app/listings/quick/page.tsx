@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, History as HistoryIcon, ArrowRight, Plus, Image as ImageIcon, X, Download } from "lucide-react";
+import { Sparkles, History as HistoryIcon, ArrowRight, Plus, Image as ImageIcon, X, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 import { SIZE_OPTIONS, AREA_OPTIONS, type SizeCode, type AreaCode } from "@/lib/shipping-table";
@@ -12,10 +12,10 @@ import MercariFeatureNotice from "@/components/MercariFeatureNotice";
 const inp: React.CSSProperties = {
   background: "var(--surface-2)",
   border: "1px solid var(--border)",
-  borderRadius: 8,
+  borderRadius: 12,
   color: "var(--text)",
-  padding: "9px 12px",
-  fontSize: 14,
+  padding: "12px 14px",
+  fontSize: 15,
   width: "100%",
   outline: "none",
   boxSizing: "border-box",
@@ -25,7 +25,7 @@ const lbl: React.CSSProperties = {
   color: "var(--text-3)",
   fontWeight: 600,
   display: "block",
-  marginBottom: 4,
+  marginBottom: 6,
 };
 
 const CONDITIONS = ["新品・未開封", "新品・未使用", "未使用に近い", "目立った傷や汚れなし", "やや傷や汚れあり", "傷や汚れあり", "全体的に状態が悪い"];
@@ -66,6 +66,7 @@ export default function QuickListingCreatePage() {
   const [imgInput, setImgInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [fetchingImages, setFetchingImages] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const setField = <K extends keyof Form>(k: K, v: Form[K]) => setForm(p => ({ ...p, [k]: v }));
 
@@ -262,7 +263,7 @@ export default function QuickListingCreatePage() {
           />
         </div>
 
-        <div className="ql-grid-3" style={{ marginBottom: 16 }}>
+        <div className="ql-grid-2" style={{ marginBottom: 16 }}>
           <div>
             <label style={lbl}>仕入れ価格（円）</label>
             <input type="number" style={inp} placeholder="0" value={form.buyPrice}
@@ -273,73 +274,18 @@ export default function QuickListingCreatePage() {
             <input type="number" style={inp} placeholder="未入力ならAIが提案" value={form.estPrice}
               onChange={e => setField("estPrice", e.target.value)} />
           </div>
-          <div>
-            <label style={lbl}>状態</label>
-            <select style={inp} value={form.condition} onChange={e => setField("condition", e.target.value)}>
-              {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
         </div>
 
-        <div className="ql-grid-2" style={{ marginBottom: 16 }}>
-          <div>
-            <label style={lbl}>カテゴリ希望</label>
-            <input style={inp} placeholder="例: 家電・カメラ" value={form.category}
-              onChange={e => setField("category", e.target.value)} />
-          </div>
-          <div>
-            <label style={lbl}>出品先（将来切替）</label>
-            <select style={inp} value={form.targetPlatform}
-              onChange={e => setField("targetPlatform", e.target.value as TargetPlatform)}>
-              {PLATFORMS.map(p => (
-                <option key={p.id} value={p.id} disabled={!p.available && p.id !== "none"}>
-                  {p.label} {p.available ? "" : `（${p.statusLabel}）`}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <label style={lbl}>説明メモ（AI生成のヒント・なくてもOK）</label>
-          <textarea
-            style={{ ...inp, minHeight: 80, fontFamily: "inherit", resize: "vertical" }}
-            placeholder="動作確認済み・付属品の有無・購入元・使用期間など、AIに伝えたい情報を自由に"
-            value={form.notes}
-            onChange={e => setField("notes", e.target.value)}
-          />
-        </div>
-
-        {/* サイズ・重量・エリア */}
-        <div style={{
-          background: "rgba(0,0,0,0.18)", borderRadius: 10, padding: "14px 16px", marginBottom: 16,
-          border: "1px solid rgba(255,255,255,0.05)",
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.06em", marginBottom: 10 }}>
-            送料の概算用（任意）
-          </div>
-          <div className="ql-grid-3">
-            <div>
-              <label style={lbl}>重量（g）</label>
-              <input type="number" style={inp} placeholder="500" value={form.weightG}
-                onChange={e => setField("weightG", e.target.value)} />
-            </div>
-            <div>
-              <label style={lbl}>サイズ</label>
-              <select style={inp} value={form.sizeCode}
-                onChange={e => setField("sizeCode", e.target.value as SizeCode | "")}>
-                <option value="">未指定</option>
-                {SIZE_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label} — {s.hint}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lbl}>発送エリア</label>
-              <select style={inp} value={form.area}
-                onChange={e => setField("area", e.target.value as AreaCode)}>
-                {AREA_OPTIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
-              </select>
-            </div>
-          </div>
+        <div style={{ marginBottom: 20 }}>
+          <label style={lbl}>出品先</label>
+          <select style={inp} value={form.targetPlatform}
+            onChange={e => setField("targetPlatform", e.target.value as TargetPlatform)}>
+            {PLATFORMS.map(p => (
+              <option key={p.id} value={p.id} disabled={!p.available && p.id !== "none"}>
+                {p.label} {p.available ? "" : `（${p.statusLabel}）`}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* 画像URL */}
@@ -408,33 +354,124 @@ export default function QuickListingCreatePage() {
           )}
         </div>
 
+        {/* 詳細トグル */}
+        <button
+          type="button"
+          onClick={() => setDetailsOpen(o => !o)}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "transparent",
+            border: "1px dashed rgba(255,255,255,0.12)",
+            borderRadius: 12,
+            color: "var(--text-3)",
+            padding: "12px 16px",
+            cursor: "pointer",
+            fontSize: 13,
+            fontWeight: 600,
+            marginBottom: detailsOpen ? 16 : 20,
+          }}
+        >
+          <span>{detailsOpen ? "詳細を閉じる" : "詳細を入力する（状態・カテゴリ・送料の概算など）"}</span>
+          {detailsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+
+        {detailsOpen && (
+          <div style={{ marginBottom: 20 }}>
+            <div className="ql-grid-2" style={{ marginBottom: 16 }}>
+              <div>
+                <label style={lbl}>状態</label>
+                <select style={inp} value={form.condition} onChange={e => setField("condition", e.target.value)}>
+                  {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>カテゴリ希望</label>
+                <input style={inp} placeholder="例: 家電・カメラ" value={form.category}
+                  onChange={e => setField("category", e.target.value)} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={lbl}>説明メモ（AI生成のヒント）</label>
+              <textarea
+                style={{ ...inp, minHeight: 80, fontFamily: "inherit", resize: "vertical" }}
+                placeholder="動作確認済み・付属品の有無・購入元・使用期間など、AIに伝えたい情報を自由に"
+                value={form.notes}
+                onChange={e => setField("notes", e.target.value)}
+              />
+            </div>
+
+            <div style={{
+              background: "rgba(0,0,0,0.18)", borderRadius: 12, padding: "14px 16px",
+              border: "1px solid rgba(255,255,255,0.05)",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.06em", marginBottom: 10 }}>
+                送料の概算用
+              </div>
+              <div className="ql-grid-3">
+                <div>
+                  <label style={lbl}>重量（g）</label>
+                  <input type="number" style={inp} placeholder="500" value={form.weightG}
+                    onChange={e => setField("weightG", e.target.value)} />
+                </div>
+                <div>
+                  <label style={lbl}>サイズ</label>
+                  <select style={inp} value={form.sizeCode}
+                    onChange={e => setField("sizeCode", e.target.value as SizeCode | "")}>
+                    <option value="">未指定</option>
+                    {SIZE_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label} — {s.hint}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={lbl}>発送エリア</label>
+                  <select style={inp} value={form.area}
+                    onChange={e => setField("area", e.target.value as AreaCode)}>
+                    {AREA_OPTIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 生成ボタン */}
-        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button
-            onClick={() => setForm(emptyForm)}
-            style={{
-              background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 8, color: "var(--text-3)", padding: "11px 18px", cursor: "pointer", fontSize: 13,
-            }}
-          >
-            クリア
-          </button>
-          <button
-            onClick={handleGenerate}
-            disabled={submitting}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              background: submitting ? "rgba(100,100,100,0.3)" : "linear-gradient(135deg,#006FE6,#3B8EEA)",
-              border: "none", borderRadius: 10, color: "#fff",
-              padding: "11px 22px", fontSize: 14, fontWeight: 800,
-              cursor: submitting ? "wait" : "pointer", opacity: submitting ? 0.7 : 1,
-            }}
-          >
-            <Sparkles size={14} />
-            {submitting ? "AI生成中..." : "AIで出品文を作成"}
-            {!submitting && <ArrowRight size={14} />}
-          </button>
-        </div>
+        <button
+          onClick={handleGenerate}
+          disabled={submitting}
+          style={{
+            width: "100%",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+            background: submitting ? "rgba(100,100,100,0.3)" : "linear-gradient(135deg,#006FE6,#3B8EEA)",
+            border: "none", borderRadius: 14, color: "#fff",
+            padding: "16px 22px", fontSize: 15, fontWeight: 800,
+            cursor: submitting ? "wait" : "pointer", opacity: submitting ? 0.7 : 1,
+            boxShadow: submitting ? "none" : "0 4px 14px rgba(0,111,230,0.25)",
+            letterSpacing: "0.02em",
+          }}
+        >
+          <Sparkles size={16} />
+          {submitting ? "AI生成中..." : "AIで出品文を作成"}
+          {!submitting && <ArrowRight size={16} />}
+        </button>
+
+        {/* クリアリンク（控えめ） */}
+        <button
+          onClick={() => setForm(emptyForm)}
+          type="button"
+          style={{
+            display: "block",
+            margin: "12px auto 0",
+            background: "transparent", border: "none",
+            color: "var(--text-3)", padding: "6px 12px", cursor: "pointer", fontSize: 12,
+            textDecoration: "underline",
+            opacity: 0.7,
+          }}
+        >
+          入力をクリア
+        </button>
       </div>
     </div>
   );

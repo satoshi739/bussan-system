@@ -13,7 +13,7 @@ import { validateListing, hasBlockingError, type ValidationWarning } from "@/lib
 
 const inp: React.CSSProperties = {
   background: "var(--surface-2)", border: "1px solid var(--border)",
-  borderRadius: 8, color: "var(--text)", padding: "9px 12px", fontSize: 14,
+  borderRadius: 12, color: "var(--text)", padding: "12px 14px", fontSize: 15,
   width: "100%", outline: "none", boxSizing: "border-box",
 };
 const lbl: React.CSSProperties = {
@@ -583,28 +583,47 @@ export default function QuickListingPreviewPage() {
               <CheckCircle2 size={14} /> {saving ? "保存中..." : "出品準備完了"}
             </button>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 6 }}>
+            {/* メイン出品アクション（プラットフォーム別） */}
+            {platform === "mercari" && (
+              <button onClick={handleMercariPublish} disabled={publishing || blocked}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  background: "linear-gradient(135deg,#ff4f81,#ff2d65)",
+                  border: "1px solid rgba(255,79,129,0.5)",
+                  borderRadius: 14, color: "#fff", padding: "14px",
+                  fontSize: 14, fontWeight: 800,
+                  cursor: (publishing || blocked) ? "not-allowed" : "pointer",
+                  opacity: (publishing || blocked) ? 0.5 : 1,
+                  boxShadow: (publishing || blocked) ? "none" : "0 4px 14px rgba(255,79,129,0.28)",
+                  marginBottom: 10,
+                }}>
+                <Tag size={14} /> メルカリで出品（コピー＋アプリ起動）
+              </button>
+            )}
+            {(platform === "yahoo_auctions" || platform === "ebay") && (
+              <div style={{
+                width: "100%", padding: "12px 14px", borderRadius: 14,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px dashed rgba(255,255,255,0.12)",
+                color: "var(--text-3)",
+                fontSize: 12, fontWeight: 600, textAlign: "center",
+                marginBottom: 10,
+              }}>
+                {platformMeta.label} API連携準備中 — 承認後に自動出品対応します
+              </div>
+            )}
+
+            {/* セカンダリ：CSV / 出品文コピー */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               <button onClick={() => handlePublish("csv")} disabled={publishing || blocked}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(168,139,255,0.1)", border: "1px solid rgba(168,139,255,0.3)", borderRadius: 8, color: "#A88BFF", padding: "9px", fontSize: 12, fontWeight: 700, cursor: (publishing || blocked) ? "not-allowed" : "pointer", opacity: (publishing || blocked) ? 0.5 : 1 }}>
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(168,139,255,0.10)", border: "1px solid rgba(168,139,255,0.28)", borderRadius: 12, color: "#A88BFF", padding: "10px", fontSize: 12, fontWeight: 700, cursor: (publishing || blocked) ? "not-allowed" : "pointer", opacity: (publishing || blocked) ? 0.5 : 1 }}>
                 <Download size={12} /> CSV出力
               </button>
               <button onClick={() => handlePublish("copy")} disabled={publishing || blocked}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(64,170,223,0.1)", border: "1px solid rgba(64,170,223,0.3)", borderRadius: 8, color: "#60BFEF", padding: "9px", fontSize: 12, fontWeight: 700, cursor: (publishing || blocked) ? "not-allowed" : "pointer", opacity: (publishing || blocked) ? 0.5 : 1 }}>
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(64,170,223,0.10)", border: "1px solid rgba(64,170,223,0.28)", borderRadius: 12, color: "#60BFEF", padding: "10px", fontSize: 12, fontWeight: 700, cursor: (publishing || blocked) ? "not-allowed" : "pointer", opacity: (publishing || blocked) ? 0.5 : 1 }}>
                 <Copy size={12} /> 出品文コピー
               </button>
             </div>
-
-            {platform === "mercari" ? (
-              <button onClick={handleMercariPublish} disabled={publishing || blocked}
-                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "linear-gradient(135deg,#ff4f81,#ff2d65)", border: "1px solid rgba(255,79,129,0.5)", borderRadius: 8, color: "#fff", padding: "10px", fontSize: 13, fontWeight: 800, cursor: (publishing || blocked) ? "not-allowed" : "pointer", opacity: (publishing || blocked) ? 0.5 : 1 }}>
-                <Tag size={12} /> メルカリで出品（コピー＋アプリ起動）
-              </button>
-            ) : (
-              <button onClick={() => handlePublish("api")} disabled={publishing || blocked || !platformMeta.available}
-                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "9px", fontSize: 12, fontWeight: 700, cursor: (publishing || blocked || !platformMeta.available) ? "not-allowed" : "pointer", opacity: (publishing || blocked || !platformMeta.available) ? 0.4 : 1 }}>
-                <Tag size={12} /> {platformMeta.label}へ出品（API）
-              </button>
-            )}
 
             {blocked && (
               <div style={{ fontSize: 11, color: "#ff8a8a", marginTop: 10, textAlign: "center" }}>
