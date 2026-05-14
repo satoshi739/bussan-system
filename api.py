@@ -1693,6 +1693,65 @@ async def run_scan(keyword: Optional[str] = None, platform: str = "eBay", limit:
     }
 
 
+# 「本日のおすすめ」固定キーワード（高利益マージン狙いの定番ジャンル）
+_TODAY_RECOMMEND_KEYWORDS = [
+    ("ポケモンカード 旧裏面",          "eBay"),
+    ("セイコー 5 自動巻き 中古",        "eBay"),
+    ("CASIO G-SHOCK 中古",            "eBay"),
+    ("フィルムカメラ CONTAX 中古",      "eBay"),
+    ("LEGO レゴ 廃盤",                "eBay"),
+    ("ファミコン ソフト 希少",          "eBay"),
+    ("盆栽 BONSAI",                  "eBay"),
+    ("ギター 日本製 中古",             "eBay"),
+]
+_today_recommend_cache: Dict[str, object] = {"date": None, "items": []}
+
+
+@app.post("/api/scanner/today-recommendations")
+async def today_recommendations(limit: int = 10, force: bool = False):
+    """
+    高利益が見込める「本日のおすすめ商品」を最大10件返す。
+    - 固定キーワードを順に scan_keyword で巡回しスコア上位を抽出
+    - 当日中はインメモリでキャッシュ（force=true で再実行可）
+    """
+    from datetime import datetime as _dt
+    today = _dt.now().strftime("%Y-%m-%d")
+    cached_items = _today_recommend_cache.get("items") or []
+    if not force and _today_recommend_cache.get("date") == today and cached_items:
+        return {
+            "ok": True,
+            "scanned_at": today,
+            "count": len(cached_items),
+            "results": cached_items[:limit],
+            "cached": True,
+        }
+
+    all_results: List[Dict] = []
+    for kw, platform in _TODAY_RECOMMEND_KEYWORDS:
+        try:
+            results = await asyncio.to_thread(
+                scan_keyword, kw, platform, None, 6
+            )
+            for r in results[:2]:
+                r["scan_keyword"] = kw
+                all_results.append(r)
+        except Exception as e:
+            logger.warning(f"[today_recommendations] {kw} 失敗: {e}")
+
+    all_results.sort(key=lambda x: x.get("score", 0), reverse=True)
+    top = all_results[: max(limit, 10)]
+    _today_recommend_cache["date"] = today
+    _today_recommend_cache["items"] = top
+
+    return {
+        "ok": True,
+        "scanned_at": today,
+        "count": len(top),
+        "results": top[:limit],
+        "cached": False,
+    }
+
+
 @app.post("/api/scanner/run-domestic")
 async def run_domestic_scan(
     keyword: str,
