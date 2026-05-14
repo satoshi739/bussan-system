@@ -103,7 +103,7 @@ export default function VendorConnectPage() {
   const [form, setForm] = useState({
     name: preset?.name ?? "",
     api_key: "",
-    api_endpoint: "",
+    api_endpoint: vendorId === "openlogi" ? "https://api-demo.openlogi.com/api" : "",
     contact_email: "",
     line_token: "",
     base_fee: String(preset?.base_fee ?? 0),
@@ -141,6 +141,16 @@ export default function VendorConnectPage() {
   const connectionType = (existingVendor?.connection_type ?? preset?.connection_type ?? "manual") as string;
   const vendorEmoji = (existingVendor ? VENDOR_PRESETS[existingVendor.vendor_type]?.emoji : preset?.emoji) ?? "🏢";
   const vendorName = existingVendor?.name ?? preset?.name ?? "業者";
+  const vendorType = existingVendor?.vendor_type ?? (isNew ? vendorId : "");
+  const isOpenlogi = vendorType === "openlogi";
+  const OPENLOGI_SANDBOX = "https://api-demo.openlogi.com/api";
+  const OPENLOGI_PROD = "https://api.openlogi.com/api";
+  const openlogiMode: "sandbox" | "prod" | "custom" =
+    !form.api_endpoint || form.api_endpoint === OPENLOGI_SANDBOX
+      ? "sandbox"
+      : form.api_endpoint === OPENLOGI_PROD
+        ? "prod"
+        : "custom";
 
   const handleTest = async () => {
     if (!existingVendor) { toast("先に保存してから接続テストしてください", "error"); return; }
@@ -346,10 +356,52 @@ export default function VendorConnectPage() {
                   </button>
                 </div>
               </div>
-              <div style={{ marginBottom: 14 }}>
-                <label style={lbl}>APIエンドポイント（カスタムの場合）</label>
-                <input style={inp} value={form.api_endpoint} onChange={e => upd("api_endpoint", e.target.value)} placeholder="https://api.example.com（空欄でデフォルト使用）" />
-              </div>
+              {isOpenlogi ? (
+                <div style={{ marginBottom: 14 }}>
+                  <label style={lbl}>接続環境</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => upd("api_endpoint", OPENLOGI_SANDBOX)}
+                      style={{
+                        padding: "10px 12px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 700, textAlign: "left",
+                        background: openlogiMode === "sandbox" ? "rgba(68,204,170,0.1)" : "rgba(10,10,11,0.5)",
+                        border: `1px solid ${openlogiMode === "sandbox" ? "rgba(68,204,170,0.5)" : "rgba(255,255,255,0.08)"}`,
+                        color: openlogiMode === "sandbox" ? S.green : S.muted,
+                      }}
+                    >
+                      🧪 サンドボックス
+                      <div style={{ fontSize: 10, color: S.faint, fontWeight: 400, marginTop: 3, fontFamily: "monospace" }}>api-demo.openlogi.com</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => upd("api_endpoint", OPENLOGI_PROD)}
+                      style={{
+                        padding: "10px 12px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 700, textAlign: "left",
+                        background: openlogiMode === "prod" ? "rgba(212,175,55,0.1)" : "rgba(10,10,11,0.5)",
+                        border: `1px solid ${openlogiMode === "prod" ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.08)"}`,
+                        color: openlogiMode === "prod" ? S.brass : S.muted,
+                      }}
+                    >
+                      🚀 本番
+                      <div style={{ fontSize: 10, color: S.faint, fontWeight: 400, marginTop: 3, fontFamily: "monospace" }}>api.openlogi.com</div>
+                    </button>
+                  </div>
+                  {openlogiMode === "prod" && (
+                    <div style={{ marginTop: 8, fontSize: 11, color: "#ff8866", background: "rgba(255,136,102,0.08)", border: "1px solid rgba(255,136,102,0.25)", borderRadius: 6, padding: "6px 10px" }}>
+                      ⚠️ 本番環境：実際の発送が行われます。商品コード・住所を必ず確認してください。
+                    </div>
+                  )}
+                  {openlogiMode === "custom" && (
+                    <div style={{ marginTop: 8, fontSize: 11, color: S.muted }}>カスタムURL: <span style={{ fontFamily: "monospace", color: S.faint }}>{form.api_endpoint}</span></div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ marginBottom: 14 }}>
+                  <label style={lbl}>APIエンドポイント（カスタムの場合）</label>
+                  <input style={inp} value={form.api_endpoint} onChange={e => upd("api_endpoint", e.target.value)} placeholder="https://api.example.com（空欄でデフォルト使用）" />
+                </div>
+              )}
             </>
           )}
 
