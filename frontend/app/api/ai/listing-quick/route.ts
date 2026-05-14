@@ -18,7 +18,7 @@ type Body = {
   weight_g?: number;
   size_code?: SizeCode;
   area?: AreaCode;
-  target_platform?: "none" | "yahoo_auctions" | "ebay";
+  target_platform?: "none" | "mercari" | "yahoo_auctions" | "ebay";
 };
 
 export async function POST(req: NextRequest) {
@@ -49,10 +49,34 @@ export async function POST(req: NextRequest) {
   });
 
   const isEbay = body.target_platform === "ebay";
+  const isMercari = body.target_platform === "mercari";
   const lang = isEbay ? "英語" : "日本語";
   const platformLabel = isEbay ? "eBay（グローバル）"
     : body.target_platform === "yahoo_auctions" ? "ヤフオク"
+    : isMercari ? "メルカリ"
     : "国内モール汎用";
+
+  // タイトル文字数（メルカリ・国内モールは40文字、eBayは80文字）
+  const titleMaxText = isEbay ? "80文字以内" : "40文字以内（メルカリ仕様）";
+  // 説明文の文字数レンジ
+  const descRangeText = isEbay
+    ? "300〜500文字"
+    : isMercari
+      ? "200〜400文字、改行を多めに入れて読みやすく"
+      : "150〜300文字";
+  // キーワード数（メルカリはハッシュタグ多めが効く）
+  const keywordsCountText = isMercari ? "6〜10語" : "5〜8語";
+
+  // メルカリ固有の文体ルール
+  const mercariStyleRules = isMercari
+    ? `
+- メルカリ向けの文体に最適化する:
+  - 送料は「送料込み（出品者負担）」前提で書く
+  - 「即購入OK」「コメントなし購入歓迎」など、メルカリで好まれる常套句を自然に1〜2個入れる
+  - 喫煙・ペットの有無、自宅保管である旨など、買い手が気にする情報を補う
+  - 「★」「◆」「■」など過剰な記号は避け、改行で見やすく
+- "suggested_price" はメルカリの最低価格300円〜上限9,999,999円の範囲に収める。`
+    : "";
 
   const prompt = `あなたは日本の物販プロです。以下の商品情報から、確認用の出品ドラフトをJSONで生成してください。
 
@@ -71,14 +95,14 @@ export async function POST(req: NextRequest) {
 
 # 厳守ルール
 - 偽ブランド・効能誇張・規約違反語は使わない。
-- "title" は ${isEbay ? "80文字以内" : "40文字以内"}。
-- "description" は ${lang}。${isEbay ? "300〜500文字" : "150〜300文字"}。改行可。
+- "title" は ${titleMaxText}。
+- "description" は ${lang}。${descRangeText}。改行可。
 - "categories" は候補3つを優先度順に。
-- "keywords" は検索ヒット狙いで5〜8語。
+- "keywords" は検索ヒット狙いで${keywordsCountText}。
 - "suggested_price" は想定販売価格が未入力の場合のみ提案。入力済みなら同値を返してよい。
 - "profit_estimate" = suggested_price - (buy_price ?? 0) - shipping_estimate を整数で。マイナスになっても正直に。
 - "shipping_estimate" は送料概算（¥${shipping.fee}）をそのまま採用してよい。
-- "warnings" にはユーザーが出品前に確認すべき注意点（例: 状態説明の補足、写真の追加、規約上のリスク等）を3つ以内で。
+- "warnings" にはユーザーが出品前に確認すべき注意点（例: 状態説明の補足、写真の追加、規約上のリスク等）を3つ以内で。${mercariStyleRules}
 
 # 出力
 以下のJSONのみ返す（前後の説明文なし）:

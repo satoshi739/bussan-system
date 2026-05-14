@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
-import { PLATFORMS, type TargetPlatform } from "@/lib/publish-adapter";
+import { PLATFORMS, MERCARI_SELL_URL, type TargetPlatform } from "@/lib/publish-adapter";
 import { validateListing, hasBlockingError, type ValidationWarning } from "@/lib/listing-validator";
 
 const inp: React.CSSProperties = {
@@ -105,9 +105,12 @@ export default function QuickListingPreviewPage() {
 
   // ライブバリデーション
   const liveWarnings: ValidationWarning[] = validateListing({
-    title, description, price, shippingFee, category, imageUrls,
+    title, description, price, shippingFee, category, imageUrls, platform,
   });
   const blocked = hasBlockingError(liveWarnings);
+
+  // メルカリのタイトル文字数色分け
+  const titleOver = platform === "mercari" && title.length > 40;
 
   const handleSave = async (extra: Partial<QuickListingItem> = {}) => {
     if (!item) return;
@@ -177,6 +180,37 @@ export default function QuickListingPreviewPage() {
 
   const handleMarkConfirmed = async () => {
     await handleSave({ status: "CONFIRMED" });
+  };
+
+  // メルカリは公式APIなし → コピー + 出品画面を新タブで開く擬似1クリック
+  const handleMercariPublish = async () => {
+    if (!item) return;
+    if (blocked) {
+      toast("エラー項目を解消してから出品してください", "error");
+      return;
+    }
+    setPublishing(true);
+    try {
+      await handleSave();
+      const res = await fetch(`/api/listings/quick/${id}/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "copy" }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        toast(data.reason ?? data.error ?? "出品処理に失敗しました", "error");
+        return;
+      }
+      await navigator.clipboard.writeText(data.text);
+      window.open(MERCARI_SELL_URL, "_blank", "noopener,noreferrer");
+      toast("コピー完了！メルカリの出品画面で貼り付けてください");
+      await load();
+    } catch (e) {
+      toast(errMsg(e), "error");
+    } finally {
+      setPublishing(false);
+    }
   };
 
   const handlePublish = async (mode: "csv" | "copy" | "api") => {
@@ -312,8 +346,22 @@ export default function QuickListingPreviewPage() {
         }}>
           <div style={{ marginBottom: 14 }}>
             <label style={lbl}>商品タイトル</label>
-            <input style={inp} value={title} onChange={e => setTitle(e.target.value)} />
-            <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>{title.length} 文字</div>
+            <input
+              style={{
+                ...inp,
+                border: titleOver ? "1px solid rgba(255,90,90,0.5)" : inp.border,
+              }}
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+            />
+            <div style={{ fontSize: 10, color: titleOver ? "#ff6a6a" : "var(--text-3)", marginTop: 4, fontWeight: titleOver ? 700 : 400 }}>
+              {title.length} 文字
+              {platform === "mercari" && (
+                <span style={{ marginLeft: 6, opacity: 0.85 }}>
+                  / メルカリ上限 40文字
+                </span>
+              )}
+            </div>
           </div>
 
           <div style={{ marginBottom: 14 }}>
@@ -491,10 +539,17 @@ export default function QuickListingPreviewPage() {
               </button>
             </div>
 
-            <button onClick={() => handlePublish("api")} disabled={publishing || blocked || !platformMeta.available}
-              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "9px", fontSize: 12, fontWeight: 700, cursor: (publishing || blocked || !platformMeta.available) ? "not-allowed" : "pointer", opacity: (publishing || blocked || !platformMeta.available) ? 0.4 : 1 }}>
-              <Tag size={12} /> {platformMeta.label}へ出品（API）
-            </button>
+            {platform === "mercari" ? (
+              <button onClick={handleMercariPublish} disabled={publishing || blocked}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "linear-gradient(135deg,#ff4f81,#ff2d65)", border: "1px solid rgba(255,79,129,0.5)", borderRadius: 8, color: "#fff", padding: "10px", fontSize: 13, fontWeight: 800, cursor: (publishing || blocked) ? "not-allowed" : "pointer", opacity: (publishing || blocked) ? 0.5 : 1 }}>
+                <Tag size={12} /> メルカリで出品（コピー＋アプリ起動）
+              </button>
+            ) : (
+              <button onClick={() => handlePublish("api")} disabled={publishing || blocked || !platformMeta.available}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", padding: "9px", fontSize: 12, fontWeight: 700, cursor: (publishing || blocked || !platformMeta.available) ? "not-allowed" : "pointer", opacity: (publishing || blocked || !platformMeta.available) ? 0.4 : 1 }}>
+                <Tag size={12} /> {platformMeta.label}へ出品（API）
+              </button>
+            )}
 
             {blocked && (
               <div style={{ fontSize: 11, color: "#ff8a8a", marginTop: 10, textAlign: "center" }}>
