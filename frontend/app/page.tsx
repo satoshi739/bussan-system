@@ -151,7 +151,7 @@ function SimpleStartCard() {
       </div>
       <div style={{ fontSize: 14, opacity: 0.95, marginBottom: 22, lineHeight: 1.7 }}>
         商品の名前を入れるだけ。<br />
-        「<b>いくら儲かるか</b>」が、45秒でわかります。
+        <b>概算利益</b>を45秒で確認できます。
       </div>
 
       <Link href="/scanner" style={{ textDecoration: "none", display: "inline-block" }}>
@@ -463,7 +463,7 @@ function AICEOHero() {
     }}>
       <Image
         src="/mascot-banner.png"
-        alt="勘で稼ぐ時代は、終わった。UPJ利益スキャナー"
+        alt="UPJ利益スキャナー — 仕入れ判断をサポートするツール"
         width={800}
         height={200}
         style={{ width: "100%", height: "auto", display: "block" }}
@@ -760,7 +760,7 @@ export default function DashboardPage() {
                 <Flame size={16} color={C.warn} />
                 <span style={{ fontSize: 14, fontWeight: 900, color: C.t1, letterSpacing: "-0.01em" }}>今日のおすすめ仕入れTOP3</span>
               </div>
-              <div style={{ fontSize: 11, color: C.t3 }}>利益率・想定利益・仕入れ判断をAIがまとめて表示します。初心者でも即判断できます</div>
+              <div style={{ fontSize: 11, color: C.t3 }}>利益率・想定利益・仕入れ判断の参考情報をAIがまとめて表示します。最終判断はご自身で行ってください</div>
             </div>
             <span style={{ fontSize: 10, color: C.t4, background: `${C.gold}12`, border: `1px solid ${C.gold}22`, borderRadius: 8, padding: "2px 8px", letterSpacing: "0.06em" }}>SAMPLE</span>
           </div>
@@ -793,7 +793,12 @@ export default function DashboardPage() {
           <div style={{ marginTop: 16, background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24, padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 200 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 }}>気になる商品が見つかりましたか？</div>
-              <div style={{ fontSize: 12, color: C.t3, lineHeight: 1.6 }}>Standardプラン（月額¥9,800）でリアルタイムスキャン・全商品の詳細分析が使えます。7日間無料トライアル付き。</div>
+              <div style={{ fontSize: 12, color: C.t3, lineHeight: 1.6 }}>
+                Standardプラン（月額¥9,800）でリアルタイムスキャン・全商品の詳細分析が使えます。7日間無料トライアル付き。
+              </div>
+              <div style={{ fontSize: 11, color: C.t4, lineHeight: 1.6, marginTop: 6 }}>
+                ※ 無料期間中に解約すれば料金は発生しません。期間終了後は選択プランに応じて自動的に課金が開始されます。課金開始後の返金は当社が別途認める場合を除き行っておりません。
+              </div>
             </div>
             <Link
               href="/pricing"

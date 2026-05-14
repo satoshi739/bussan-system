@@ -759,7 +759,7 @@ function ScannerPageContent() {
           </div>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 900, color: "var(--text)", margin: 0, lineHeight: 1.2 }}>利益スキャナー</h1>
-            <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0, marginTop: 2 }}>仕入れサイトを自動巡回し、利益が出る商品をランキング表示</p>
+            <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0, marginTop: 2 }}>仕入れサイトを自動巡回し、概算利益の高い商品候補を参考表示</p>
           </div>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -802,7 +802,7 @@ function ScannerPageContent() {
         </div>
       )}
 
-      {/* ── 本日のおすすめ（利益が出る商品10件・1クリック出品対応） ── */}
+      {/* ── 本日のおすすめ（概算利益の高い候補10件・1クリック出品対応） ── */}
       <div style={{ background: "var(--surface)", border: "1px solid rgba(255,59,48,0.2)", borderRadius: 20, padding: "18px 20px", marginBottom: 16, boxShadow: "0 2px 16px rgba(255,59,48,0.06)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -813,10 +813,10 @@ function ScannerPageContent() {
               <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text)", lineHeight: 1.2 }}>本日のおすすめ</div>
               <div style={{ fontSize: 11, color: "var(--text-3)" }}>
                 {todayLoading
-                  ? "本日の高利益商品を検索中…"
+                  ? "本日の概算利益が大きい候補を検索中…"
                   : todayItems.length > 0
-                    ? `利益幅が出ている商品 ${todayItems.length}件 — ボタン1つでメルカリに出品できます`
-                    : "本日のおすすめ商品（自動更新）"}
+                    ? `概算利益幅が大きい候補 ${todayItems.length}件 — ボタン1つでメルカリへの出品準備ができます`
+                    : "本日のおすすめ候補（自動更新）"}
               </div>
             </div>
           </div>

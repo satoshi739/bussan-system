@@ -57,7 +57,7 @@ const COMPARISON = [
 const FAQS = [
   {
     q: "7日間無料トライアルはどのように機能しますか？",
-    a: "Standard・Proプランはご登録後7日間、全機能を無料でお使いいただけます。トライアル期間中に解約すれば費用は一切かかりません。8日目以降に自動で課金が始まります。",
+    a: "本サービスは7日間の無料トライアルを提供しています。無料期間中に解約した場合、料金は発生しません。無料期間終了後は、選択されたプランに応じて自動的に課金が開始されます。課金開始後の返金は、当社が別途認める場合を除き行っておりません。",
   },
   {
     q: "🎉 ロンチ記念キャンペーンの14日間トライアルとは？",
@@ -86,6 +86,14 @@ const FAQS = [
   {
     q: "解約はどうすればできますか？",
     a: "マイページの「請求管理」から即時解約できます。解約後も当月末まで引き続きご利用いただけます。",
+  },
+  {
+    q: "返金について教えてください。",
+    a: "本サービスはサブスクリプション形式のため、課金開始後の返金は、当社が別途認める場合を除き行っておりません。月の途中で解約された場合も、当該課金期間の利用料は返金対象外となりますのでご了承ください。詳しくは特定商取引法に基づく表記をご確認ください。",
+  },
+  {
+    q: "Amazon・楽天市場・Yahoo!ショッピング・メルカリの公式ツールですか？",
+    a: "いいえ、本サービスは各ECプラットフォーム（Amazon、楽天市場、Yahoo!ショッピング、メルカリ等）の公式サービス・認定サービスではありません。利用結果、アカウント状態、在庫損失等について当社は保証いたしません。各プラットフォームの利用規約を遵守のうえ、自己責任でご利用ください。",
   },
   {
     q: "スキャン・検索はリアルタイムで動きますか？",
@@ -220,19 +228,19 @@ export default function PricingPage() {
             PRICING
           </div>
           <h1 style={{ fontSize: isMobile ? 24 : 34, fontWeight: 900, color: P.t1, marginBottom: 12, lineHeight: 1.3 }}>
-            赤字仕入れを防ぐ、4つのプラン
+            仕入れ判断をサポートする、4つのプラン
           </h1>
-          <p style={{ fontSize: isMobile ? 13 : 14, color: P.t3, maxWidth: 480, margin: "0 auto 16px" }}>
-            「高い」ではなく「赤字1回分の損失より安い」。<br />
-            仕入れ判断の精度を上げることで、ツール代以上の損失を防ぎます。
+          <p style={{ fontSize: isMobile ? 13 : 14, color: P.t3, maxWidth: 520, margin: "0 auto 16px" }}>
+            仕入れ判断の精度を高めるための学習・分析ツールです。<br />
+            ※ 利益や売上などの成果を保証するものではありません。
           </p>
           {/* バリュープロポジション */}
           <div style={{ display: "inline-flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
             {[
-              { icon: "🛡️", text: "赤字仕入れを防ぐ" },
-              { icon: "⚡", text: "3秒で買い/注意/見送り判定" },
-              { icon: "🤖", text: "AIが利益を計算" },
-              { icon: "✍️", text: "AIがそのまま出品文を作成" },
+              { icon: "🛡️", text: "仕入れ判断をサポート" },
+              { icon: "⚡", text: "3秒で買い/注意/見送りの参考表示" },
+              { icon: "🤖", text: "AIが概算利益を計算" },
+              { icon: "✍️", text: "AIが出品文の下書きを作成" },
               { icon: "🎁", text: "7日間無料トライアル" },
             ].map(({ icon, text }) => (
               <span key={text} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(201,169,107,0.08)", border: "1px solid rgba(201,169,107,0.18)", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: P.t2, fontWeight: 600 }}>
@@ -394,7 +402,7 @@ export default function PricingPage() {
             </div>
             {/* 価値訴求 */}
             <div style={{ background: "rgba(201,169,107,0.06)", border: "1px solid rgba(201,169,107,0.15)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: P.t2, lineHeight: 1.6 }}>
-              赤字仕入れ1回（想定損失¥10,000〜）を防ぐ、または出品作業を月10時間短縮するだけで、月額代を十分に回収できます。※モデルケース
+              赤字仕入れの抑止や出品作業の効率化など、物販業務のサポートツールとしてご活用いただけます。※モデルケースであり、効果には個人差があります
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: "auto", paddingBottom: 24 }}>
               {PLANS.STANDARD.features.map((f) => (
@@ -459,12 +467,12 @@ export default function PricingPage() {
         <div style={{ marginBottom: isMobile ? 28 : 48, background: "rgba(10,21,48,0.8)", border: "1px solid rgba(201,169,107,0.12)", borderRadius: 14, padding: isMobile ? "20px 16px" : "28px 32px" }}>
           <div style={{ textAlign: "center", marginBottom: 20 }}>
             <div style={{ fontSize: 12, color: P.gold, fontFamily: "monospace", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>WHY UPJ</div>
-            <h2 style={{ fontSize: isMobile ? 16 : 20, fontWeight: 900, color: P.t1, margin: 0 }}>「安さ」ではなく「赤字を防ぐ設計」</h2>
+            <h2 style={{ fontSize: isMobile ? 16 : 20, fontWeight: 900, color: P.t1, margin: 0 }}>「安さ」ではなく「判断を支える設計」</h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 12 : 20 }}>
             {[
               { label: "一般的なリサーチツール", items: ["価格推移・グラフ分析が中心", "どう判断するかは自分次第", "操作が複雑で時間がかかる"], color: "#c46060", icon: "✕" },
-              { label: "UPJ Profit Scanner", items: ["赤字仕入れ防止が中心設計", "買い／注意／見送りで即決できる", "物販初心者でも3秒で判断"], color: "#22c55e", icon: "✓" },
+              { label: "UPJ Profit Scanner", items: ["仕入れ判断のサポートが中心設計", "買い／注意／見送りの参考表示で素早く比較", "物販初心者でも3秒で比較できる"], color: "#22c55e", icon: "✓" },
             ].map(({ label, items, color, icon }) => (
               <div key={label} style={{ border: `1px solid ${color}30`, borderRadius: 10, padding: "16px 20px" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color, marginBottom: 12 }}>{icon} {label}</div>
@@ -607,8 +615,12 @@ export default function PricingPage() {
           <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 900, color: P.t1, marginBottom: 8, lineHeight: 1.4 }}>
             まずは7日間、無料で試してみませんか？
           </div>
-          <div style={{ fontSize: 13, color: P.t3, marginBottom: 20 }}>
-            カード登録は必要ですが、7日以内に解約すれば一切請求されません。
+          <div style={{ fontSize: 13, color: P.t3, marginBottom: 14, lineHeight: 1.7 }}>
+            無料期間中に解約すれば料金は発生しません。<br />
+            無料期間終了後は、選択されたプランに応じて自動的に課金が開始されます。
+          </div>
+          <div style={{ fontSize: 11, color: P.t4, marginBottom: 20, lineHeight: 1.7, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>
+            ※ 課金開始後の返金は、当社が別途認める場合を除き行っておりません。詳細は<a href="/legal/tokusho" style={{ color: P.gold, textDecoration: "underline" }}>特定商取引法に基づく表記</a>をご確認ください。
           </div>
           <button
             onClick={() => handleSubscribe("STANDARD")}
@@ -637,8 +649,18 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* ── 免責事項 ── */}
+        <div style={{ marginTop: 48, padding: isMobile ? "16px 14px" : "20px 26px", background: "rgba(10,21,48,0.55)", border: "1px solid rgba(201,169,107,0.10)", borderRadius: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: P.gold, letterSpacing: 2, marginBottom: 8 }}>DISCLAIMER</div>
+          <p style={{ fontSize: 12, color: P.t3, lineHeight: 1.8, margin: 0 }}>
+            本サービスは各ECプラットフォーム（Amazon、楽天市場、Yahoo!ショッピング、メルカリ等）の公式サービス・認定サービスではありません。<br />
+            利用結果、アカウント状態、在庫損失等について当社は保証いたしません。各プラットフォームの利用規約を遵守のうえ、自己責任でご利用ください。<br />
+            本サービスは仕入れ判断・分析・学習を支援するツールであり、利益や売上などの収益を保証するものではありません。
+          </p>
+        </div>
+
         {/* ── フッター ── */}
-        <div style={{ marginTop: 48, paddingTop: 20, borderTop: "1px solid rgba(201,169,107,0.10)", textAlign: "center" }}>
+        <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1px solid rgba(201,169,107,0.10)", textAlign: "center" }}>
           <div style={{ fontSize: 12, color: P.t4, marginBottom: 10 }}>© 2026 株式会社ユニバースプラネットジャパン</div>
           <div style={{ display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
             {[
