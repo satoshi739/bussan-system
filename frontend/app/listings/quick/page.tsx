@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, History as HistoryIcon, ArrowRight, Plus, Image as ImageIcon, X } from "lucide-react";
+import { Sparkles, History as HistoryIcon, ArrowRight, Plus, Image as ImageIcon, X, Download } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 import { SIZE_OPTIONS, AREA_OPTIONS, type SizeCode, type AreaCode } from "@/lib/shipping-table";
@@ -64,6 +64,7 @@ export default function QuickListingCreatePage() {
   const [form, setForm] = useState<Form>(emptyForm);
   const [imgInput, setImgInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [fetchingImages, setFetchingImages] = useState(false);
 
   const setField = <K extends keyof Form>(k: K, v: Form[K]) => setForm(p => ({ ...p, [k]: v }));
 
@@ -76,6 +77,40 @@ export default function QuickListingCreatePage() {
   };
   const removeImage = (i: number) => {
     setField("imageUrls", form.imageUrls.filter((_, idx) => idx !== i));
+  };
+
+  const fetchImagesFromUrl = async () => {
+    const src = form.sourceUrl.trim();
+    if (!src) {
+      toast("先に「商品URL」を入力してください", "error");
+      return;
+    }
+    setFetchingImages(true);
+    try {
+      const res = await fetch("/api/extract-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: src }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        toast(data.error ?? "画像を取得できませんでした", "error");
+        return;
+      }
+      const fetched: string[] = data.urls ?? [];
+      if (fetched.length === 0) {
+        toast("このURLからは画像を抽出できませんでした", "error");
+        return;
+      }
+      const merged = Array.from(new Set([...form.imageUrls, ...fetched]));
+      setField("imageUrls", merged);
+      const added = merged.length - form.imageUrls.length;
+      toast(`画像を ${added} 件取得しました`);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "画像取得エラー", "error");
+    } finally {
+      setFetchingImages(false);
+    }
   };
 
   const handleGenerate = async () => {
@@ -327,6 +362,29 @@ export default function QuickListingCreatePage() {
               <Plus size={14} style={{ verticalAlign: "middle" }} /> 追加
             </button>
           </div>
+
+          {/* 仕入URLから画像を自動取得 */}
+          <button
+            type="button"
+            onClick={fetchImagesFromUrl}
+            disabled={fetchingImages || !form.sourceUrl.trim()}
+            style={{
+              marginTop: 8,
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "rgba(255,170,90,0.10)",
+              border: "1px solid rgba(255,170,90,0.35)",
+              borderRadius: 8,
+              color: "#ffb56b",
+              padding: "7px 12px",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: (fetchingImages || !form.sourceUrl.trim()) ? "not-allowed" : "pointer",
+              opacity: (fetchingImages || !form.sourceUrl.trim()) ? 0.5 : 1,
+            }}
+            title={!form.sourceUrl.trim() ? "先に商品URLを入力してください" : "仕入URLから画像を自動取得"}
+          >
+            <Download size={12} /> {fetchingImages ? "取得中…" : "商品URLから画像を自動取得"}
+          </button>
           {form.imageUrls.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
               {form.imageUrls.map((u, i) => (
