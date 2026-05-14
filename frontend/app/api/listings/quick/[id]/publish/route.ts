@@ -31,7 +31,7 @@ export async function POST(req: NextRequest, ctx: RouteCtx) {
   const price = item.aiSuggestedPrice ?? item.estPrice ?? 0;
   const shippingFee = item.aiShippingEstimate ?? 0;
 
-  // 出品前バリデーション
+  // 出品前バリデーション（プラットフォーム固有ルール込み）
   const warnings = validateListing({
     title,
     description,
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest, ctx: RouteCtx) {
     shippingFee,
     category: item.category ?? item.aiCategories[0] ?? null,
     imageUrls: item.imageUrls,
+    platform: item.targetPlatform as TargetPlatform,
   });
   if (hasBlockingError(warnings) && !body.force) {
     return NextResponse.json({ error: "出品に必須の項目が不足しています", warnings }, { status: 422 });
