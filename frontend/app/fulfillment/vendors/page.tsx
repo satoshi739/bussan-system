@@ -33,6 +33,14 @@ const card: React.CSSProperties = {
   transition: "transform 0.15s, border-color 0.15s",
 };
 
+function openlogiEnvBadge(v: FulfillmentVendor): { label: string; color: string; emoji: string } | null {
+  if (v.vendor_type !== "openlogi") return null;
+  const ep = (v.api_endpoint ?? "").trim();
+  if (ep === "https://api.openlogi.com/api") return { label: "本番", color: "#ffaa44", emoji: "🚀" };
+  if (!ep || ep === "https://api-demo.openlogi.com/api") return { label: "サンドボックス", color: "#44ccaa", emoji: "🧪" };
+  return { label: "カスタム", color: "#aa88ff", emoji: "🔧" };
+}
+
 // 業者プリセット定義
 const VENDOR_PRESETS = [
   {
@@ -192,6 +200,14 @@ export default function VendorsPage() {
                       <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, background: "rgba(68,204,170,0.12)", border: "1px solid rgba(68,204,170,0.3)", borderRadius: 20, padding: "2px 8px", color: S.green }}>
                         <CheckCircle size={10} /> 稼働中
                       </span>
+                      {(() => {
+                        const env = openlogiEnvBadge(v);
+                        return env ? (
+                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, background: `${env.color}18`, border: `1px solid ${env.color}55`, borderRadius: 20, padding: "2px 8px", color: env.color }}>
+                            {env.emoji} {env.label}
+                          </span>
+                        ) : null;
+                      })()}
                     </div>
                     <div style={{ fontSize: 11, color: S.muted }}>
                       {v.base_fee > 0 && `基本料 ¥${v.base_fee.toLocaleString()} `}
@@ -243,6 +259,14 @@ export default function VendorsPage() {
                       <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, background: `${badge.color}18`, border: `1px solid ${badge.color}44`, borderRadius: 20, padding: "2px 8px", color: badge.color }}>
                         {badge.icon} {badge.label}
                       </span>
+                      {(() => {
+                        const env = openlogiEnvBadge(v);
+                        return env ? (
+                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, background: `${env.color}18`, border: `1px solid ${env.color}55`, borderRadius: 20, padding: "2px 8px", color: env.color }}>
+                            {env.emoji} {env.label}
+                          </span>
+                        ) : null;
+                      })()}
                     </div>
                     <div style={{ fontSize: 11, color: S.faint }}>無効 · 設定を完了して有効化してください</div>
                   </div>

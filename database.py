@@ -174,6 +174,7 @@ class Database:
                 status TEXT DEFAULT 'purchased',
                 notes TEXT,
                 image_data TEXT,
+                openlogi_item_code TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -521,6 +522,11 @@ class Database:
             self.conn.execute("ALTER TABLE purchases ADD COLUMN image_data TEXT")
             self.conn.commit()
 
+        # purchases.openlogi_item_code (Openlogi 連携用 SKU)
+        if not col_exists("purchases", "openlogi_item_code"):
+            self.conn.execute("ALTER TABLE purchases ADD COLUMN openlogi_item_code TEXT")
+            self.conn.commit()
+
         # sales.thanks_sent (お礼メッセージ送信フラグ)
         if not col_exists("sales", "thanks_sent"):
             self.conn.execute("ALTER TABLE sales ADD COLUMN thanks_sent BOOLEAN DEFAULT FALSE")
@@ -609,13 +615,14 @@ class Database:
         cur = self.conn.execute("""
             INSERT INTO purchases
             (user_id, product_name, platform, purchase_price, purchase_shipping,
-             purchase_url, purchase_date, notes, image_data)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+             purchase_url, purchase_date, notes, image_data, openlogi_item_code)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
             user_id, data["product_name"], data["platform"], data["purchase_price"],
             data.get("purchase_shipping", 0), data.get("purchase_url"),
             data["purchase_date"], data.get("notes"), data.get("image_data"),
+            data.get("openlogi_item_code"),
         ))
         row = cur.fetchone()
         self.conn.commit()
@@ -646,7 +653,7 @@ class Database:
 
     def update_purchase(self, purchase_id: int, data: Dict, user_id: str = 'default'):
         allowed = {"product_name", "platform", "purchase_price", "purchase_shipping",
-                   "purchase_url", "purchase_date", "notes"}
+                   "purchase_url", "purchase_date", "notes", "openlogi_item_code"}
         fields = {k: v for k, v in data.items() if k in allowed}
         if not fields:
             return
@@ -1121,7 +1128,8 @@ class Database:
     def get_fulfillments(self, status: str = None, user_id: str = 'default') -> List:
         query = """
             SELECT f.*, p.product_name, p.platform, p.purchase_price,
-                   p.purchase_shipping, p.purchase_url, p.purchase_date
+                   p.purchase_shipping, p.purchase_url, p.purchase_date,
+                   p.openlogi_item_code
             FROM fulfillment f
             JOIN purchases p ON f.purchase_id = p.id
             WHERE f.user_id = %s

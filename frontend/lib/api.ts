@@ -172,6 +172,7 @@ export interface Purchase {
   status: string;
   notes?: string;
   image_data?: string;
+  openlogi_item_code?: string;
   created_at: string;
 }
 
@@ -477,6 +478,7 @@ export interface Fulfillment {
   purchase_shipping: number;
   purchase_url?: string;
   purchase_date: string;
+  openlogi_item_code?: string;
 }
 
 export interface FulfillmentCreate {

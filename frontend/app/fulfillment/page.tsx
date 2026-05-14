@@ -92,7 +92,10 @@ export default function FulfillmentPage() {
   const openRequestModal = (task: Fulfillment) => {
     setRequestTask(task);
     setReqStep(1);
-    setReqForm({ vendor_id: "", shipping_method: "nekoposu", recipient_name: "", recipient_zip: "", recipient_prefecture: "東京都", recipient_address: "", recipient_phone: "", option_thanks: false, option_gift: false, option_fragile: false, notes: "", items: [{ code: "", quantity: 1 }] });
+    const prefilledItems = task.openlogi_item_code
+      ? [{ code: task.openlogi_item_code, quantity: 1 }]
+      : [{ code: "", quantity: 1 }];
+    setReqForm({ vendor_id: "", shipping_method: "nekoposu", recipient_name: "", recipient_zip: "", recipient_prefecture: "東京都", recipient_address: "", recipient_phone: "", option_thanks: false, option_gift: false, option_fragile: false, notes: "", items: prefilledItems });
   };
 
   const selectedMethod = SHIPPING_METHODS.find(m => m.key === reqForm.shipping_method) ?? SHIPPING_METHODS[0];

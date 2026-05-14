@@ -43,7 +43,7 @@ const today = new Date().toISOString().slice(0, 10);
 function makeEmpty() {
   const lastPlatform = (typeof window !== "undefined" && localStorage.getItem(LS_PLATFORM)) || "ヤフオク";
   const lastShipping = (typeof window !== "undefined" && localStorage.getItem(LS_SHIPPING)) || "";
-  return { product_name: "", platform: lastPlatform, purchase_price: "", purchase_shipping: lastShipping, purchase_url: "", purchase_date: today, notes: "" };
+  return { product_name: "", platform: lastPlatform, purchase_price: "", purchase_shipping: lastShipping, purchase_url: "", purchase_date: today, notes: "", openlogi_item_code: "" };
 }
 
 // RFC 4180準拠のCSVパーサー（カンマを含む商品名も正しく処理）
@@ -162,6 +162,7 @@ export default function PurchasesPage() {
         purchase_url: form.purchase_url || undefined,
         purchase_date: form.purchase_date, notes: form.notes || undefined,
         image_data: undefined,
+        openlogi_item_code: form.openlogi_item_code || undefined,
       });
       localStorage.setItem(LS_PLATFORM, form.platform);
       localStorage.setItem(LS_SHIPPING, form.purchase_shipping);
@@ -180,6 +181,7 @@ export default function PurchasesPage() {
       purchase_shipping: String(item.purchase_shipping),
       purchase_url: item.purchase_url ?? "",
       purchase_date: item.purchase_date, notes: item.notes ?? "",
+      openlogi_item_code: item.openlogi_item_code ?? "",
     });
   };
 
@@ -198,6 +200,7 @@ export default function PurchasesPage() {
         purchase_url:      editForm.purchase_url || undefined,
         purchase_date:     editForm.purchase_date,
         notes:             editForm.notes || undefined,
+        openlogi_item_code: editForm.openlogi_item_code || undefined,
       });
       toast("更新しました");
       setEditId(null); setEditForm({}); load();
@@ -547,6 +550,18 @@ export default function PurchasesPage() {
               onChange={e => upd("notes", e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleSubmit(); } }}
               placeholder="状態・注意点など"
+            />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={lbl}>
+              オープンロジ 商品コード（任意）
+              <span style={{ marginLeft: 8, fontWeight: 400, color: "var(--text-3)", fontSize: 10 }}>※ 設定すると発送依頼時に自動で SKU が入る</span>
+            </label>
+            <input
+              style={inp} value={form.openlogi_item_code}
+              onChange={e => upd("openlogi_item_code", e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleSubmit(); } }}
+              placeholder="例: ITEM-001"
             />
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -1042,6 +1057,11 @@ export default function PurchasesPage() {
                       <div>
                         <label style={lbl}>メモ</label>
                         <input style={inpSm} value={editForm.notes ?? ""} onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))} placeholder="状態・注意点など"
+                          onKeyDown={e => { if (e.key === "Enter") saveEdit(item.id); if (e.key === "Escape") cancelEdit(); }} />
+                      </div>
+                      <div>
+                        <label style={lbl}>Openlogi SKU</label>
+                        <input style={inpSm} value={editForm.openlogi_item_code ?? ""} onChange={e => setEditForm(p => ({ ...p, openlogi_item_code: e.target.value }))} placeholder="例: ITEM-001"
                           onKeyDown={e => { if (e.key === "Enter") saveEdit(item.id); if (e.key === "Escape") cancelEdit(); }} />
                       </div>
                     </div>

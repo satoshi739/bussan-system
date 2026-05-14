@@ -180,6 +180,7 @@ class PurchaseCreate(BaseModel):
     purchase_date: str
     notes: Optional[str] = None
     image_data: Optional[str] = None
+    openlogi_item_code: Optional[str] = None
 
 class ListingCreate(BaseModel):
     purchase_id: int
@@ -277,6 +278,7 @@ class PurchaseUpdate(BaseModel):
     purchase_url: Optional[str] = None
     purchase_date: Optional[str] = None
     notes: Optional[str] = None
+    openlogi_item_code: Optional[str] = None
 
 @app.patch("/api/purchases/{purchase_id}")
 def update_purchase(purchase_id: int, body: PurchaseUpdate, user_id: str = Depends(get_user_id)):
@@ -3321,10 +3323,18 @@ def create_shipping_request(task_id: int, body: ShippingRequestCreate, user_id: 
         except (ValueError, TypeError):
             opts = {}
         items = opts.get('items') if isinstance(opts, dict) else None
+        if not items and task.get("purchase_id"):
+            row = db.conn.execute(
+                "SELECT openlogi_item_code FROM purchases WHERE id = %s AND user_id = %s",
+                (task["purchase_id"], user_id),
+            ).fetchone()
+            code = dict(row).get("openlogi_item_code") if row else None
+            if code:
+                items = [{"code": code, "quantity": 1}]
         if not items:
             raise HTTPException(
                 400,
-                "オープンロジ送信には商品リスト(items)が必要です。発送オプション欄に items を JSON で指定してください"
+                "オープンロジ送信には商品コードが必要です。仕入れに openlogi_item_code を設定するか、依頼フォームの商品コード欄を入力してください"
             )
 
         payload = {
