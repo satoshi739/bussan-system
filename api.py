@@ -3356,13 +3356,18 @@ def create_shipping_request(task_id: int, body: ShippingRequestCreate, user_id: 
         except OpenlogiError as e:
             raise HTTPException(502, f"オープンロジ送信に失敗: {e.user_message}")
 
-        shipment_id = (
-            result.get('id')
-            or result.get('shipment_id')
-            or (result.get('data') or {}).get('id')
-        )
+        # Openlogi のレスポンス構造に揺れがあっても落ちないよう dict 型を厳密に確認
+        shipment_id = result.get('id') or result.get('shipment_id')
+        if not shipment_id:
+            nested = result.get('data')
+            if isinstance(nested, dict):
+                shipment_id = nested.get('id') or nested.get('shipment_id')
         if shipment_id:
             data['vendor_task_id'] = str(shipment_id)
+        else:
+            logging.warning(
+                f"Openlogi 出荷依頼成功も shipment_id 抽出失敗: task_id={task_id} response_keys={list(result.keys())}"
+            )
 
     db.create_shipping_request(task_id, data)
     db.add_status_log(task_id, old_status, 'collected', 'user', f"発送依頼送信: vendor_id={body.vendor_id}")
