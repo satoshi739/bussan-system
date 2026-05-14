@@ -1194,60 +1194,39 @@ function ScannerPageContent() {
 
       {/* ── スキャン結果グリッド ── */}
       {processed.length === 0 && results.length === 0 && !scanning ? (
-        <div>
-          {/* AIが選んだ今週のイチオシ TOP3 */}
-          <div style={{ marginBottom: 28 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 12, background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.08))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Crown size={18} color="#D4AF37" />
-              </div>
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: "var(--text)", lineHeight: 1.2 }}>AIが選んだ今週のイチオシ</div>
-                <div style={{ fontSize: 11, color: "var(--text-3)" }}>直近7日のスキャンデータからAIが算出</div>
-              </div>
-              <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-4)", background: "rgba(212,175,55,0.08)", border: "1px solid var(--border)", borderRadius: 20, padding: "3px 10px", fontWeight: 700 }}>SAMPLE</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-              {SAMPLE_SCAN_ITEMS.filter(i => i.aiVerdict === "強く買い").slice(0, 3).map((item, idx) => {
-                const rc = ["#FFD700", "#C0C0C0", "#CD7F32"][idx];
-                const rankLabel = ["🥇 1位", "🥈 2位", "🥉 3位"][idx];
-                const scoreColor = ["#FFD700", "#C0C0C0", "#CD7F32"][idx];
-                return (
-                  <div key={item.id} className="ios-card" style={{ background: "var(--surface)", border: `1px solid ${rc}40`, borderRadius: 20, padding: "16px 18px", position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${rc}, ${rc}44)` }} />
-                    <div style={{ fontSize: 12, fontWeight: 900, color: rc, marginBottom: 8, letterSpacing: "0.04em" }}>{rankLabel}</div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", lineHeight: 1.5, marginBottom: 12, minHeight: 38 }}>{item.name}</div>
-                    <div style={{ background: `${rc}10`, borderRadius: 12, padding: "10px 14px", marginBottom: 10 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                        <div>
-                          <div style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 600, marginBottom: 2 }}>想定利益</div>
-                          <div style={{ fontSize: 22, fontWeight: 900, color: rc, fontFamily: "monospace", lineHeight: 1 }}>+¥{item.profit.toLocaleString()}</div>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 600, marginBottom: 2 }}>利益率</div>
-                          <div style={{ fontSize: 22, fontWeight: 900, color: rc, fontFamily: "monospace", lineHeight: 1 }}>{item.rate}%</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div style={{ fontSize: 10, color: "var(--text-3)" }}>AIスコア <span style={{ fontWeight: 900, color: scoreColor, fontSize: 14 }}>{item.aiScore}</span></div>
-                      <div style={{ fontSize: 10, color: "var(--text-3)" }}>月販 <span style={{ fontWeight: 700, color: "var(--text-2)" }}>{item.soldPerMonth}件</span></div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+        <div style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: 20,
+          padding: "56px 28px",
+          textAlign: "center",
+          maxWidth: 560,
+          margin: "0 auto",
+        }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: 22,
+            background: "linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.06))",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 20px",
+          }}>
+            <Radar size={32} color="#D4AF37" />
           </div>
-
-          {/* 全件グリッド */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>全スキャン結果（サンプル 10件）</div>
-              <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>上の検索欄に商品名を入れると実際の結果が表示されます</div>
-            </div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text)", marginBottom: 8 }}>
+            キーワードでスキャンを開始
           </div>
-          <div className="scanner-sample" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
-            {SAMPLE_SCAN_ITEMS.map(item => <SampleResultCard key={item.id} {...item} />)}
+          <div style={{ fontSize: 13, color: "var(--text-3)", lineHeight: 1.7, marginBottom: 24 }}>
+            上の入力欄に商品名を入れて「スキャン」を押すと、<br />
+            eBay・Yahoo・メルカリから仕入れ候補を自動検索します。
+          </div>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "rgba(64,170,223,0.08)",
+            border: "1px solid rgba(64,170,223,0.20)",
+            borderRadius: 12, padding: "10px 16px",
+            fontSize: 12, color: "#60BFEF", fontWeight: 600,
+          }}>
+            <Sparkles size={13} />
+            結果カードの「AI出品文を作成」ボタンで、そのままメルカリ出品まで一直線
           </div>
         </div>
       ) : processed.length === 0 ? (

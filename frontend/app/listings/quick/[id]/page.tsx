@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
-import { PLATFORMS, MERCARI_SELL_URL, type TargetPlatform } from "@/lib/publish-adapter";
+import { PLATFORMS, MERCARI_SELL_URL, YAHOO_AUCTIONS_SELL_URL, EBAY_SELL_URL, type TargetPlatform } from "@/lib/publish-adapter";
 import { validateListing, hasBlockingError, type ValidationWarning } from "@/lib/listing-validator";
 
 const inp: React.CSSProperties = {
@@ -183,8 +183,11 @@ export default function QuickListingPreviewPage() {
     await handleSave({ status: "CONFIRMED" });
   };
 
-  // メルカリは公式APIなし → コピー + 出品画面を新タブで開く擬似1クリック
-  const handleMercariPublish = async () => {
+  /**
+   * コピー＋外部サイト起動の擬似1クリック出品。
+   * メルカリ・ヤフオク・eBay 共通フロー。
+   */
+  const handlePlatformPublish = async (sellUrl: string, label: string) => {
     if (!item) return;
     if (blocked) {
       toast("エラー項目を解消してから出品してください", "error");
@@ -204,8 +207,8 @@ export default function QuickListingPreviewPage() {
         return;
       }
       await navigator.clipboard.writeText(data.text);
-      window.open(MERCARI_SELL_URL, "_blank", "noopener,noreferrer");
-      toast("コピー完了！メルカリの出品画面で貼り付けてください");
+      window.open(sellUrl, "_blank", "noopener,noreferrer");
+      toast(`コピー完了！${label}の出品画面で貼り付けてください`);
       await load();
     } catch (e) {
       toast(errMsg(e), "error");
@@ -213,6 +216,10 @@ export default function QuickListingPreviewPage() {
       setPublishing(false);
     }
   };
+
+  const handleMercariPublish = () => handlePlatformPublish(MERCARI_SELL_URL, "メルカリ");
+  const handleYahooPublish   = () => handlePlatformPublish(YAHOO_AUCTIONS_SELL_URL, "ヤフオク");
+  const handleEbayPublish    = () => handlePlatformPublish(EBAY_SELL_URL, "eBay");
 
   const handlePublish = async (mode: "csv" | "copy" | "api") => {
     if (!item) return;
@@ -583,7 +590,7 @@ export default function QuickListingPreviewPage() {
               <CheckCircle2 size={14} /> {saving ? "保存中..." : "出品準備完了"}
             </button>
 
-            {/* メイン出品アクション（プラットフォーム別） */}
+            {/* メイン出品アクション（プラットフォーム別・コピー＋外部サイト起動方式） */}
             {platform === "mercari" && (
               <button onClick={handleMercariPublish} disabled={publishing || blocked}
                 style={{
@@ -600,17 +607,37 @@ export default function QuickListingPreviewPage() {
                 <Tag size={14} /> メルカリで出品（コピー＋アプリ起動）
               </button>
             )}
-            {(platform === "yahoo_auctions" || platform === "ebay") && (
-              <div style={{
-                width: "100%", padding: "12px 14px", borderRadius: 14,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px dashed rgba(255,255,255,0.12)",
-                color: "var(--text-3)",
-                fontSize: 12, fontWeight: 600, textAlign: "center",
-                marginBottom: 10,
-              }}>
-                {platformMeta.label} API連携準備中 — 承認後に自動出品対応します
-              </div>
+            {platform === "yahoo_auctions" && (
+              <button onClick={handleYahooPublish} disabled={publishing || blocked}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  background: "linear-gradient(135deg,#7c3aed,#6d28d9)",
+                  border: "1px solid rgba(124,58,237,0.5)",
+                  borderRadius: 14, color: "#fff", padding: "14px",
+                  fontSize: 14, fontWeight: 800,
+                  cursor: (publishing || blocked) ? "not-allowed" : "pointer",
+                  opacity: (publishing || blocked) ? 0.5 : 1,
+                  boxShadow: (publishing || blocked) ? "none" : "0 4px 14px rgba(124,58,237,0.28)",
+                  marginBottom: 10,
+                }}>
+                <Tag size={14} /> ヤフオクで出品（コピー＋画面起動）
+              </button>
+            )}
+            {platform === "ebay" && (
+              <button onClick={handleEbayPublish} disabled={publishing || blocked}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
+                  border: "1px solid rgba(14,165,233,0.5)",
+                  borderRadius: 14, color: "#fff", padding: "14px",
+                  fontSize: 14, fontWeight: 800,
+                  cursor: (publishing || blocked) ? "not-allowed" : "pointer",
+                  opacity: (publishing || blocked) ? 0.5 : 1,
+                  boxShadow: (publishing || blocked) ? "none" : "0 4px 14px rgba(14,165,233,0.28)",
+                  marginBottom: 10,
+                }}>
+                <Tag size={14} /> eBayで出品（コピー＋画面起動）
+              </button>
             )}
 
             {/* セカンダリ：CSV / 出品文コピー */}

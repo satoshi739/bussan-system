@@ -8,8 +8,10 @@
 
 export type TargetPlatform = "none" | "mercari" | "yahoo_auctions" | "ebay";
 
-/** メルカリ出品ページURL（新タブで開く想定） */
+/** 各プラットフォームの出品ページURL（新タブで開く想定） */
 export const MERCARI_SELL_URL = "https://jp.mercari.com/sell";
+export const YAHOO_AUCTIONS_SELL_URL = "https://auctions.yahoo.co.jp/sell/jp/show/submit";
+export const EBAY_SELL_URL = "https://www.ebay.com/sl/sell";
 
 export type PublishablePayload = {
   title: string;
@@ -40,8 +42,8 @@ export type PlatformMeta = {
 export const PLATFORMS: PlatformMeta[] = [
   { id: "none",            label: "未連携（CSV/コピー）",   statusLabel: "利用可",          available: true },
   { id: "mercari",         label: "メルカリ",               statusLabel: "コピー＋起動",    available: true },
-  { id: "yahoo_auctions",  label: "ヤフオク",               statusLabel: "API準備中",       available: false },
-  { id: "ebay",            label: "eBay",                  statusLabel: "API準備中",       available: false },
+  { id: "yahoo_auctions",  label: "ヤフオク",               statusLabel: "コピー＋起動",    available: true },
+  { id: "ebay",            label: "eBay",                  statusLabel: "コピー＋起動",    available: true },
 ];
 
 export interface PublishAdapter {
@@ -165,24 +167,128 @@ class MercariAdapter implements PublishAdapter {
   }
 }
 
+/** ヤフオクのタイトル最大文字数 */
+const YAHOO_TITLE_MAX = 65;
+const YAHOO_MIN_PRICE = 100;
+const YAHOO_MAX_PRICE = 99_999_999;
+
 class YahooAuctionsAdapter implements PublishAdapter {
   platform: TargetPlatform = "yahoo_auctions";
-  async publish(): Promise<PublishResult> {
+
+  async publish(p: PublishablePayload, mode: PublishMode): Promise<PublishResult> {
+    const title = p.title.length > YAHOO_TITLE_MAX
+      ? p.title.slice(0, YAHOO_TITLE_MAX)
+      : p.title;
+    const safePrice = Math.min(Math.max(p.price, YAHOO_MIN_PRICE), YAHOO_MAX_PRICE);
+
+    if (mode === "csv") {
+      const header = ["タイトル", "説明", "開始価格", "送料負担", "カテゴリ", "状態", "キーワード", "画像URL"];
+      const row = [
+        csvCell(title),
+        csvCell(p.description),
+        csvCell(safePrice),
+        csvCell("落札者負担"),
+        csvCell(p.category ?? ""),
+        csvCell(p.condition ?? ""),
+        csvCell((p.keywords ?? []).join(" ")),
+        csvCell((p.imageUrls ?? []).join(" | ")),
+      ].join(",");
+      const csv = `${header.join(",")}\n${row}\n`;
+      const safeTitle = title.replace(/[\\/:*?"<>|]/g, "_").slice(0, 30);
+      return {
+        ok: true,
+        mode: "csv",
+        csv,
+        filename: `yahoo_${safeTitle}_${Date.now()}.csv`,
+      };
+    }
+
+    if (mode === "copy") {
+      // ヤフオク向け：タイトル → 説明本文 → 商品情報 → キーワードの順
+      const lines = [
+        title,
+        "",
+        p.description,
+        "",
+        "■ 商品情報",
+        p.condition ? `状態：${p.condition}` : null,
+        p.category ? `カテゴリ：${p.category}` : null,
+        "発送：佐川急便 / ヤマト運輸（落札後相談）",
+        "支払い：Yahoo!かんたん決済",
+        "",
+        (p.keywords ?? []).join(" / ") || null,
+      ].filter(Boolean) as string[];
+
+      return { ok: true, mode: "copy", text: lines.join("\n") };
+    }
+
     return {
       ok: false,
-      status: "not_connected",
-      reason: "ヤフオクAPI連携は準備中です。現在はCSV出力またはコピーをご利用ください。",
+      status: "not_implemented",
+      reason: "ヤフオクは現在コピー＋起動方式のみ対応です。出品画面で貼り付けてご利用ください。",
     };
   }
 }
 
+/** eBayタイトルは80文字 */
+const EBAY_TITLE_MAX = 80;
+const EBAY_MIN_PRICE = 1;
+const EBAY_MAX_PRICE = 999_999;
+
 class EbayAdapter implements PublishAdapter {
   platform: TargetPlatform = "ebay";
-  async publish(): Promise<PublishResult> {
+
+  async publish(p: PublishablePayload, mode: PublishMode): Promise<PublishResult> {
+    const title = p.title.length > EBAY_TITLE_MAX
+      ? p.title.slice(0, EBAY_TITLE_MAX)
+      : p.title;
+    const safePrice = Math.min(Math.max(p.price, EBAY_MIN_PRICE), EBAY_MAX_PRICE);
+
+    if (mode === "csv") {
+      const header = ["Title", "Description", "StartPrice", "Shipping", "Category", "Condition", "Keywords", "ImageURLs"];
+      const row = [
+        csvCell(title),
+        csvCell(p.description),
+        csvCell(safePrice),
+        csvCell("Calculated by buyer"),
+        csvCell(p.category ?? ""),
+        csvCell(p.condition ?? ""),
+        csvCell((p.keywords ?? []).join(", ")),
+        csvCell((p.imageUrls ?? []).join(" | ")),
+      ].join(",");
+      const csv = `${header.join(",")}\n${row}\n`;
+      const safeTitle = title.replace(/[\\/:*?"<>|]/g, "_").slice(0, 30);
+      return {
+        ok: true,
+        mode: "csv",
+        csv,
+        filename: `ebay_${safeTitle}_${Date.now()}.csv`,
+      };
+    }
+
+    if (mode === "copy") {
+      // eBay向け：タイトル → 英語の出品文（AIが英語生成済み想定）
+      const lines = [
+        title,
+        "",
+        p.description,
+        "",
+        "── Item Details ──",
+        p.condition ? `Condition: ${p.condition}` : null,
+        p.category ? `Category: ${p.category}` : null,
+        "Shipping: Worldwide (calculated at checkout)",
+        "Payment: Secure via eBay",
+        "",
+        (p.keywords ?? []).join(", ") || null,
+      ].filter(Boolean) as string[];
+
+      return { ok: true, mode: "copy", text: lines.join("\n") };
+    }
+
     return {
       ok: false,
-      status: "not_connected",
-      reason: "eBay API連携は準備中です。現在はCSV出力またはコピーをご利用ください。",
+      status: "not_implemented",
+      reason: "eBay is currently in copy+launch mode only. Please paste on the seller form.",
     };
   }
 }
