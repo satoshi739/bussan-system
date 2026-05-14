@@ -73,6 +73,7 @@ export default function QuickListingPreviewPage() {
   const [platform, setPlatform] = useState<TargetPlatform>("none");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [newImg, setNewImg] = useState("");
+  const [fetchingImages, setFetchingImages] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -266,6 +267,39 @@ export default function QuickListingPreviewPage() {
   };
   const rmImg = (i: number) => setImageUrls(imageUrls.filter((_, idx) => idx !== i));
 
+  const fetchImagesFromUrl = async () => {
+    if (!item?.sourceUrl) {
+      toast("商品URLが登録されていません", "error");
+      return;
+    }
+    setFetchingImages(true);
+    try {
+      const res = await fetch("/api/extract-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: item.sourceUrl }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        toast(data.error ?? "画像を取得できませんでした", "error");
+        return;
+      }
+      const fetched: string[] = data.urls ?? [];
+      if (fetched.length === 0) {
+        toast("このURLからは画像を抽出できませんでした", "error");
+        return;
+      }
+      const merged = Array.from(new Set([...imageUrls, ...fetched]));
+      const added = merged.length - imageUrls.length;
+      setImageUrls(merged);
+      toast(`画像を ${added} 件取得しました`);
+    } catch (e) {
+      toast(errMsg(e), "error");
+    } finally {
+      setFetchingImages(false);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ maxWidth: 900, margin: "60px auto", textAlign: "center", color: "var(--text-3)" }}>
@@ -422,6 +456,27 @@ export default function QuickListingPreviewPage() {
                 onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addImg(); } }} />
               <button onClick={addImg} style={{ background: "rgba(64,170,223,0.12)", border: "1px solid rgba(64,170,223,0.3)", borderRadius: 8, color: "#60BFEF", padding: "0 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>追加</button>
             </div>
+            {item?.sourceUrl && (
+              <button
+                onClick={fetchImagesFromUrl}
+                disabled={fetchingImages}
+                style={{
+                  marginTop: 8,
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  background: "rgba(255,170,90,0.10)",
+                  border: "1px solid rgba(255,170,90,0.35)",
+                  borderRadius: 8,
+                  color: "#ffb56b",
+                  padding: "6px 10px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: fetchingImages ? "not-allowed" : "pointer",
+                  opacity: fetchingImages ? 0.5 : 1,
+                }}
+              >
+                <Download size={11} /> {fetchingImages ? "取得中…" : "商品URLから画像を自動取得"}
+              </button>
+            )}
             {imageUrls.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                 {imageUrls.map((u, i) => (
