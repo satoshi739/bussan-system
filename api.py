@@ -3273,7 +3273,14 @@ def test_vendor(vendor_id: int, user_id: str = Depends(get_user_id)):
     if v['connection_type'] == 'api':
         if not v.get('api_key'):
             return {"ok": False, "message": "APIキーが設定されていません"}
-        # 実際のAPI呼び出しは各業者実装時に追加
+        if v.get('vendor_type') == 'openlogi':
+            from openlogi_client import test_connection, OpenlogiError
+            try:
+                test_connection(v['api_key'], v.get('api_endpoint'))
+                return {"ok": True, "message": f"{v['name']} への接続テスト成功"}
+            except OpenlogiError as e:
+                return {"ok": False, "message": e.user_message}
+        # 他のAPI連携業者は順次実装
         return {"ok": True, "message": f"{v['name']} への接続テスト成功（モック）"}
     elif v['connection_type'] == 'email':
         if not v.get('contact_email'):
@@ -3288,6 +3295,7 @@ def test_vendor(vendor_id: int, user_id: str = Depends(get_user_id)):
 @app.post("/api/fulfillment/{task_id}/request")
 def create_shipping_request(task_id: int, body: ShippingRequestCreate, user_id: str = Depends(get_user_id)):
     from datetime import datetime
+    import json as _json
     rows = db.get_fulfillments(user_id=user_id)
     task = next((dict(r) for r in rows if r['id'] == task_id), None)
     if not task:
@@ -3300,9 +3308,55 @@ def create_shipping_request(task_id: int, body: ShippingRequestCreate, user_id: 
     if data.get('notes') is None:
         data.pop('notes', None)
 
+    # オープンロジは実APIに発送依頼を投げる。成功時のみ vendor_task_id を保存。
+    vendor = db.get_vendor(body.vendor_id, user_id=user_id)
+    if vendor and dict(vendor).get('vendor_type') == 'openlogi':
+        from openlogi_client import create_shipment, OpenlogiError
+        v = dict(vendor)
+        if not v.get('api_key'):
+            raise HTTPException(400, "オープンロジのAPIキーが未設定です。業者設定から登録してください")
+
+        try:
+            opts = _json.loads(body.request_options) if body.request_options else {}
+        except (ValueError, TypeError):
+            opts = {}
+        items = opts.get('items') if isinstance(opts, dict) else None
+        if not items:
+            raise HTTPException(
+                400,
+                "オープンロジ送信には商品リスト(items)が必要です。発送オプション欄に items を JSON で指定してください"
+            )
+
+        payload = {
+            "identifier": f"task-{task_id}",
+            "items": items,
+            "recipient": {
+                "name": body.recipient_name or "",
+                "postcode": body.recipient_zip or "",
+                "prefecture": body.recipient_prefecture or "",
+                "address1": body.recipient_address or "",
+                "phone": body.recipient_phone or "",
+            },
+        }
+        if body.shipping_method:
+            payload["delivery_method"] = body.shipping_method
+
+        try:
+            result = create_shipment(v['api_key'], payload, v.get('api_endpoint'))
+        except OpenlogiError as e:
+            raise HTTPException(502, f"オープンロジ送信に失敗: {e.user_message}")
+
+        shipment_id = (
+            result.get('id')
+            or result.get('shipment_id')
+            or (result.get('data') or {}).get('id')
+        )
+        if shipment_id:
+            data['vendor_task_id'] = str(shipment_id)
+
     db.create_shipping_request(task_id, data)
     db.add_status_log(task_id, old_status, 'collected', 'user', f"発送依頼送信: vendor_id={body.vendor_id}")
-    return {"ok": True}
+    return {"ok": True, "vendor_task_id": data.get('vendor_task_id')}
 
 @app.get("/api/fulfillment/{task_id}/logs")
 def get_status_logs(task_id: int, user_id: str = Depends(get_user_id)):
@@ -3313,6 +3367,88 @@ def get_status_logs(task_id: int, user_id: str = Depends(get_user_id)):
         raise HTTPException(404, "タスクが見つかりません")
     rows = db.get_status_logs(task_id)
     return [dict(r) for r in rows]
+
+
+# Openlogi → 自社 Webhook 受信。署名検証は OPENLOGI_WEBHOOK_SECRET 設定時のみ有効。
+# 認証は外部からの呼び出し前提のため、`get_user_id` 依存を使わない。
+@app.post("/api/fulfillment/webhooks/openlogi")
+async def openlogi_webhook(
+    request: Request,
+    x_openlogi_signature: Optional[str] = Header(None),
+    x_signature: Optional[str] = Header(None),
+):
+    from openlogi_client import verify_webhook_signature
+
+    raw = await request.body()
+    secret = _os.environ.get("OPENLOGI_WEBHOOK_SECRET", "").strip()
+    sig = x_openlogi_signature or x_signature
+
+    if secret:
+        if not verify_webhook_signature(secret, raw, sig):
+            raise HTTPException(401, "署名検証に失敗")
+    else:
+        logging.warning("OPENLOGI_WEBHOOK_SECRET が未設定です。本番運用前に必ず設定してください")
+
+    try:
+        payload = json.loads(raw.decode("utf-8")) if raw else {}
+    except (ValueError, UnicodeDecodeError):
+        raise HTTPException(400, "JSONの解析に失敗")
+
+    # 識別子: 発送依頼時に "task-{id}" を identifier として送っている
+    identifier = payload.get("identifier") or ""
+    shipment_id = payload.get("id") or payload.get("shipment_id")
+
+    task_row = None
+    if isinstance(identifier, str) and identifier.startswith("task-"):
+        try:
+            tid = int(identifier.split("-", 1)[1])
+            task_row = db.conn.execute(
+                "SELECT id, user_id, status FROM fulfillment WHERE id = %s", (tid,)
+            ).fetchone()
+        except (ValueError, IndexError):
+            pass
+    if not task_row and shipment_id:
+        task_row = db.conn.execute(
+            "SELECT id, user_id, status FROM fulfillment WHERE vendor_task_id = %s",
+            (str(shipment_id),),
+        ).fetchone()
+
+    if not task_row:
+        logging.warning(f"Openlogi webhook: 該当タスクなし identifier={identifier} shipment_id={shipment_id}")
+        return {"ok": True, "matched": False}
+
+    task = dict(task_row)
+    updates: Dict[str, str] = {}
+    tracking_number = payload.get("tracking_code") or payload.get("tracking_number")
+    if tracking_number:
+        updates["tracking_number"] = str(tracking_number)
+    delivery_company = payload.get("delivery_company") or payload.get("shipping_company")
+    if delivery_company:
+        updates["shipping_company"] = str(delivery_company)
+    shipped_at = payload.get("shipped_at") or payload.get("ship_date")
+    if shipped_at:
+        updates["ship_date"] = str(shipped_at)[:10]
+
+    ol_status = (payload.get("status") or payload.get("event") or "").lower()
+    new_status = None
+    if ol_status in ("shipped", "shipping", "shipment.shipped") or tracking_number:
+        new_status = "shipped"
+    elif ol_status in ("delivered", "shipment.delivered"):
+        new_status = "delivered"
+    elif ol_status in ("packed", "packing.completed"):
+        new_status = "packed"
+    if new_status and new_status != task["status"]:
+        updates["status"] = new_status
+
+    if updates:
+        db.update_fulfillment(task["id"], updates, user_id=task["user_id"])
+        if new_status:
+            db.add_status_log(
+                task["id"], task["status"], new_status, "openlogi",
+                f"Openlogi webhook: {ol_status or 'update'}"
+            )
+
+    return {"ok": True, "matched": True, "updated": list(updates.keys())}
 
 
 # ─────────────────────────────────────────────────────────────
