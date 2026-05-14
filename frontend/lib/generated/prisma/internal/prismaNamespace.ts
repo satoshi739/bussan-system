@@ -400,7 +400,8 @@ export const ModelName = {
   MonetizeProject: 'MonetizeProject',
   GenerationResult: 'GenerationResult',
   GenerationHistory: 'GenerationHistory',
-  QuickListing: 'QuickListing'
+  QuickListing: 'QuickListing',
+  OnboardingEmailLog: 'OnboardingEmailLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent" | "ebayAccount" | "contentItem" | "monetizeProject" | "generationResult" | "generationHistory" | "quickListing"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent" | "ebayAccount" | "contentItem" | "monetizeProject" | "generationResult" | "generationHistory" | "quickListing" | "onboardingEmailLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1678,6 +1679,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OnboardingEmailLog: {
+      payload: Prisma.$OnboardingEmailLogPayload<ExtArgs>
+      fields: Prisma.OnboardingEmailLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OnboardingEmailLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OnboardingEmailLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload>
+        }
+        findFirst: {
+          args: Prisma.OnboardingEmailLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OnboardingEmailLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload>
+        }
+        findMany: {
+          args: Prisma.OnboardingEmailLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload>[]
+        }
+        create: {
+          args: Prisma.OnboardingEmailLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload>
+        }
+        createMany: {
+          args: Prisma.OnboardingEmailLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OnboardingEmailLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload>[]
+        }
+        delete: {
+          args: Prisma.OnboardingEmailLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload>
+        }
+        update: {
+          args: Prisma.OnboardingEmailLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.OnboardingEmailLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OnboardingEmailLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OnboardingEmailLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.OnboardingEmailLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingEmailLogPayload>
+        }
+        aggregate: {
+          args: Prisma.OnboardingEmailLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOnboardingEmailLog>
+        }
+        groupBy: {
+          args: Prisma.OnboardingEmailLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnboardingEmailLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OnboardingEmailLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnboardingEmailLogCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1985,6 +2060,16 @@ export const QuickListingScalarFieldEnum = {
 } as const
 
 export type QuickListingScalarFieldEnum = (typeof QuickListingScalarFieldEnum)[keyof typeof QuickListingScalarFieldEnum]
+
+
+export const OnboardingEmailLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  sentAt: 'sentAt'
+} as const
+
+export type OnboardingEmailLogScalarFieldEnum = (typeof OnboardingEmailLogScalarFieldEnum)[keyof typeof OnboardingEmailLogScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2298,6 +2383,7 @@ export type GlobalOmitConfig = {
   generationResult?: Prisma.GenerationResultOmit
   generationHistory?: Prisma.GenerationHistoryOmit
   quickListing?: Prisma.QuickListingOmit
+  onboardingEmailLog?: Prisma.OnboardingEmailLogOmit
 }
 
 /* Types for Logging */

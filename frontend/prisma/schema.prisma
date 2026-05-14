@@ -355,3 +355,13 @@ enum QuickListingStatus {
   API_PENDING
   PUBLISHED
 }
+
+model OnboardingEmailLog {
+  id        String   @id @default(cuid())
+  userId    String
+  kind      String
+  sentAt    DateTime @default(now())
+
+  @@unique([userId, kind])
+  @@index([userId])
+}

@@ -126,3 +126,8 @@ export type GenerationHistory = Prisma.GenerationHistoryModel
  * 
  */
 export type QuickListing = Prisma.QuickListingModel
+/**
+ * Model OnboardingEmailLog
+ * 
+ */
+export type OnboardingEmailLog = Prisma.OnboardingEmailLogModel

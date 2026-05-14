@@ -67,7 +67,8 @@ export const ModelName = {
   MonetizeProject: 'MonetizeProject',
   GenerationResult: 'GenerationResult',
   GenerationHistory: 'GenerationHistory',
-  QuickListing: 'QuickListing'
+  QuickListing: 'QuickListing',
+  OnboardingEmailLog: 'OnboardingEmailLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -354,6 +355,16 @@ export const QuickListingScalarFieldEnum = {
 } as const
 
 export type QuickListingScalarFieldEnum = (typeof QuickListingScalarFieldEnum)[keyof typeof QuickListingScalarFieldEnum]
+
+
+export const OnboardingEmailLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  sentAt: 'sentAt'
+} as const
+
+export type OnboardingEmailLogScalarFieldEnum = (typeof OnboardingEmailLogScalarFieldEnum)[keyof typeof OnboardingEmailLogScalarFieldEnum]
 
 
 export const SortOrder = {
