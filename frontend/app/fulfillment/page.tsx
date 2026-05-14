@@ -75,6 +75,7 @@ export default function FulfillmentPage() {
     option_gift: false,
     option_fragile: false,
     notes: "",
+    items: [{ code: "", quantity: 1 }] as { code: string; quantity: number }[],
   });
   const [reqLoading, setReqLoading] = useState(false);
 
@@ -91,7 +92,7 @@ export default function FulfillmentPage() {
   const openRequestModal = (task: Fulfillment) => {
     setRequestTask(task);
     setReqStep(1);
-    setReqForm({ vendor_id: "", shipping_method: "nekoposu", recipient_name: "", recipient_zip: "", recipient_prefecture: "東京都", recipient_address: "", recipient_phone: "", option_thanks: false, option_gift: false, option_fragile: false, notes: "" });
+    setReqForm({ vendor_id: "", shipping_method: "nekoposu", recipient_name: "", recipient_zip: "", recipient_prefecture: "東京都", recipient_address: "", recipient_phone: "", option_thanks: false, option_gift: false, option_fragile: false, notes: "", items: [{ code: "", quantity: 1 }] });
   };
 
   const selectedMethod = SHIPPING_METHODS.find(m => m.key === reqForm.shipping_method) ?? SHIPPING_METHODS[0];
@@ -100,12 +101,28 @@ export default function FulfillmentPage() {
   const vendorFee = selectedVendor ? (selectedVendor.base_fee + selectedVendor.per_item_fee) : 0;
   const totalFee = selectedMethod.price + vendorFee + optionTotal;
 
+  const isOpenlogi = selectedVendor?.vendor_type === "openlogi";
+
   const handleSendRequest = async () => {
     if (!requestTask || !reqForm.vendor_id) { toast("業者を選択してください", "error"); return; }
     const options: string[] = [];
     if (reqForm.option_thanks) options.push("サンクスカード");
     if (reqForm.option_gift) options.push("ギフトラッピング");
     if (reqForm.option_fragile) options.push("脆弱品指示");
+
+    let requestOptionsStr: string | undefined;
+    if (isOpenlogi) {
+      const items = reqForm.items
+        .map(it => ({ code: it.code.trim(), quantity: Math.max(1, Number(it.quantity) || 1) }))
+        .filter(it => it.code);
+      if (items.length === 0) {
+        toast("オープンロジ送信には商品コードを1つ以上入力してください", "error");
+        return;
+      }
+      requestOptionsStr = JSON.stringify({ options, items });
+    } else if (options.length > 0) {
+      requestOptionsStr = JSON.stringify(options);
+    }
 
     setReqLoading(true);
     try {
@@ -119,13 +136,13 @@ export default function FulfillmentPage() {
         recipient_prefecture: reqForm.recipient_prefecture || undefined,
         recipient_address: reqForm.recipient_address || undefined,
         recipient_phone: reqForm.recipient_phone || undefined,
-        request_options: options.length > 0 ? JSON.stringify(options) : undefined,
+        request_options: requestOptionsStr,
         notes: reqForm.notes || undefined,
       });
       toast(`${selectedVendor?.name ?? "業者"} に依頼を送信しました`);
       setRequestTask(null);
       load();
-    } catch { toast("依頼の送信に失敗しました", "error"); }
+    } catch (e) { toast(errMsg(e) || "依頼の送信に失敗しました", "error"); }
     finally { setReqLoading(false); }
   };
 
@@ -570,6 +587,47 @@ export default function FulfillmentPage() {
                       </label>
                     ))}
                   </div>
+
+                  {isOpenlogi && (
+                    <div style={{ background: "rgba(102,170,255,0.05)", border: "1px solid rgba(102,170,255,0.2)", borderRadius: 9, padding: "12px 14px", marginBottom: 14 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--blue)" }}>オープンロジ 商品コード (SKU)</div>
+                        <span style={{ fontSize: 10, color: "var(--text-3)" }}>Openlogi 側で登録済みの code を指定</span>
+                      </div>
+                      {reqForm.items.map((it, i) => (
+                        <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 70px 28px", gap: 6, marginBottom: 6 }}>
+                          <input
+                            style={inp}
+                            value={it.code}
+                            placeholder="例: ITEM-001"
+                            onChange={e => setReqForm(f => ({ ...f, items: f.items.map((x, j) => j === i ? { ...x, code: e.target.value } : x) }))}
+                          />
+                          <input
+                            style={inp}
+                            type="number"
+                            min={1}
+                            value={it.quantity}
+                            onChange={e => setReqForm(f => ({ ...f, items: f.items.map((x, j) => j === i ? { ...x, quantity: Number(e.target.value) || 1 } : x) }))}
+                          />
+                          <button
+                            type="button"
+                            disabled={reqForm.items.length <= 1}
+                            onClick={() => setReqForm(f => ({ ...f, items: f.items.filter((_, j) => j !== i) }))}
+                            style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "var(--text-3)", cursor: reqForm.items.length <= 1 ? "not-allowed" : "pointer", opacity: reqForm.items.length <= 1 ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center" }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setReqForm(f => ({ ...f, items: [...f.items, { code: "", quantity: 1 }] }))}
+                        style={{ width: "100%", background: "rgba(102,170,255,0.1)", border: "1px dashed rgba(102,170,255,0.4)", borderRadius: 8, color: "var(--blue)", padding: "6px", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
+                      >
+                        <Plus size={12} /> 商品を追加
+                      </button>
+                    </div>
+                  )}
 
                   <div style={{ marginBottom: 14 }}>
                     <label style={lbl}>業者へのメモ</label>
