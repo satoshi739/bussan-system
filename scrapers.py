@@ -1,16 +1,21 @@
 """
 価格取得モジュール
-- eBay: Finding API（App IDが必要、無料）
+- eBay: Browse API（OAuth、App ID + Cert ID が必要、無料）
 - メルカリ: 内部API（APIキー不要）
 - Amazon: スクレイピング（不安定）またはKeepa API（有料）
 """
 
+import base64
 import logging
-import requests
+import os
 import re
-from typing import List, Dict
+import time
+import requests
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
+
+_ebay_token_cache: Dict[str, Tuple[str, float]] = {}
 
 HEADERS_PC = {
     'User-Agent': (
@@ -46,71 +51,174 @@ def _get_settings() -> Dict:
 
 # ===== eBay =====
 
-def search_ebay(keyword: str, limit: int = 10) -> List[Dict]:
-    settings = _get_settings()
-    app_id = settings.get('ebay_app_id', '').strip()
+def _get_ebay_credentials() -> Tuple[str, str, str]:
+    """環境変数優先・DB settings フォールバックで eBay 認証情報を取得"""
+    env = (os.getenv('EBAY_ENV') or 'SANDBOX').strip().upper()
+    app_id = (os.getenv('EBAY_APP_ID') or '').strip()
+    cert_id = (os.getenv('EBAY_CERT_ID') or '').strip()
 
-    if not app_id:
-        logger.warning("eBay APIキー未設定")
-        return []
+    if not app_id or not cert_id:
+        settings = _get_settings()
+        if not app_id:
+            app_id = (settings.get('ebay_app_id') or '').strip()
+        if not cert_id:
+            cert_id = (settings.get('ebay_cert_id') or '').strip()
+        if not env or env == 'SANDBOX':
+            env = (settings.get('ebay_env') or env or 'SANDBOX').strip().upper()
+
+    return env, app_id, cert_id
+
+
+def _ebay_api_base(env: str) -> str:
+    return 'https://api.sandbox.ebay.com' if env == 'SANDBOX' else 'https://api.ebay.com'
+
+
+def _get_ebay_token() -> Optional[str]:
+    """OAuth client_credentials トークンを取得（2時間キャッシュ）"""
+    env, app_id, cert_id = _get_ebay_credentials()
+    if not app_id or not cert_id:
+        return None
+
+    cached = _ebay_token_cache.get(env)
+    if cached and cached[1] > time.time() + 60:
+        return cached[0]
 
     try:
-        usd_jpy = float(settings.get('usd_jpy', 150))
-        url = 'https://svcs.ebay.com/services/search/FindingService/v1'
-        params = {
-            'OPERATION-NAME': 'findItemsByKeywords',
-            'SERVICE-VERSION': '1.0.0',
-            'SECURITY-APPNAME': app_id,
-            'RESPONSE-DATA-FORMAT': 'JSON',
-            'REST-PAYLOAD': '',
-            'keywords': keyword,
-            'paginationInput.entriesPerPage': limit,
-            'sortOrder': 'PricePlusShippingLowest',
-            'itemFilter(0).name': 'ListingType',
-            'itemFilter(0).value': 'FixedPrice',
+        creds = f'{app_id}:{cert_id}'
+        b64 = base64.b64encode(creds.encode()).decode()
+        resp = requests.post(
+            f'{_ebay_api_base(env)}/identity/v1/oauth2/token',
+            headers={
+                'Authorization': f'Basic {b64}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            data={
+                'grant_type': 'client_credentials',
+                'scope': 'https://api.ebay.com/oauth/api_scope',
+            },
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            logger.warning(f'[eBay] OAuth トークン取得失敗: {resp.status_code} {resp.text[:200]}')
+            return None
+        data = resp.json()
+        token = data.get('access_token')
+        if not token:
+            return None
+        expires_at = time.time() + float(data.get('expires_in', 7200))
+        _ebay_token_cache[env] = (token, expires_at)
+        return token
+    except Exception as e:
+        logger.warning(f'[eBay] OAuth エラー: {e}')
+        return None
+
+
+def _build_ebay_filter(
+    min_price: Optional[float],
+    max_price: Optional[float],
+    condition: Optional[str],
+    buying_options: str,
+) -> str:
+    parts = [f'buyingOptions:{{{buying_options}}}']
+
+    if min_price is not None or max_price is not None:
+        lo = '' if min_price is None else str(min_price)
+        hi = '' if max_price is None else str(max_price)
+        parts.append(f'price:[{lo}..{hi}],priceCurrency:USD')
+
+    if condition:
+        cond_map = {
+            'new': 'NEW',
+            'used': 'USED',
+            'refurbished': 'CERTIFIED_REFURBISHED|SELLER_REFURBISHED',
+            'unspecified': 'UNSPECIFIED',
         }
-        resp = requests.get(url, params=params, timeout=10)
+        cond_val = cond_map.get(condition.lower(), condition.upper())
+        parts.append(f'conditions:{{{cond_val}}}')
+
+    return ','.join(parts)
+
+
+def search_ebay(
+    keyword: str,
+    limit: int = 10,
+    *,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    condition: Optional[str] = None,
+    marketplace: str = 'EBAY_US',
+    buying_options: str = 'FIXED_PRICE',
+) -> List[Dict]:
+    """eBay Browse API で出品中商品を検索
+
+    Args:
+        keyword: 検索キーワード
+        limit: 最大取得件数（1-200）
+        min_price: 価格下限（USD）
+        max_price: 価格上限（USD）
+        condition: 'new' | 'used' | 'refurbished' | 'unspecified'
+        marketplace: 'EBAY_US' | 'EBAY_GB' | 'EBAY_DE' | 'EBAY_AU' | etc.
+        buying_options: 'FIXED_PRICE' | 'AUCTION' | 'FIXED_PRICE|AUCTION'
+    """
+    token = _get_ebay_token()
+    if not token:
+        logger.warning('eBay APIキー未設定または認証失敗')
+        return []
+
+    env, _, _ = _get_ebay_credentials()
+    settings = _get_settings()
+    usd_jpy = float(settings.get('usd_jpy', 150))
+
+    try:
+        resp = requests.get(
+            f'{_ebay_api_base(env)}/buy/browse/v1/item_summary/search',
+            headers={
+                'Authorization': f'Bearer {token}',
+                'X-EBAY-C-MARKETPLACE-ID': marketplace,
+                'Content-Type': 'application/json',
+            },
+            params={
+                'q': keyword,
+                'limit': min(max(int(limit), 1), 200),
+                'sort': 'price',
+                'filter': _build_ebay_filter(min_price, max_price, condition, buying_options),
+            },
+            timeout=10,
+        )
         resp.raise_for_status()
         data = resp.json()
 
-        items = (
-            data.get('findItemsByKeywordsResponse', [{}])[0]
-                .get('searchResult', [{}])[0]
-                .get('item', [])
-        )
-
+        items = data.get('itemSummaries') or []
         results = []
-        for item in items:
+        for it in items:
             try:
-                selling_list = item.get('sellingStatus') or [{}]
-                shipping_list = item.get('shippingInfo') or [{}]
-                selling = selling_list[0] if selling_list else {}
-                shipping = shipping_list[0] if shipping_list else {}
+                price_info = it.get('price') or {}
+                price_usd = float(price_info.get('value') or 0)
 
-                current_price_list = selling.get('currentPrice') or [{}]
-                current_price = current_price_list[0] if current_price_list else {}
-                price_usd = float(current_price.get('__value__', 0) or 0)
+                ship_usd = 0.0
+                ship_options = it.get('shippingOptions') or []
+                if ship_options:
+                    ship_cost = ship_options[0].get('shippingCost') or {}
+                    ship_usd = float(ship_cost.get('value') or 0)
 
-                ship_cost_list = shipping.get('shippingServiceCost') or [{}]
-                ship_cost = ship_cost_list[0] if ship_cost_list else {}
-                ship_usd = float(ship_cost.get('__value__', 0) or 0)
-
-                condition_list = item.get('condition') or [{}]
-                condition_obj = condition_list[0] if condition_list else {}
-                cond_name_list = condition_obj.get('conditionDisplayName') or ['']
-                condition_name = cond_name_list[0] if cond_name_list else ''
+                image_obj = it.get('image') or {}
+                image_url = image_obj.get('imageUrl') or ''
+                if not image_url:
+                    thumbs = it.get('thumbnailImages') or []
+                    if thumbs:
+                        image_url = thumbs[0].get('imageUrl') or ''
 
                 results.append({
-                    'item_id': (item.get('itemId') or [''])[0],
-                    'title': (item.get('title') or [''])[0],
+                    'item_id': it.get('itemId') or '',
+                    'title': it.get('title') or '',
                     'price_usd': price_usd,
                     'shipping_usd': ship_usd,
                     'price_jpy': round(price_usd * usd_jpy),
                     'shipping_jpy': round(ship_usd * usd_jpy),
                     'total_jpy': round((price_usd + ship_usd) * usd_jpy),
-                    'condition': condition_name,
-                    'url': (item.get('viewItemURL') or [''])[0],
-                    'image': (item.get('galleryURL') or [''])[0],
+                    'condition': it.get('condition') or '',
+                    'url': it.get('itemWebUrl') or '',
+                    'image': image_url,
                 })
             except Exception as e:
                 logger.warning(f'[eBay] アイテムのパースに失敗: {e}')
@@ -121,6 +229,88 @@ def search_ebay(keyword: str, limit: int = 10) -> List[Dict]:
     except Exception as e:
         logger.warning(f'[eBay] エラー: {e}')
         return []
+
+
+def get_ebay_item(item_id: str, marketplace: str = 'EBAY_US') -> Optional[Dict]:
+    """eBay Browse API で商品の詳細情報を取得"""
+    if not item_id:
+        return None
+
+    token = _get_ebay_token()
+    if not token:
+        return None
+
+    env, _, _ = _get_ebay_credentials()
+    settings = _get_settings()
+    usd_jpy = float(settings.get('usd_jpy', 150))
+
+    try:
+        resp = requests.get(
+            f'{_ebay_api_base(env)}/buy/browse/v1/item/{item_id}',
+            headers={
+                'Authorization': f'Bearer {token}',
+                'X-EBAY-C-MARKETPLACE-ID': marketplace,
+                'Content-Type': 'application/json',
+            },
+            timeout=10,
+        )
+        if resp.status_code == 404:
+            return None
+        resp.raise_for_status()
+        it = resp.json()
+
+        price_info = it.get('price') or {}
+        price_usd = float(price_info.get('value') or 0)
+
+        ship_usd = 0.0
+        ship_options = it.get('shippingOptions') or []
+        if ship_options:
+            ship_cost = ship_options[0].get('shippingCost') or {}
+            ship_usd = float(ship_cost.get('value') or 0)
+
+        ship_to_obj = it.get('shipToLocations') or {}
+        if isinstance(ship_to_obj, dict):
+            ship_to = [
+                (reg or {}).get('regionName', '')
+                for reg in (ship_to_obj.get('regionIncluded') or [])
+            ]
+        else:
+            ship_to = []
+
+        seller = it.get('seller') or {}
+        image_obj = it.get('image') or {}
+        image_url = image_obj.get('imageUrl') or ''
+        additional_images = [
+            img.get('imageUrl') or '' for img in (it.get('additionalImages') or [])
+        ]
+
+        return {
+            'item_id': it.get('itemId') or item_id,
+            'title': it.get('title') or '',
+            'description': it.get('shortDescription') or it.get('description') or '',
+            'price_usd': price_usd,
+            'shipping_usd': ship_usd,
+            'price_jpy': round(price_usd * usd_jpy),
+            'shipping_jpy': round(ship_usd * usd_jpy),
+            'total_jpy': round((price_usd + ship_usd) * usd_jpy),
+            'condition': it.get('condition') or '',
+            'condition_id': it.get('conditionId') or '',
+            'url': it.get('itemWebUrl') or '',
+            'image': image_url,
+            'images': [u for u in additional_images if u],
+            'seller_username': seller.get('username') or '',
+            'seller_feedback_score': seller.get('feedbackScore'),
+            'seller_feedback_pct': seller.get('feedbackPercentage'),
+            'item_location': (it.get('itemLocation') or {}).get('country') or '',
+            'ship_to_regions': ship_to,
+            'brand': it.get('brand') or '',
+            'mpn': it.get('mpn') or '',
+            'category_path': it.get('categoryPath') or '',
+        }
+
+    except Exception as e:
+        logger.warning(f'[eBay] 商品詳細取得エラー (item_id={item_id}): {e}')
+        return None
 
 
 # ===== eBay 落札済み =====
