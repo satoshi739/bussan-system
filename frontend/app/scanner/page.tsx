@@ -1,6 +1,7 @@
 "use client";
 
 import RequirePlan from "@/components/RequirePlan";
+import MercariFeatureNotice from "@/components/MercariFeatureNotice";
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -798,6 +799,7 @@ function ScannerPageContent() {
 
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+      <MercariFeatureNotice />
       <style>{`
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }

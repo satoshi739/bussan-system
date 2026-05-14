@@ -7,6 +7,7 @@ import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 import { SIZE_OPTIONS, AREA_OPTIONS, type SizeCode, type AreaCode } from "@/lib/shipping-table";
 import { PLATFORMS, type TargetPlatform } from "@/lib/publish-adapter";
+import MercariFeatureNotice from "@/components/MercariFeatureNotice";
 
 const inp: React.CSSProperties = {
   background: "var(--surface-2)",
@@ -197,6 +198,8 @@ export default function QuickListingCreatePage() {
           .ql-grid-2, .ql-grid-3 { grid-template-columns: 1fr !important; }
         }
       `}</style>
+
+      <MercariFeatureNotice />
 
       {/* ヘッダー */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
