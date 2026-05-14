@@ -55,7 +55,11 @@ async function forward(req: NextRequest, ctx: Ctx, method: string) {
   const body = hasBody ? Buffer.from(await req.arrayBuffer()) : undefined;
   const contentType = req.headers.get("content-type") ?? "application/json";
   const isSSE = url.includes("/stream") || url.includes("sse");
-  const timeoutMs = isSSE ? 120_000 : 20_000;
+  // 実スクレイプを走らせる重いエンドポイントは長めにとる
+  const isHeavyScan =
+    url.includes("/scanner/today-recommendations") ||
+    url.includes("/scanner/run");
+  const timeoutMs = isSSE ? 120_000 : isHeavyScan ? 60_000 : 20_000;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
