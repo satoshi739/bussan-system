@@ -1112,7 +1112,7 @@ class Database:
         allowed = {"shipping_method", "shipping_cost", "vendor_fee", "requested_at",
                    "recipient_name", "recipient_zip", "recipient_prefecture",
                    "recipient_address", "recipient_phone", "request_options",
-                   "vendor_id", "vendor_task_id", "status"}
+                   "vendor_id", "vendor_task_id", "status", "notes"}
         safe = {k: v for k, v in data.items() if k in allowed}
         if not safe:
             return
