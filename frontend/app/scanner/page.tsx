@@ -2,6 +2,7 @@
 
 import RequirePlan from "@/components/RequirePlan";
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, SlidersHorizontal, TrendingUp, ArrowUpDown, X, Sparkles, ChevronDown, ChevronUp, BarChart2, Activity, GitFork, Crown, Share2 } from "lucide-react";
@@ -415,6 +416,8 @@ function ScannerPageContent() {
   const [aiKwLoading, setAiKwLoading]   = useState(false);
   const [aiKwSuggestions, setAiKwSuggestions] = useState<{ keyword: string; max_price: number; reason: string }[]>([]);
 
+  const router = useRouter();
+
   // 出品モーダル
   const [listingItem, setListingItem]         = useState<ScanResult | null>(null);
   const [listingLinks, setListingLinks]       = useState<Record<string, DeepLink>>({});
@@ -611,6 +614,84 @@ function ScannerPageContent() {
   };
 
   // モーダルを開く: プレビューエンドポイントを使用（DB登録なし）
+  /**
+   * スキャナー結果から /listings/quick の AI生成フローに直接繋ぐ。
+   * 商品名・仕入URL・仕入価格・想定売価・状態・画像URLを引き継ぎ、
+   * targetPlatform=mercari でメルカリ向けの出品文をAI生成 → プレビュー画面へ遷移。
+   * SaaS中核価値「ボタン一つで出品」の本線フロー。
+   */
+  const createQuickListingFromScan = async (item: ScanResult) => {
+    setListingLoading(true);
+    try {
+      const productName = item.name;
+      const sourceUrl = item.buy_url || undefined;
+      const buyPrice = item.buy_price || undefined;
+      const estPrice = item.est_sell_price_jpy || undefined;
+      const condition = item.condition || "未使用に近い";
+      const notes = `仕入元: ${item.buy_source}${item.sell_platform_name ? ` / 想定売却: ${item.sell_platform_name}` : ""}`;
+      const imageUrls = item.buy_image ? [item.buy_image] : [];
+
+      // 1) 下書き作成
+      const createRes = await fetch("/api/listings/quick", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productName,
+          sourceUrl,
+          buyPrice,
+          estPrice,
+          condition,
+          notes,
+          imageUrls,
+          targetPlatform: "mercari",
+        }),
+      });
+      if (!createRes.ok) throw new Error(await createRes.text());
+      const { item: created } = await createRes.json();
+
+      // 2) AI生成（メルカリ最適化）
+      const aiRes = await fetch("/api/ai/listing-quick", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_name: productName,
+          source_url: sourceUrl,
+          buy_price: buyPrice,
+          est_price: estPrice,
+          condition,
+          notes,
+          target_platform: "mercari",
+        }),
+      });
+      if (!aiRes.ok) throw new Error(await aiRes.text());
+      const { draft } = await aiRes.json();
+
+      // 3) AI結果を反映
+      const patchRes = await fetch(`/api/listings/quick/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aiTitle: draft.title,
+          aiDescription: draft.description,
+          aiCategories: draft.categories ?? [],
+          aiKeywords: draft.keywords ?? [],
+          aiSuggestedPrice: draft.suggested_price ?? null,
+          aiProfitEstimate: draft.profit_estimate ?? null,
+          aiShippingEstimate: draft.shipping_estimate ?? null,
+          aiWarnings: draft.warnings ?? [],
+        }),
+      });
+      if (!patchRes.ok) throw new Error(await patchRes.text());
+
+      toast("AI出品文を生成しました。プレビューへ移動します");
+      router.push(`/listings/quick/${created.id}`);
+    } catch (e) {
+      toast(errMsg(e), "error");
+    } finally {
+      setListingLoading(false);
+    }
+  };
+
   const openListing = async (item: ScanResult) => {
     setListingItem(item);
     setListingLoading(true);
@@ -1295,9 +1376,9 @@ function ScannerPageContent() {
                       <ExternalLink size={12} /> 仕入れページ
                     </a>
                   )}
-                  <button onClick={() => openListing(item)}
-                    style={{ flex: 1.4, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "var(--blue)", border: "none", borderRadius: 8, color: "#fff", padding: "9px 0", fontSize: 12, fontWeight: 600, cursor: "pointer", letterSpacing: "-0.01em" }}>
-                    1クリック自動出品
+                  <button onClick={() => createQuickListingFromScan(item)} disabled={listingLoading}
+                    style={{ flex: 1.4, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "var(--blue)", border: "none", borderRadius: 8, color: "#fff", padding: "9px 0", fontSize: 12, fontWeight: 600, cursor: listingLoading ? "wait" : "pointer", letterSpacing: "-0.01em", opacity: listingLoading ? 0.6 : 1 }}>
+                    <Sparkles size={12} /> {listingLoading ? "AI生成中…" : "AI出品文を作成"}
                   </button>
                   <button onClick={() => openRouteMatrix(item)}
                     style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 8, color: "var(--blue)", padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
