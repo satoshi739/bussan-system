@@ -8,61 +8,14 @@ import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, 
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 import { SHIPPING_OPTIONS, getShippingFee } from "@/lib/shipping";
-
-// ── おすすめジャンル（タップで即スキャン・17件フラット） ─────────────
-const GENRES = [
-  { keyword: "腕時計 セイコー 中古",          platform: "eBay", maxPrice: 20000, label: "セイコー",        reason: "海外評価No.1",         color: "#006FE6", emoji: "⌚" },
-  { keyword: "腕時計 カシオ G-SHOCK 中古",    platform: "eBay", maxPrice: 15000, label: "G-SHOCK",         reason: "定番高利益ジャンル",    color: "#006FE6", emoji: "⏱️" },
-  { keyword: "フィルムカメラ CONTAX 中古",    platform: "eBay", maxPrice: 30000, label: "CONTAX",          reason: "コンタックスは超高値",  color: "#aaccff", emoji: "📷" },
-  { keyword: "一眼レフ ニコン キヤノン 中古", platform: "eBay", maxPrice: 25000, label: "一眼レフ",        reason: "日本メーカー信頼度高",  color: "#aaccff", emoji: "🎥" },
-  { keyword: "ポケモンカード 旧裏面",         platform: "eBay", maxPrice: 5000,  label: "ポケモンカード",  reason: "海外需要 No.1",         color: "#ffcc44", emoji: "🃏" },
-  { keyword: "遊戯王カード 旧弾 レア",        platform: "eBay", maxPrice: 3000,  label: "遊戯王",          reason: "海外コレクター多い",    color: "#ffcc44", emoji: "🎴" },
-  { keyword: "ファミコン ソフト 希少",         platform: "eBay", maxPrice: 5000,  label: "ファミコン",      reason: "ファミコンブーム継続",  color: "#ff9944", emoji: "🕹️" },
-  { keyword: "スーパーファミコン ソフト 未開封", platform: "eBay", maxPrice: 8000,  label: "スーファミ",      reason: "未開封品は超高値",      color: "#ff9944", emoji: "👾" },
-  { keyword: "フィギュア アニメ 限定",         platform: "eBay", maxPrice: 8000,  label: "アニメフィギュア", reason: "コレクター需要高",      color: "#cc66ff", emoji: "🗿" },
-  { keyword: "LEGO レゴ 廃盤",               platform: "eBay", maxPrice: 12000, label: "LEGO廃盤",        reason: "廃番品が高値",          color: "#ffdd44", emoji: "🧱" },
-  { keyword: "ギター エレキ 日本製 中古",     platform: "eBay", maxPrice: 30000, label: "エレキギター",    reason: "MADE IN JAPANは高評価", color: "#ff9944", emoji: "🎸" },
-  { keyword: "シンセサイザー ローランド 中古", platform: "eBay", maxPrice: 30000, label: "シンセ",          reason: "Roland/Yamahaは超人気", color: "#66aaff", emoji: "🎹" },
-  { keyword: "盆栽 BONSAI",                  platform: "eBay", maxPrice: 8000,  label: "盆栽",            reason: "BONSAI海外人気",        color: "#4ade80", emoji: "🌿" },
-  { keyword: "着物 帯 未使用 高級",           platform: "eBay", maxPrice: 10000, label: "着物",            reason: "海外でKIMONO人気沸騰",  color: "#ff88aa", emoji: "👘" },
-  { keyword: "ブランド 財布 中古",            platform: "eBay", maxPrice: 50000, label: "ブランド財布",    reason: "高利益率",              color: "#ff66aa", emoji: "👜" },
-  { keyword: "スニーカー ナイキ 限定",        platform: "eBay", maxPrice: 15000, label: "限定スニーカー",  reason: "限定スニーカーは高値",  color: "#ff66aa", emoji: "👟" },
-  { keyword: "万年筆 高級 中古",              platform: "eBay", maxPrice: 10000, label: "万年筆",          reason: "文具コレクター多い",    color: "#99aacc", emoji: "✒️" },
-] as const;
-
-const PLATFORMS = [
-  { key: "eBay",               label: "eBay",       flag: "🌏" },
-  { key: "Amazon.com",         label: "Amazon US",  flag: "🇺🇸" },
-  { key: "Shopee_SG",          label: "Shopee SG",  flag: "🇸🇬" },
-  { key: "Shopee_MY",          label: "Shopee MY",  flag: "🇲🇾" },
-  { key: "Shopee_TH",          label: "Shopee TH",  flag: "🇹🇭" },
-  { key: "Lazada_SG",          label: "Lazada SG",  flag: "🇸🇬" },
-  { key: "Lazada_MY",          label: "Lazada MY",  flag: "🇲🇾" },
-  { key: "メルカリ",             label: "メルカリ",   flag: "🏪" },
-  { key: "Yahoo!オークション",   label: "ヤフオク",   flag: "🔨" },
-  { key: "ラクマ",               label: "ラクマ",     flag: "🛍️" },
-];
-
-const RATING = {
-  excellent: { label: "強くおすすめ",    color: "var(--blue)", bg: "rgba(212,175,55,0.12)" },
-  good:      { label: "おすすめ",        color: "#F0D060", bg: "rgba(212,175,55,0.1)"  },
-  ok:        { label: "普通",            color: "#ffcc44", bg: "rgba(255,204,68,0.1)"  },
-  marginal:  { label: "やめた方がいい",  color: "#ff9944", bg: "rgba(255,153,68,0.1)" },
-  loss:      { label: "やめた方がいい",  color: "#ff4444", bg: "rgba(255,68,68,0.08)" },
-};
-
-const RATING_STARS: Record<string, number> = {
-  excellent: 5, good: 4, ok: 3, marginal: 2, loss: 1,
-};
-
-const AI_HOT_GENRES = [
-  { label: "フィルムカメラ", emoji: "📷", reason: "ヴィンテージ人気急上昇" },
-  { label: "セイコー腕時計", emoji: "⌚", reason: "海外評価No.1" },
-  { label: "ポケモンカード", emoji: "🃏", reason: "海外需要が安定" },
-  { label: "盆栽・BONSAI",   emoji: "🌿", reason: "欧米で爆発的人気" },
-  { label: "G-SHOCK",        emoji: "⏱️", reason: "定番高利益ジャンル" },
-  { label: "レゴ廃盤品",     emoji: "🧱", reason: "廃番品は希少価値高" },
-];
+import { ScoreGauge } from "@/components/scanner/ScoreGauge";
+import { DemandGauge } from "@/components/scanner/DemandGauge";
+import { ProfitBar } from "@/components/scanner/ProfitBar";
+import {
+  GENRES, PLATFORMS, RATING, RATING_STARS, AI_HOT_GENRES,
+  itemKey,
+  type ScanKeyword, type ScanResult, type DemandData, type DeepLink,
+} from "@/lib/scanner/constants";
 
 const BASE = "/api/proxy";
 const api = async <T,>(path: string, opts?: RequestInit): Promise<T> => {
@@ -72,110 +25,6 @@ const api = async <T,>(path: string, opts?: RequestInit): Promise<T> => {
 };
 
 const inp: React.CSSProperties = { background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 7, color: "var(--text)", padding: "8px 11px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box" };
-
-type ScanKeyword = { keyword: string; target_sell_platform: string; max_buy_price: number | null; min_profit_rate: number; memo: string; last_scanned: string | null; best_profit_rate: number | null };
-type ScanResult  = { name: string; buy_price: number; buy_url: string; buy_image: string; buy_source: string; condition: string; sell_platform: string; sell_platform_name: string; sell_platform_flag: string; sell_currency: string; est_sell_price_local: number; est_sell_price_jpy: number; net_profit_jpy: number; profit_rate: number; roi: number; intl_shipping_jpy: number; platform_fee_jpy: number; rating: string; score: number; scanned_at: string; scan_keyword?: string; price_source?: string; amazon_market?: { median: number; avg: number; sample: number } };
-type DemandData  = { demand_score: number; market_prices: Record<string, { avg: number; avg_local?: number; min: number; max: number; count: number; flag: string; currency: string }>; velocity: { level: string; label: string; weekly: string; color: string }; total_listings: number; avg_market_jpy: number };
-type DeepLink    = { label: string; flag: string; url: string; note: string; category: string; recommended: boolean; price_display: string };
-
-// 商品ごとの安定キー（フィルター後もindexがズレない）
-const itemKey = (item: ScanResult): string =>
-  item.buy_url ? item.buy_url : `${item.buy_source}::${item.buy_price}::${item.name}`;
-
-// ── スコアゲージコンポーネント ──
-function ScoreGauge({ score, color, profitRate, roi, netProfit, open, onToggle }: {
-  score: number; color: string;
-  profitRate: number; roi: number; netProfit: number;
-  open: boolean; onToggle: () => void;
-}) {
-  const r = 18; const circ = 2 * Math.PI * r;
-  const dash = (score / 100) * circ;
-  const pt1 = +(profitRate * 1.5).toFixed(1);
-  const pt2 = +(Math.min(roi, 60) * 0.5).toFixed(1);
-  const pt3 = +Math.min(netProfit / 100, 20).toFixed(1);
-
-  return (
-    <div style={{ position: "relative", flexShrink: 0 }}>
-      <svg width={44} height={44} style={{ cursor: "pointer", display: "block" }}
-        onClick={e => { e.stopPropagation(); onToggle(); }}>
-        <circle cx={22} cy={22} r={r} fill="none" stroke="rgba(212,175,55,0.08)" strokeWidth={4} />
-        <circle cx={22} cy={22} r={r} fill="none" stroke={color} strokeWidth={4}
-          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-          style={{ transform: "rotate(-90deg)", transformOrigin: "50% 50%" }} />
-        <text x={22} y={26} textAnchor="middle" fontSize={11} fontWeight={800} fill={color}>{Math.round(score)}</text>
-      </svg>
-
-      {open && (
-        <div style={{
-          position: "absolute", top: 50, left: 0, zIndex: 100,
-          background: "var(--surface)", border: `1px solid ${color}55`,
-          borderRadius: 12, padding: "14px 16px", width: 220,
-          boxShadow: "0 12px 32px rgba(0,0,0,0.7)",
-        }} onClick={e => e.stopPropagation()}>
-          <div style={{ fontSize: 12, fontWeight: 800, color, marginBottom: 10 }}>
-            スコア {Math.round(score)} の計算内訳
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[
-              { label: "利益率",         formula: `${profitRate}% × 1.5`,                pt: pt1, note: "利益率を最重視", barW: Math.min(100, (pt1 / 60) * 100) },
-              { label: "ROI",            formula: `min(${roi.toFixed(0)}%, 60) × 0.5`,   pt: pt2, note: "上限60%でキャップ", barW: Math.min(100, (pt2 / 30) * 100) },
-              { label: "利益額ボーナス", formula: `min(¥${Math.round(netProfit)}÷100, 20)`, pt: pt3, note: "最大+20pt",  barW: Math.min(100, (pt3 / 20) * 100) },
-            ].map(row => (
-              <div key={row.label}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3 }}>
-                  <div>
-                    <span style={{ fontSize: 11, color: "var(--text-2)", fontWeight: 700 }}>{row.label}</span>
-                    <span style={{ fontSize: 9, color: "var(--text-3)", fontFamily: "monospace", marginLeft: 6 }}>{row.formula}</span>
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 900, color, fontFamily: "monospace" }}>+{row.pt}</span>
-                </div>
-                <div style={{ height: 3, background: "rgba(212,175,55,0.08)", borderRadius: 2 }}>
-                  <div style={{ height: "100%", width: `${row.barW}%`, background: color, borderRadius: 2, opacity: 0.7 }} />
-                </div>
-                <div style={{ fontSize: 9, color: "#3a6a4a", marginTop: 2 }}>{row.note}</div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${color}22`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 10, color: "var(--text-3)" }}>合計（最大 100）</span>
-            <span style={{ fontSize: 18, fontWeight: 900, color, fontFamily: "monospace" }}>{Math.round(score)}</span>
-          </div>
-
-          <div style={{ marginTop: 8, fontSize: 9, color: "#3a5a4a", lineHeight: 1.5 }}>
-            ※ 100点 = 利益率40%超 + ROI60%以上 + 利益¥2,000以上の理想的な商品
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── 需要ゲージ ──
-function DemandGauge({ score, color }: { score: number; color: string }) {
-  const r = 13; const circ = 2 * Math.PI * r;
-  const dash = (score / 100) * circ;
-  return (
-    <svg width={32} height={32} style={{ display: "block" }}>
-      <circle cx={16} cy={16} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={3} />
-      <circle cx={16} cy={16} r={r} fill="none" stroke={color} strokeWidth={3}
-        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-        style={{ transform: "rotate(-90deg)", transformOrigin: "50% 50%" }} />
-      <text x={16} y={20} textAnchor="middle" fontSize={8} fontWeight={800} fill={color}>{Math.round(score)}</text>
-    </svg>
-  );
-}
-
-// ── 利益バー ──
-function ProfitBar({ rate, color }: { rate: number; color: string }) {
-  const w = Math.max(0, Math.min(100, rate));
-  return (
-    <div style={{ height: 3, background: "rgba(212,175,55,0.08)", borderRadius: 2, overflow: "hidden" }}>
-      <div style={{ height: "100%", width: `${w}%`, background: color, borderRadius: 2, transition: "width 0.5s ease" }} />
-    </div>
-  );
-}
 
 function ScannerPageContent() {
   const [keywords, setKeywords]     = useState<ScanKeyword[]>([]);
