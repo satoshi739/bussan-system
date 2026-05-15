@@ -365,3 +365,14 @@ model OnboardingEmailLog {
   @@unique([userId, kind])
   @@index([userId])
 }
+
+// 管理者専用の設定ストア (APIキー等)
+// secret=true の場合は value を暗号化して保存（AES-256-GCM）
+model AppSetting {
+  key         String   @id
+  value       String   @db.Text
+  secret      Boolean  @default(false)
+  description String?
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+}

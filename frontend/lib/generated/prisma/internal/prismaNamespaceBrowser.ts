@@ -68,7 +68,8 @@ export const ModelName = {
   GenerationResult: 'GenerationResult',
   GenerationHistory: 'GenerationHistory',
   QuickListing: 'QuickListing',
-  OnboardingEmailLog: 'OnboardingEmailLog'
+  OnboardingEmailLog: 'OnboardingEmailLog',
+  AppSetting: 'AppSetting'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -365,6 +366,18 @@ export const OnboardingEmailLogScalarFieldEnum = {
 } as const
 
 export type OnboardingEmailLogScalarFieldEnum = (typeof OnboardingEmailLogScalarFieldEnum)[keyof typeof OnboardingEmailLogScalarFieldEnum]
+
+
+export const AppSettingScalarFieldEnum = {
+  key: 'key',
+  value: 'value',
+  secret: 'secret',
+  description: 'description',
+  updatedBy: 'updatedBy',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppSettingScalarFieldEnum = (typeof AppSettingScalarFieldEnum)[keyof typeof AppSettingScalarFieldEnum]
 
 
 export const SortOrder = {

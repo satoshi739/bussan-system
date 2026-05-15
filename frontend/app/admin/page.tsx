@@ -220,17 +220,49 @@ export default function AdminPage() {
       </div>
 
       {/* タブ */}
-      <div style={{ display: "flex", gap: 0, marginBottom: 20, borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)", width: "fit-content" }}>
-        {([
-          ["overview", "概要"],
-          ["churn", `チャーン分析 (${stats.churnSummary.high + stats.churnSummary.medium})`],
-          ["users", `全ユーザー (${stats.totalUsers})`],
-          ["content", `コンテンツ管理 (${contents.length})`],
-        ] as [Tab, string][]).map(([t, label]) => (
-          <button key={t} onClick={() => setTab(t)} style={{ padding: "9px 18px", background: tab === t ? "var(--nav-active)" : "transparent", border: "none", borderRight: "1px solid var(--border)", color: tab === t ? "var(--blue)" : "var(--text-3)", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
-            {label}
-          </button>
-        ))}
+      <div style={{ display: "flex", gap: 12, marginBottom: 20, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 0, borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)" }}>
+          {([
+            ["overview", "概要"],
+            ["churn", `チャーン分析 (${stats.churnSummary.high + stats.churnSummary.medium})`],
+            ["users", `全ユーザー (${stats.totalUsers})`],
+            ["content", `コンテンツ管理 (${contents.length})`],
+          ] as [Tab, string][]).map(([t, label]) => (
+            <button key={t} onClick={() => setTab(t)} style={{ padding: "9px 18px", background: tab === t ? "var(--nav-active)" : "transparent", border: "none", borderRight: "1px solid var(--border)", color: tab === t ? "var(--blue)" : "var(--text-3)", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {/* SNSで発信 — 別ページ */}
+        <a
+          href="/admin/sns"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "9px 16px",
+            background: "linear-gradient(135deg,#1e1608,#2a1e08)",
+            border: "1px solid rgba(212,175,55,0.45)",
+            borderRadius: 10,
+            color: "#D4AF37", fontSize: 12, fontWeight: 800,
+            textDecoration: "none",
+          }}
+        >
+          <Sparkles size={13} /> SNSで発信
+        </a>
+        {/* 設定 / APIキー管理 — 別ページ */}
+        <a
+          href="/admin/settings"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "9px 16px",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: 10,
+            color: "var(--text-2)", fontSize: 12, fontWeight: 700,
+            textDecoration: "none",
+          }}
+        >
+          ⚙️ 設定 / APIキー
+        </a>
       </div>
 
       {/* 概要タブ */}

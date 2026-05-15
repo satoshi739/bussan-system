@@ -131,3 +131,8 @@ export type QuickListing = Prisma.QuickListingModel
  * 
  */
 export type OnboardingEmailLog = Prisma.OnboardingEmailLogModel
+/**
+ * Model AppSetting
+ * 
+ */
+export type AppSetting = Prisma.AppSettingModel
