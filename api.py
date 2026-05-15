@@ -131,6 +131,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from routers import calculations as _calculations_router
+app.include_router(_calculations_router.router)
+
 
 @app.get("/health")
 async def health_check():
@@ -203,15 +206,6 @@ class SimpleSaleCreate(BaseModel):
     purchase_id: int
     sale_price: float
     sell_platform: str = "メルカリ"
-
-class ProfitCalcRequest(BaseModel):
-    purchase_price: float
-    selling_price: float
-    category: str = "その他"
-    purchase_shipping: float = 0
-    shipping_to_platform: float = 0
-    use_fba: bool = False
-    selling_platform: str = "Amazon"
 
 class StatusUpdate(BaseModel):
     status: str
@@ -497,76 +491,9 @@ def create_sale_simple(body: SimpleSaleCreate, user_id: str = Depends(get_user_i
     return {"net_profit": net_profit, "monthly_profit": monthly_profit}
 
 
-# ── 利益計算 ─────────────────────────────────────────────
-
-@app.post("/api/calc/profit")
-def calc_profit(body: ProfitCalcRequest):
-    result = calculate_profit(
-        purchase_price=body.purchase_price,
-        selling_price=body.selling_price,
-        category=body.category,
-        purchase_shipping=body.purchase_shipping,
-        shipping_to_platform=body.shipping_to_platform,
-        use_fba=body.use_fba,
-        selling_platform=body.selling_platform,
-    )
-    return result
-
-@app.get("/api/calc/shipping-estimate")
-def calc_shipping_estimate(weight_g: float, size_cm: float, carrier: str = "yamato"):
-    return estimate_domestic_shipping(weight_g, size_cm, carrier)
-
-@app.get("/api/calc/platforms")
-def get_platforms():
-    return SELLING_PLATFORMS
-
-@app.get("/api/calc/categories")
-def get_categories():
-    return list(CATEGORIES.keys())
-
-
-class MaxPurchaseRequest(BaseModel):
-    selling_price: float
-    target_profit_rate: float = 0.20
-    selling_platform: str = "メルカリ"
-    category: str = "その他"
-    shipping_to_platform: float = 0
-
-@app.post("/api/calc/max-purchase")
-def calc_max_purchase(body: MaxPurchaseRequest):
-    max_price = max_purchase_price(
-        selling_price=body.selling_price,
-        category=body.category,
-        target_profit_rate=body.target_profit_rate / 100 if body.target_profit_rate > 1 else body.target_profit_rate,
-        shipping_to_platform=body.shipping_to_platform,
-        selling_platform=body.selling_platform,
-    )
-    return {"max_purchase_price": max_price}
-
-
-class AllPlatformsRequest(BaseModel):
-    purchase_price: float
-    purchase_shipping: float = 0
-    selling_price: float
-
-@app.post("/api/calc/all-platforms")
-def calc_all_platforms(body: AllPlatformsRequest):
-    results = {}
-    for platform in SELLING_PLATFORMS:
-        r = calculate_profit(
-            purchase_price=body.purchase_price,
-            selling_price=body.selling_price,
-            purchase_shipping=body.purchase_shipping,
-            selling_platform=platform,
-        )
-        results[platform] = {
-            "gross_profit": r["gross_profit"],
-            "profit_rate": r["profit_rate"],
-            "platform_fees": r["platform_fees"],
-            "emoji": SELLING_PLATFORMS[platform]["emoji"],
-            "area": SELLING_PLATFORMS[platform]["area"],
-        }
-    return results
+# ── 利益計算 ── routers/calculations.py に分離（2026-05-15）
+# /api/calc/profit, /api/calc/shipping-estimate, /api/calc/platforms,
+# /api/calc/categories, /api/calc/max-purchase, /api/calc/all-platforms
 
 
 @app.get("/api/purchases/stale")
