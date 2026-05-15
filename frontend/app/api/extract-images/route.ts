@@ -3,6 +3,7 @@
  * - og:image / og:image:secure_url / twitter:image を主に拾う
  * - 相対URLは絶対URLに正規化
  * - メルカリの画像必須要件解消のため imageUrls 自動入力用途
+ * - 楽天市場URLは Bot対策(Akamai) で取得不可のため、楽天市場商品検索API を使う
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -10,6 +11,10 @@ import { NextRequest, NextResponse } from "next/server";
 const FETCH_TIMEOUT_MS = 15_000;
 const MAX_HTML_BYTES = 2_000_000;
 const MAX_RETRIES = 2;
+
+const RAKUTEN_HOST = "item.rakuten.co.jp";
+const RAKUTEN_API = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601";
+const RAKUTEN_FAIL_MESSAGE = "楽天画像の自動取得に失敗しました。画像URLを手動で追加してください";
 
 /** Bot対策の厳しいサイトに対応するための最新ブラウザUA群 */
 const USER_AGENTS = [
@@ -28,6 +33,62 @@ function absolutize(url: string, base: URL): string | null {
     return u.toString();
   } catch {
     return null;
+  }
+}
+
+/**
+ * 楽天市場URL（item.rakuten.co.jp/{shop}/{itemcode}/）から
+ * 楽天API用の itemCode（{shop}:{itemcode}）を抽出する。
+ * 楽天ドメインでない・shop/itemcode が取れない場合は null。
+ */
+function extractRakutenItemCode(parsed: URL): string | null {
+  if (parsed.host !== RAKUTEN_HOST) return null;
+  const segments = parsed.pathname.split("/").filter(Boolean);
+  if (segments.length < 2) return null;
+  const shop = segments[0];
+  const itemCode = segments[1];
+  if (!shop || !itemCode) return null;
+  return `${shop}:${itemCode}`;
+}
+
+/**
+ * 楽天市場商品検索APIで mediumImageUrls / smallImageUrls を取得する。
+ * 失敗時は null を返し、呼び出し側で「自動取得失敗」として扱う。
+ * formatVersion=2 を指定して画像URLを単純な string[] で受け取る。
+ */
+async function fetchRakutenImages(itemCode: string, appId: string): Promise<string[] | null> {
+  const apiUrl = new URL(RAKUTEN_API);
+  apiUrl.searchParams.set("applicationId", appId);
+  apiUrl.searchParams.set("itemCode", itemCode);
+  apiUrl.searchParams.set("format", "json");
+  apiUrl.searchParams.set("formatVersion", "2");
+  apiUrl.searchParams.set("hits", "1");
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const res = await fetch(apiUrl.toString(), {
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const items = data?.Items;
+    if (!Array.isArray(items) || items.length === 0) return null;
+    const item = items[0];
+    const medium = Array.isArray(item?.mediumImageUrls) ? item.mediumImageUrls : [];
+    const small = Array.isArray(item?.smallImageUrls) ? item.smallImageUrls : [];
+    const urls = new Set<string>();
+    for (const u of [...medium, ...small]) {
+      if (typeof u === "string" && (u.startsWith("https://") || u.startsWith("http://"))) {
+        urls.add(u);
+      }
+    }
+    return Array.from(urls);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -73,6 +134,31 @@ export async function POST(req: NextRequest) {
   }
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     return NextResponse.json({ ok: false, error: "Only http/https URLs supported" }, { status: 400 });
+  }
+
+  // 楽天市場URLは Bot対策(Akamai) で og:image を取れないため、商品検索APIで取得する
+  const rakutenItemCode = extractRakutenItemCode(parsed);
+  if (rakutenItemCode) {
+    const appId = process.env.RAKUTEN_APP_ID;
+    if (!appId) {
+      return NextResponse.json(
+        { ok: false, error: RAKUTEN_FAIL_MESSAGE },
+        { status: 500 }
+      );
+    }
+    const urls = await fetchRakutenImages(rakutenItemCode, appId);
+    if (!urls || urls.length === 0) {
+      return NextResponse.json(
+        { ok: false, error: RAKUTEN_FAIL_MESSAGE },
+        { status: 502 }
+      );
+    }
+    return NextResponse.json({
+      ok: true,
+      urls,
+      source: parsed.toString(),
+      count: urls.length,
+    });
   }
 
   // 最大 MAX_RETRIES+1 回トライ。UAをローテーションしながら成功するまで試す。
