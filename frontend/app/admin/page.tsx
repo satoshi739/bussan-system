@@ -248,6 +248,23 @@ export default function AdminPage() {
         >
           <Sparkles size={13} /> SNSで発信
         </a>
+        {/* 動画自動生成ダッシュボード — 別ドメイン (video.upjapan.co.jp) */}
+        <a
+          href="https://video.upjapan.co.jp"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "9px 16px",
+            background: "linear-gradient(135deg,#0f1635,#1d2766)",
+            border: "1px solid rgba(0,229,255,0.45)",
+            borderRadius: 10,
+            color: "#00E5FF", fontSize: 12, fontWeight: 800,
+            textDecoration: "none",
+          }}
+        >
+          📹 動画自動生成
+        </a>
         {/* 設定 / APIキー管理 — 別ページ */}
         <a
           href="/admin/settings"
