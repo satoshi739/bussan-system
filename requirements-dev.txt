@@ -1,0 +1,4 @@
+# 開発・テスト専用依存。本番（Railway）には入れない。
+# インストール: pip install -r requirements-dev.txt
+-r requirements.txt
+pytest>=8.0.0
