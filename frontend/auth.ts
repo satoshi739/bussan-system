@@ -90,6 +90,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 data: { userId: newUser.id, plan: "FREE", status: "ACTIVE" },
               });
             } catch { /* already exists */ }
+            // Credentials経由ではNextAuthのcreateUserイベントが発火しないため、ここで明示的に送る
+            try {
+              await sendOnboardingWelcome({ to: newUser.email, userName: newUser.name });
+            } catch (error) {
+              console.error("[auth] sendOnboardingWelcome (credentials) failed:", error);
+            }
             return { id: newUser.id, email: newUser.email, name: newUser.name };
           }
 

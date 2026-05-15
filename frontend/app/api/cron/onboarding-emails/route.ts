@@ -50,8 +50,14 @@ async function sendIfNotSent(
 }
 
 export async function GET(req: NextRequest) {
+  // Fail-Closed: シークレット未設定なら一律拒否（"Bearer undefined" 攻撃を防ぐ）
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error("[cron/onboarding-emails] CRON_SECRET is not set");
+    return NextResponse.json({ error: "Cron secret is not configured" }, { status: 503 });
+  }
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

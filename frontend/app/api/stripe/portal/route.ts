@@ -7,6 +7,12 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 
 export async function POST() {
+  const baseUrl = process.env.NEXTAUTH_URL;
+  if (!baseUrl) {
+    console.error("[stripe/portal] NEXTAUTH_URL is not set");
+    return NextResponse.json({ error: "サーバー設定が不完全です（管理者へ連絡してください）" }, { status: 503 });
+  }
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,7 +29,7 @@ export async function POST() {
   try {
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: sub.stripeCustomerId,
-      return_url: `${process.env.NEXTAUTH_URL}/settings/billing`,
+      return_url: `${baseUrl}/settings/billing`,
     });
 
     return NextResponse.json({ url: portalSession.url });

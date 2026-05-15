@@ -8,6 +8,12 @@ import type { PlanKey } from "@/lib/plans";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  const baseUrl = process.env.NEXTAUTH_URL;
+  if (!baseUrl) {
+    console.error("[stripe/checkout] NEXTAUTH_URL is not set");
+    return NextResponse.json({ error: "サーバー設定が不完全です（管理者へ連絡してください）" }, { status: 503 });
+  }
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,8 +47,8 @@ export async function POST(req: NextRequest) {
       metadata: { userId },
       customer: sub?.stripeCustomerId ?? undefined,
       customer_email: sub?.stripeCustomerId ? undefined : session.user.email,
-      success_url: `${process.env.NEXTAUTH_URL}/settings/billing?success=true`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/pricing`,
+      success_url: `${baseUrl}/settings/billing?success=true`,
+      cancel_url: `${baseUrl}/pricing`,
       locale: "ja",
       subscription_data: {
         metadata: { userId },

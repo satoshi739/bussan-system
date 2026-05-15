@@ -7,8 +7,54 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { promises as dns } from "node:dns";
+import net from "node:net";
 
 const FETCH_TIMEOUT_MS = 15_000;
+
+/**
+ * SSRF対策: 与えられたhostnameがプライベート/ループバック/リンクローカル/メタデータ
+ * エンドポイントを指していないか検証する。IP literalもDNS解決済みIPも両方チェック。
+ * 安全なら true、危険なら false を返す。
+ */
+function isPrivateIPv4(ip: string): boolean {
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((n) => Number.isNaN(n) || n < 0 || n > 255)) return false;
+  const [a, b] = parts;
+  if (a === 10) return true;
+  if (a === 127) return true;
+  if (a === 0) return true;
+  if (a === 169 && b === 254) return true; // link-local / AWS/GCP metadata
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+  return false;
+}
+function isPrivateIPv6(ip: string): boolean {
+  const v = ip.toLowerCase();
+  if (v === "::1" || v === "::" || v === "0:0:0:0:0:0:0:1") return true;
+  if (v.startsWith("fc") || v.startsWith("fd")) return true; // unique-local
+  if (v.startsWith("fe80")) return true; // link-local
+  if (v.startsWith("::ffff:")) return isPrivateIPv4(v.replace(/^::ffff:/, ""));
+  return false;
+}
+async function assertSafeHost(hostname: string): Promise<void> {
+  const lower = hostname.toLowerCase();
+  if (lower === "localhost" || lower.endsWith(".localhost") || lower.endsWith(".local") ||
+      lower === "metadata.google.internal" || lower.endsWith(".internal")) {
+    throw new Error("blocked: private/internal hostname");
+  }
+  const v = net.isIP(hostname);
+  if (v === 4 && isPrivateIPv4(hostname)) throw new Error("blocked: private IPv4");
+  if (v === 6 && isPrivateIPv6(hostname)) throw new Error("blocked: private IPv6");
+  if (v !== 0) return; // public IP literal → OK
+  // ホスト名 → 解決して全アドレスをチェック
+  const addrs = await dns.lookup(hostname, { all: true });
+  for (const a of addrs) {
+    if (a.family === 4 && isPrivateIPv4(a.address)) throw new Error("blocked: resolved to private IPv4");
+    if (a.family === 6 && isPrivateIPv6(a.address)) throw new Error("blocked: resolved to private IPv6");
+  }
+}
 const MAX_HTML_BYTES = 2_000_000;
 const MAX_RETRIES = 2;
 
@@ -134,6 +180,15 @@ export async function POST(req: NextRequest) {
   }
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     return NextResponse.json({ ok: false, error: "Only http/https URLs supported" }, { status: 400 });
+  }
+
+  // SSRF対策: プライベート/ループバック/メタデータエンドポイントを遮断
+  try {
+    await assertSafeHost(parsed.hostname);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.warn(`[extract-images] blocked host=${parsed.hostname}: ${msg}`);
+    return NextResponse.json({ ok: false, error: "このURLは取得できません" }, { status: 400 });
   }
 
   // 楽天市場URLは Bot対策(Akamai) で og:image を取れないため、商品検索APIで取得する

@@ -3398,11 +3398,14 @@ async def openlogi_webhook(
     secret = _os.environ.get("OPENLOGI_WEBHOOK_SECRET", "").strip()
     sig = x_openlogi_signature or x_signature
 
-    if secret:
-        if not verify_webhook_signature(secret, raw, sig):
-            raise HTTPException(401, "署名検証に失敗")
-    else:
-        logging.warning("OPENLOGI_WEBHOOK_SECRET が未設定です。本番運用前に必ず設定してください")
+    # Fail-Closed: シークレット未設定なら一律拒否。設定忘れで攻撃面が開くのを防ぐ。
+    if not secret:
+        logging.error("OPENLOGI_WEBHOOK_SECRET が未設定のため webhook を拒否しました")
+        raise HTTPException(503, "Webhook secret is not configured")
+    if not sig:
+        raise HTTPException(401, "署名ヘッダがありません")
+    if not verify_webhook_signature(secret, raw, sig):
+        raise HTTPException(401, "署名検証に失敗")
 
     try:
         payload = json.loads(raw.decode("utf-8")) if raw else {}

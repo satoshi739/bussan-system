@@ -21,8 +21,14 @@ async function sendEmail(subject: string, html: string) {
 }
 
 export async function GET(req: NextRequest) {
+  // Fail-Closed: シークレット未設定なら一律拒否（"Bearer undefined" 攻撃を防ぐ）
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error("[cron/daily-report] CRON_SECRET is not set");
+    return NextResponse.json({ error: "Cron secret is not configured" }, { status: 503 });
+  }
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -32,32 +38,38 @@ export async function GET(req: NextRequest) {
   yesterday.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
 
-  const [purchases, sales, scans, calcs, newUsers, totalUsers] = await Promise.all([
+  // 規模拡大時のメール本文肥大・Resend制限対策で表示上限を50件に。
+  // 合計件数は別途 count() で取って「他N件」表示に使う。
+  const LIST_LIMIT = 50;
+  const where = { createdAt: { gte: yesterday, lt: today } };
+  const [
+    purchases, sales, scans,
+    purchaseTotal, saleTotal, scanTotal, calcTotal,
+    newUsers, totalUsers,
+  ] = await Promise.all([
     prisma.purchaseRecord.findMany({
-      where: { createdAt: { gte: yesterday, lt: today } },
-      include: { user: { select: { email: true } } },
-      orderBy: { roi: "desc" },
+      where, include: { user: { select: { email: true } } },
+      orderBy: { roi: "desc" }, take: LIST_LIMIT,
     }),
     prisma.saleRecord.findMany({
-      where: { createdAt: { gte: yesterday, lt: today } },
-      include: { user: { select: { email: true } } },
-      orderBy: { profit: "desc" },
+      where, include: { user: { select: { email: true } } },
+      orderBy: { profit: "desc" }, take: LIST_LIMIT,
     }),
     prisma.scanHistory.findMany({
-      where: { createdAt: { gte: yesterday, lt: today } },
-      include: { user: { select: { email: true } } },
-      orderBy: { topRoi: "desc" },
+      where, include: { user: { select: { email: true } } },
+      orderBy: { topRoi: "desc" }, take: LIST_LIMIT,
     }),
-    prisma.profitCalcHistory.findMany({
-      where: { createdAt: { gte: yesterday, lt: today } },
-      include: { user: { select: { email: true } } },
-      orderBy: { roi: "desc" },
-    }),
+    prisma.purchaseRecord.count({ where }),
+    prisma.saleRecord.count({ where }),
+    prisma.scanHistory.count({ where }),
+    prisma.profitCalcHistory.count({ where }),
     prisma.user.count({ where: { createdAt: { gte: yesterday, lt: today } } }),
     prisma.user.count(),
   ]);
 
-  const totalProfit = sales.reduce((s, r) => s + r.profit, 0);
+  // 合計利益はリストが切り詰められても全件分を出したいので集計クエリで取る
+  const profitAgg = await prisma.saleRecord.aggregate({ where, _sum: { profit: true } });
+  const totalProfit = profitAgg._sum.profit ?? 0;
   const topPurchase = purchases[0];
   const topSale = sales[0];
   const topScan = scans[0];
@@ -79,10 +91,10 @@ td{color:#F5F0E8;font-size:13px;padding:6px;border-bottom:1px solid rgba(255,255
 <div class="card"><div style="display:flex;gap:32px;flex-wrap:wrap">
   <div><div class="label">新規ユーザー</div><div class="value">${newUsers}人</div></div>
   <div><div class="label">累計ユーザー</div><div class="value">${totalUsers}人</div></div>
-  <div><div class="label">仕入れ記録</div><div class="value">${purchases.length}件</div></div>
-  <div><div class="label">販売記録</div><div class="value">${sales.length}件</div></div>
-  <div><div class="label">スキャン</div><div class="value">${scans.length}件</div></div>
-  <div><div class="label">利益計算</div><div class="value">${calcs.length}件</div></div>
+  <div><div class="label">仕入れ記録</div><div class="value">${purchaseTotal}件</div></div>
+  <div><div class="label">販売記録</div><div class="value">${saleTotal}件</div></div>
+  <div><div class="label">スキャン</div><div class="value">${scanTotal}件</div></div>
+  <div><div class="label">利益計算</div><div class="value">${calcTotal}件</div></div>
   <div><div class="label">確定利益合計</div><div class="value hi">¥${totalProfit.toLocaleString()}</div></div>
 </div></div>
 
@@ -121,23 +133,23 @@ ${topScan ? `<div class="card">
 </div>` : ""}
 
 ${purchases.length > 0 ? `<div class="card">
-  <div style="color:#D4AF37;font-weight:bold;margin-bottom:12px">📋 仕入れ一覧</div>
+  <div style="color:#D4AF37;font-weight:bold;margin-bottom:12px">📋 仕入れ一覧（上位${purchases.length}件 / 全${purchaseTotal}件）</div>
   <table><tr><th>ユーザー</th><th>商品</th><th>PF</th><th>仕入値</th><th>利益</th><th>ROI</th></tr>
   ${purchases.map(p=>`<tr><td>${p.user.email}</td><td>${p.itemName}</td><td>${p.platform}</td><td>¥${p.buyPrice.toLocaleString()}</td><td>¥${p.profit.toLocaleString()}</td><td>${p.roi.toFixed(1)}%</td></tr>`).join("")}
-  </table></div>` : ""}
+  </table>${purchaseTotal > purchases.length ? `<div style="color:#8A8278;font-size:11px;margin-top:8px">他 ${purchaseTotal - purchases.length} 件省略</div>` : ""}</div>` : ""}
 
 ${sales.length > 0 ? `<div class="card">
-  <div style="color:#D4AF37;font-weight:bold;margin-bottom:12px">💹 販売一覧</div>
+  <div style="color:#D4AF37;font-weight:bold;margin-bottom:12px">💹 販売一覧（上位${sales.length}件 / 全${saleTotal}件）</div>
   <table><tr><th>ユーザー</th><th>商品</th><th>売値</th><th>利益</th><th>ROI</th></tr>
   ${sales.map(s=>`<tr><td>${s.user.email}</td><td>${s.itemName}</td><td>¥${s.sellPrice.toLocaleString()}</td><td>¥${s.profit.toLocaleString()}</td><td>${s.roi.toFixed(1)}%</td></tr>`).join("")}
-  </table></div>` : ""}
+  </table>${saleTotal > sales.length ? `<div style="color:#8A8278;font-size:11px;margin-top:8px">他 ${saleTotal - sales.length} 件省略</div>` : ""}</div>` : ""}
 
 <div style="text-align:center;color:#8A8278;font-size:11px;margin-top:24px">物販チェッカー 自動レポート</div>
 </body></html>`;
 
   try {
     await sendEmail(`📊 物販チェッカー 日次レポート — ${dateStr}`, html);
-    return NextResponse.json({ ok: true, date: dateStr, purchases: purchases.length, sales: sales.length, scans: scans.length });
+    return NextResponse.json({ ok: true, date: dateStr, purchases: purchaseTotal, sales: saleTotal, scans: scanTotal });
   } catch (error) {
     console.error("[daily-report] error:", error);
     return NextResponse.json({ error: String(error) }, { status: 500 });

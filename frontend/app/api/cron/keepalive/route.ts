@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+  // Fail-Closed: シークレット未設定なら一律拒否（undefined 一致を防ぐ）
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error("[cron/keepalive] CRON_SECRET is not set");
+    return NextResponse.json({ error: "Cron secret is not configured" }, { status: 503 });
+  }
   const secret = req.headers.get("authorization")?.replace("Bearer ", "");
-  if (secret !== process.env.CRON_SECRET) {
+  if (secret !== cronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
