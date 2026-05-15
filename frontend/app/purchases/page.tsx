@@ -15,9 +15,11 @@ import {
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
 import { usePlan } from "@/lib/usePlan";
+import { getPlanLimits } from "@/lib/plans";
 import Link from "next/link";
 
-const FREE_PLAN_LIMIT = 30;
+// lib/plans.ts と表示が食い違っていたためここで一元参照する（Pricing/LP訴求と一致させる）
+const FREE_PLAN_LIMIT = getPlanLimits("FREE").maxPurchases;
 const LS_PLATFORM  = "bussan_last_platform";
 const LS_SHIPPING  = "bussan_last_shipping";
 

@@ -6,7 +6,7 @@ import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, getTod
 import { TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Award, Tag, ExternalLink, Play, Star, Search, Bot, Camera, Lightbulb, Flame, Truck, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import OnboardingModal, { OnboardingChecklist, useOnboarding } from "@/components/OnboardingModal";
+import { OnboardingChecklist } from "@/components/OnboardingModal";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { toast } from "@/components/Toast";
 import { errMsg } from "@/lib/errors";
@@ -178,8 +178,9 @@ function SimpleStartCard() {
 
 // ── Skeleton ─────────────────────────────────────────────
 // ── Morning Briefing — 朝のAI挨拶 + 今日のアクション ────────
-function MorningBriefing() {
+function MorningBriefing({ userName }: { userName?: string | null }) {
   const hour = new Date().getHours();
+  const displayName = userName?.trim() || "あなた";
   const greeting =
     hour < 5  ? "おやすみのところ、起きてますね" :
     hour < 11 ? "おはようございます" :
@@ -202,7 +203,7 @@ function MorningBriefing() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: C.gold, letterSpacing: "0.12em" }}>MORNING BRIEFING</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: C.t1, marginTop: 6, letterSpacing: "-0.01em" }}>{greeting}、Satoshiさん。</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: C.t1, marginTop: 6, letterSpacing: "-0.01em" }}>{greeting}、{displayName}さん。</div>
           <div style={{ fontSize: 13, color: C.t3, marginTop: 4 }}>今日、AIが見つけたあなたの「やるべき3つ」です。</div>
         </div>
       </div>
@@ -476,13 +477,13 @@ function AICEOHero() {
         }}>
           <Zap size={15} /> 今すぐ利益を調べる
         </Link>
-        <Link href="/agents" style={{
+        <Link href="/pricing" style={{
           display: "flex", alignItems: "center", gap: 8,
           background: "transparent", border: `1px solid ${C.bd}`,
           borderRadius: 16, color: C.t2, padding: "12px 20px",
           fontSize: 13, fontWeight: 600, textDecoration: "none",
         }}>
-          <Play size={13} /> AI に任せる
+          <Play size={13} /> 料金を見る
         </Link>
       </div>
     </div>
@@ -491,7 +492,7 @@ function AICEOHero() {
 
 // ─────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { status } = useSession();
+  const { status, data: sessionData } = useSession();
   const [data,      setData]       = useState<Dashboard | null>(null);
   const [stale,     setStale]      = useState<Purchase[]>([]);
   const [recent,    setRecent]     = useState<Purchase[]>([]);
@@ -506,7 +507,6 @@ export default function DashboardPage() {
   const [showAllActions, setShowAllActions] = useState(false);
 
   const isGuest = status === "unauthenticated";
-  const { show: showOnboarding, complete: completeOnboarding } = useOnboarding();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -592,8 +592,7 @@ export default function DashboardPage() {
   // ── Render ──────────────────────────────────────────────
   return (
     <div className="anim-fadeInUp" style={{ color: C.t1, minHeight: "100vh" }}>
-      {/* Onboarding modal — ログイン済み・初回のみ表示 */}
-      {!isGuest && showOnboarding && <OnboardingModal onComplete={completeOnboarding} />}
+      {/* OnboardingModal は ClientShell 側で一本化済み。重複表示を防ぐためここでは出さない。 */}
       <style>{`
         @keyframes sk { 0%,100%{opacity:.9} 50%{opacity:.4} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
@@ -604,7 +603,7 @@ export default function DashboardPage() {
           .dash-header{flex-direction:column!important; gap:12px!important}
           .dash-actions{width:100%!important; justify-content:stretch!important}
           .dash-actions a, .dash-actions button{flex:1!important; justify-content:center!important; min-height:44px!important}
-          .step-grid{grid-template-columns:1fr!important}
+          .step-grid{grid-template-columns:repeat(2,1fr)!important}
           .onboard-cta{flex-direction:column!important}
           .onboard-cta a, .onboard-cta button{width:100%!important; justify-content:center!important; min-height:48px!important; text-align:center!important}
           .chart-meta{display:none!important}
@@ -708,6 +707,7 @@ export default function DashboardPage() {
                   cta: "起動する →",
                   href: "/agents",
                   accent: "#66aaff",
+                  planBadge: "PRO限定",
                 },
                 {
                   icon: Package,
@@ -725,7 +725,7 @@ export default function DashboardPage() {
                   href: "/barcode",
                   accent: "#44ccaa",
                 },
-              ] as { icon: React.ElementType; label: string; desc: string; cta: string; href: string; accent: string }[]).map(({ icon: Icon, label, desc, cta, href, accent }) => (
+              ] as { icon: React.ElementType; label: string; desc: string; cta: string; href: string; accent: string; planBadge?: string }[]).map(({ icon: Icon, label, desc, cta, href, accent, planBadge }) => (
                 <Link key={label} href={href} style={{ textDecoration: "none", display: "block" }}>
                   <div style={{
                     background: C.bg1,
@@ -738,7 +738,23 @@ export default function DashboardPage() {
                     transition: "border-color 0.2s, box-shadow 0.2s",
                     height: "100%",
                     cursor: "pointer",
+                    position: "relative",
                   }}>
+                    {planBadge && (
+                      <span style={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: "#66aaff",
+                        background: "#66aaff15",
+                        border: "1px solid #66aaff44",
+                        padding: "2px 8px",
+                        borderRadius: 8,
+                        letterSpacing: "0.05em",
+                      }}>{planBadge}</span>
+                    )}
                     <div style={{ width: 40, height: 40, borderRadius: 12, background: `${accent}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <Icon size={20} color={accent} />
                     </div>
@@ -888,7 +904,7 @@ export default function DashboardPage() {
       {!isEmpty && <OnboardingChecklist />}
 
       {/* ── 朝のブリーフィング ────────────────────────────── */}
-      {!isGuest && <MorningBriefing />}
+      {!isGuest && <MorningBriefing userName={sessionData?.user?.name} />}
 
       {/* ── 自動パイプライン Today（iOS風シンプル） ──────────── */}
       {!isGuest && (

@@ -125,8 +125,8 @@ export default function OnboardingModal({ onComplete }: Props) {
       {/* Modal */}
       <div style={{
         position: "relative",
-        background: "#0a1530",
-        border: "1px solid rgba(201,169,107,0.30)",
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
         borderRadius: 16,
         width: "100%",
         maxWidth: 520,

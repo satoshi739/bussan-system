@@ -120,6 +120,22 @@ export default function QuickListingCreatePage() {
       toast("商品名または商品URLを入力してください", "error");
       return;
     }
+    // 数値バリデーション: マイナスや不正な数値はAIに渡す前に弾く
+    const buyN = form.buyPrice ? Number(form.buyPrice) : null;
+    const estN = form.estPrice ? Number(form.estPrice) : null;
+    const wgN = form.weightG ? Number(form.weightG) : null;
+    if (buyN !== null && (Number.isNaN(buyN) || buyN < 0)) {
+      toast("仕入れ価格は0以上の数字で入力してください", "error");
+      return;
+    }
+    if (estN !== null && (Number.isNaN(estN) || estN < 0)) {
+      toast("想定売価は0以上の数字で入力してください", "error");
+      return;
+    }
+    if (wgN !== null && (Number.isNaN(wgN) || wgN < 0)) {
+      toast("重量は0以上の数字で入力してください", "error");
+      return;
+    }
     setSubmitting(true);
     try {
       // 1) 下書きを保存
@@ -143,10 +159,11 @@ export default function QuickListingCreatePage() {
       if (!createRes.ok) throw new Error(await createRes.text());
       const { item } = await createRes.json();
 
-      // 2) AI生成
+      // 2) AI生成（35秒タイムアウト: バックエンド30秒+ネットワーク余裕）
       const aiRes = await fetch("/api/ai/listing-quick", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(35_000),
         body: JSON.stringify({
           product_name: form.productName,
           source_url: form.sourceUrl || undefined,
@@ -266,12 +283,12 @@ export default function QuickListingCreatePage() {
         <div className="ql-grid-2" style={{ marginBottom: 16 }}>
           <div>
             <label style={lbl}>仕入れ価格（円）</label>
-            <input type="number" style={inp} placeholder="0" value={form.buyPrice}
+            <input type="number" min={0} step={100} inputMode="numeric" style={inp} placeholder="0" value={form.buyPrice}
               onChange={e => setField("buyPrice", e.target.value)} />
           </div>
           <div>
             <label style={lbl}>想定販売価格（円）</label>
-            <input type="number" style={inp} placeholder="未入力ならAIが提案" value={form.estPrice}
+            <input type="number" min={0} step={100} inputMode="numeric" style={inp} placeholder="未入力ならAIが提案" value={form.estPrice}
               onChange={e => setField("estPrice", e.target.value)} />
           </div>
         </div>
@@ -414,7 +431,7 @@ export default function QuickListingCreatePage() {
               <div className="ql-grid-3">
                 <div>
                   <label style={lbl}>重量（g）</label>
-                  <input type="number" style={inp} placeholder="500" value={form.weightG}
+                  <input type="number" min={0} step={50} inputMode="numeric" style={inp} placeholder="500" value={form.weightG}
                     onChange={e => setField("weightG", e.target.value)} />
                 </div>
                 <div>

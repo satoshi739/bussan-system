@@ -1,8 +1,7 @@
 "use client";
 
-import RequirePlan from "@/components/RequirePlan";
 import MercariFeatureNotice from "@/components/MercariFeatureNotice";
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Radar, Plus, Trash2, Play, ExternalLink, ShoppingCart, RefreshCw, Zap, SlidersHorizontal, TrendingUp, ArrowUpDown, X, Sparkles, ChevronDown, ChevronUp, BarChart2, Activity, GitFork, Crown, Share2, Flame, Rocket } from "lucide-react";
@@ -309,10 +308,17 @@ function ScannerPageContent() {
   const doQuickScan = async () => {
     const kw = quickKw.trim();
     if (!kw) return;
-    setQuickKw("");
+    // 検索失敗時にキーワードが消えると「もう一度」がやりにくいため、成功扱いの登録後に消す
     if (scanMode === "global") {
-      await api("/api/scanner/keywords", { method: "POST", body: JSON.stringify({ keyword: kw, target_sell_platform: quickPlatform, max_buy_price: null, min_profit_rate: 20, memo: "" }) }).catch(() => {});
-      await loadData();
+      try {
+        await api("/api/scanner/keywords", { method: "POST", body: JSON.stringify({ keyword: kw, target_sell_platform: quickPlatform, max_buy_price: null, min_profit_rate: 20, memo: "" }) });
+        await loadData();
+        setQuickKw("");
+      } catch {
+        // 登録失敗時はキーワードを残して再試行できるようにする
+      }
+    } else {
+      setQuickKw("");
     }
     runScan(kw, quickPlatform);
   };
@@ -486,10 +492,11 @@ function ScannerPageContent() {
       if (!createRes.ok) throw new Error(await createRes.text());
       const { item: created } = await createRes.json();
 
-      // 2) AI生成（メルカリ最適化）
+      // 2) AI生成（メルカリ最適化・35秒タイムアウト）
       const aiRes = await fetch("/api/ai/listing-quick", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(35_000),
         body: JSON.stringify({
           product_name: productName,
           source_url: sourceUrl,
@@ -675,8 +682,8 @@ function ScannerPageContent() {
             { n: "2", icon: "⚡", title: "AIが自動分析",       desc: "仕入れ価格・利益を瞬時に計算" },
             { n: "3", icon: "✅", title: "判定を確認して購入",  desc: "スコアと判定で迷わず決断できる" },
           ]).map(({ n, icon, title, desc }, i) => (
-            <>
-              <div key={n} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 10, padding: "0 8px" }}>
+            <React.Fragment key={n}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 10, padding: "0 8px" }}>
                 <div style={{ width: 52, height: 52, borderRadius: 16, background: `linear-gradient(135deg, var(--blue), var(--blue)cc)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(0,111,230,0.25)", flexShrink: 0 }}>
                   <span style={{ fontSize: 22 }}>{icon}</span>
                 </div>
@@ -685,8 +692,8 @@ function ScannerPageContent() {
                   <div style={{ fontSize: 11, color: "var(--text-3)", lineHeight: 1.6 }}>{desc}</div>
                 </div>
               </div>
-              {i < 2 && <div key={`arrow-${i}`} style={{ display: "flex", alignItems: "flex-start", paddingTop: 16, color: "var(--text-4)", fontSize: 18, paddingLeft: 4, paddingRight: 4 }}>›</div>}
-            </>
+              {i < 2 && <div style={{ display: "flex", alignItems: "flex-start", paddingTop: 16, color: "var(--text-4)", fontSize: 18, paddingLeft: 4, paddingRight: 4 }}>›</div>}
+            </React.Fragment>
           ))}
         </div>
       </div>
@@ -1751,9 +1758,6 @@ function ScannerPageContent() {
 }
 
 export default function ScannerPage() {
-  return (
-    <RequirePlan requiredPlan="STANDARD" featureName="利益スキャナー">
-      <ScannerPageContent />
-    </RequirePlan>
-  );
+  // FREEプランも開けるよう解放。月10回までの利用回数制限はAPI側で実施する。
+  return <ScannerPageContent />;
 }

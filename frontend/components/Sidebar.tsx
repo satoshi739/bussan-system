@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Settings, Radar, LogOut, CreditCard, X, MoreHorizontal, HelpCircle, ChevronDown, Crown, Sparkles } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Settings, Radar, LogOut, CreditCard, X, MoreHorizontal, HelpCircle, ChevronDown, Crown, Sparkles, Wand2 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
@@ -24,7 +24,7 @@ const navGroups = [
       { href: "/",               label: "ホーム",              icon: LayoutDashboard },
       { href: "/scanner",        label: "商品の利益を調べる",  icon: Radar },
       { href: "/discover",       label: "今日のおすすめ商品",  icon: Sparkles },
-      { href: "/listings/quick", label: "AIで出品文を作る",    icon: Sparkles },
+      { href: "/listings/quick", label: "AIで出品文を作る",    icon: Wand2 },
       { href: "/purchases",      label: "買った商品の記録",    icon: ShoppingCart },
       { href: "/listings",       label: "出品中の商品",        icon: Tag },
       { href: "/sales",          label: "売れた商品",          icon: TrendingUp },
@@ -411,6 +411,25 @@ export default function Sidebar() {
           >
             <LogOut size={11} /> ログアウト
           </button>
+        )}
+        {!session?.user && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+            <Link href="/login" style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              textDecoration: "none", padding: "10px 12px", borderRadius: 12,
+              background: "var(--surface-2)", border: "1px solid var(--border)",
+              color: "var(--text)", fontSize: 13, fontWeight: 700,
+            }}>
+              ログイン / 新規登録
+            </Link>
+            <Link href="/pricing" style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              textDecoration: "none", padding: "8px 12px", borderRadius: 12,
+              color: "var(--text-3)", fontSize: 12,
+            }}>
+              料金プランを見る →
+            </Link>
+          </div>
         )}
       </div>
     </aside>

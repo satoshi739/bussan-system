@@ -309,8 +309,23 @@ export default function QuickListingPreviewPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 900, margin: "60px auto", textAlign: "center", color: "var(--text-3)" }}>
-        読み込み中...
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "20px 0" }}>
+        <style>{`
+          @keyframes sk-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 0.85; } }
+          .sk { background: var(--surface-2); border-radius: 10px; animation: sk-pulse 1.4s ease-in-out infinite; }
+        `}</style>
+        <div className="sk" style={{ height: 28, width: "40%", marginBottom: 18 }} />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20 }}>
+          <div>
+            <div className="sk" style={{ height: 220, marginBottom: 16 }} />
+            <div className="sk" style={{ height: 140, marginBottom: 16 }} />
+            <div className="sk" style={{ height: 180 }} />
+          </div>
+          <div>
+            <div className="sk" style={{ height: 120, marginBottom: 14 }} />
+            <div className="sk" style={{ height: 160 }} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -432,11 +447,11 @@ export default function QuickListingPreviewPage() {
             </div>
             <div>
               <label style={lbl}>販売価格（円）</label>
-              <input type="number" style={inp} value={price || ""} onChange={e => setPrice(Number(e.target.value) || 0)} />
+              <input type="number" min={0} step={100} inputMode="numeric" style={inp} value={price || ""} onChange={e => setPrice(Math.max(0, Number(e.target.value) || 0))} />
             </div>
             <div>
               <label style={lbl}>送料目安（円）</label>
-              <input type="number" style={inp} value={shippingFee || ""} onChange={e => setShippingFee(Number(e.target.value) || 0)} />
+              <input type="number" min={0} step={50} inputMode="numeric" style={inp} value={shippingFee || ""} onChange={e => setShippingFee(Math.max(0, Number(e.target.value) || 0))} />
             </div>
           </div>
 
@@ -592,52 +607,67 @@ export default function QuickListingPreviewPage() {
 
             {/* メイン出品アクション（プラットフォーム別・コピー＋外部サイト起動方式） */}
             {platform === "mercari" && (
-              <button onClick={handleMercariPublish} disabled={publishing || blocked}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  background: "linear-gradient(135deg,#ff4f81,#ff2d65)",
-                  border: "1px solid rgba(255,79,129,0.5)",
-                  borderRadius: 14, color: "#fff", padding: "14px",
-                  fontSize: 14, fontWeight: 800,
-                  cursor: (publishing || blocked) ? "not-allowed" : "pointer",
-                  opacity: (publishing || blocked) ? 0.5 : 1,
-                  boxShadow: (publishing || blocked) ? "none" : "0 4px 14px rgba(255,79,129,0.28)",
-                  marginBottom: 10,
-                }}>
-                <Tag size={14} /> メルカリで出品（コピー＋アプリ起動）
-              </button>
+              <>
+                <button onClick={handleMercariPublish} disabled={publishing || blocked}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    background: "linear-gradient(135deg,#ff4f81,#ff2d65)",
+                    border: "1px solid rgba(255,79,129,0.5)",
+                    borderRadius: 14, color: "#fff", padding: "14px",
+                    fontSize: 14, fontWeight: 800,
+                    cursor: (publishing || blocked) ? "not-allowed" : "pointer",
+                    opacity: (publishing || blocked) ? 0.5 : 1,
+                    boxShadow: (publishing || blocked) ? "none" : "0 4px 14px rgba(255,79,129,0.28)",
+                    marginBottom: 6,
+                  }}>
+                  <Tag size={14} /> メルカリで出品（コピー＋アプリ起動）
+                </button>
+                <div style={{ fontSize: 11, color: "var(--text-3)", lineHeight: 1.5, marginBottom: 10, textAlign: "center" }}>
+                  ※ 出品文がクリップボードにコピーされます。メルカリアプリの出品画面で長押し→貼り付けてください。
+                </div>
+              </>
             )}
             {platform === "yahoo_auctions" && (
-              <button onClick={handleYahooPublish} disabled={publishing || blocked}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  background: "linear-gradient(135deg,#7c3aed,#6d28d9)",
-                  border: "1px solid rgba(124,58,237,0.5)",
-                  borderRadius: 14, color: "#fff", padding: "14px",
-                  fontSize: 14, fontWeight: 800,
-                  cursor: (publishing || blocked) ? "not-allowed" : "pointer",
-                  opacity: (publishing || blocked) ? 0.5 : 1,
-                  boxShadow: (publishing || blocked) ? "none" : "0 4px 14px rgba(124,58,237,0.28)",
-                  marginBottom: 10,
-                }}>
-                <Tag size={14} /> ヤフオクで出品（コピー＋画面起動）
-              </button>
+              <>
+                <button onClick={handleYahooPublish} disabled={publishing || blocked}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    background: "linear-gradient(135deg,#7c3aed,#6d28d9)",
+                    border: "1px solid rgba(124,58,237,0.5)",
+                    borderRadius: 14, color: "#fff", padding: "14px",
+                    fontSize: 14, fontWeight: 800,
+                    cursor: (publishing || blocked) ? "not-allowed" : "pointer",
+                    opacity: (publishing || blocked) ? 0.5 : 1,
+                    boxShadow: (publishing || blocked) ? "none" : "0 4px 14px rgba(124,58,237,0.28)",
+                    marginBottom: 6,
+                  }}>
+                  <Tag size={14} /> ヤフオクで出品（コピー＋画面起動）
+                </button>
+                <div style={{ fontSize: 11, color: "var(--text-3)", lineHeight: 1.5, marginBottom: 10, textAlign: "center" }}>
+                  ※ 出品文がクリップボードにコピーされます。ヤフオクの出品画面で貼り付けてください。
+                </div>
+              </>
             )}
             {platform === "ebay" && (
-              <button onClick={handleEbayPublish} disabled={publishing || blocked}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
-                  border: "1px solid rgba(14,165,233,0.5)",
-                  borderRadius: 14, color: "#fff", padding: "14px",
-                  fontSize: 14, fontWeight: 800,
-                  cursor: (publishing || blocked) ? "not-allowed" : "pointer",
-                  opacity: (publishing || blocked) ? 0.5 : 1,
-                  boxShadow: (publishing || blocked) ? "none" : "0 4px 14px rgba(14,165,233,0.28)",
-                  marginBottom: 10,
-                }}>
-                <Tag size={14} /> eBayで出品（コピー＋画面起動）
-              </button>
+              <>
+                <button onClick={handleEbayPublish} disabled={publishing || blocked}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
+                    border: "1px solid rgba(14,165,233,0.5)",
+                    borderRadius: 14, color: "#fff", padding: "14px",
+                    fontSize: 14, fontWeight: 800,
+                    cursor: (publishing || blocked) ? "not-allowed" : "pointer",
+                    opacity: (publishing || blocked) ? 0.5 : 1,
+                    boxShadow: (publishing || blocked) ? "none" : "0 4px 14px rgba(14,165,233,0.28)",
+                    marginBottom: 6,
+                  }}>
+                  <Tag size={14} /> eBayで出品（コピー＋画面起動）
+                </button>
+                <div style={{ fontSize: 11, color: "var(--text-3)", lineHeight: 1.5, marginBottom: 10, textAlign: "center" }}>
+                  ※ 出品文がクリップボードにコピーされます。eBayの出品画面で貼り付けてください。
+                </div>
+              </>
             )}
 
             {/* セカンダリ：CSV / 出品文コピー */}

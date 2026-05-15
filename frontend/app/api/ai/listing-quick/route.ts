@@ -118,11 +118,15 @@ export async function POST(req: NextRequest) {
 }`;
 
   try {
-    const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2048,
-      messages: [{ role: "user", content: prompt }],
-    });
+    // 30秒タイムアウト: Claudeが詰まっても「AI生成中…」が永遠表示されないように
+    const message = await client.messages.create(
+      {
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 2048,
+        messages: [{ role: "user", content: prompt }],
+      },
+      { timeout: 30_000 }
+    );
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -151,6 +155,13 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    const isTimeout = msg.toLowerCase().includes("timeout") || msg.includes("aborted");
+    if (isTimeout) {
+      return NextResponse.json(
+        { error: "AIが混み合っています。少し時間をおいて再度お試しください。" },
+        { status: 504 }
+      );
+    }
     return NextResponse.json({ error: `AI生成に失敗しました: ${msg}` }, { status: 500 });
   }
 }

@@ -224,6 +224,11 @@ export default function LoginPage() {
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     if (!pwEmail || !password) return;
+    // フロント側で先にパスワード強度をチェック（API往復前に親切なエラーを出す）
+    if (password.length < 6) {
+      setError("パスワードは6文字以上で入力してください");
+      return;
+    }
     setError("");
     startTransition(async () => {
       try {
