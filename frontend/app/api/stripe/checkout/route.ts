@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: { userId },
+      client_reference_id: userId,
       customer: sub?.stripeCustomerId ?? undefined,
       customer_email: sub?.stripeCustomerId ? undefined : session.user.email,
       success_url: `${baseUrl}/settings/billing?success=true`,
