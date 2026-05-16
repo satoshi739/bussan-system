@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Settings, Radar, LogOut, CreditCard, X, MoreHorizontal, HelpCircle, ChevronDown, Crown, Sparkles, Wand2 } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Settings, Radar, LogOut, CreditCard, X, MoreHorizontal, HelpCircle, ChevronDown, Crown, Sparkles, Wand2, Megaphone } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
@@ -28,6 +28,7 @@ const navGroups = [
       { href: "/purchases",      label: "買った商品の記録",    icon: ShoppingCart },
       { href: "/listings",       label: "出品中の商品",        icon: Tag },
       { href: "/sales",          label: "売れた商品",          icon: TrendingUp },
+      { href: "https://upj-auto-marketing.vercel.app/", label: "AI自動マーケ", icon: Megaphone, external: true },
     ],
   },
 ];
@@ -260,35 +261,55 @@ export default function Sidebar() {
                 />
               </button>
 
-              {!isCollapsed && group.items.map(({ href, label, icon: Icon }) => {
-                const active = pathname === href;
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    title={label}
-                    className={active ? "" : "nav-link"}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 9,
-                      padding: "6px 10px",
-                      borderRadius: 12,
-                      fontWeight: active ? 700 : 500,
-                      fontSize: 12,
-                      color:      active ? "var(--text)" : "var(--text-2)",
-                      background: active ? "var(--nav-active)" : "transparent",
-                      border:     active ? "1px solid var(--border-strong)" : "1px solid transparent",
-                      textDecoration: "none",
-                      transition: "all 0.15s",
-                      marginBottom: 1,
-                    }}
-                  >
+              {!isCollapsed && group.items.map((item) => {
+                const { href, label, icon: Icon } = item;
+                const isExternal = "external" in item && item.external;
+                const active = !isExternal && pathname === href;
+                const linkStyle = {
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 9,
+                  padding: "6px 10px",
+                  borderRadius: 12,
+                  fontWeight: active ? 700 : 500,
+                  fontSize: 12,
+                  color:      active ? "var(--text)" : "var(--text-2)",
+                  background: active ? "var(--nav-active)" : "transparent",
+                  border:     active ? "1px solid var(--border-strong)" : "1px solid transparent",
+                  textDecoration: "none",
+                  transition: "all 0.15s",
+                  marginBottom: 1,
+                } as const;
+                const inner = (
+                  <>
                     <Icon size={13} style={{ flexShrink: 0 }} color={active ? T.gold : "var(--text-3)"} />
                     <span>{label}</span>
                     {active && (
                       <div style={{ marginLeft: "auto", width: 5, height: 5, borderRadius: "50%", background: T.gold, flexShrink: 0 }} />
                     )}
+                  </>
+                );
+                return isExternal ? (
+                  <a
+                    key={href}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={label}
+                    className="nav-link"
+                    style={linkStyle}
+                  >
+                    {inner}
+                  </a>
+                ) : (
+                  <Link
+                    key={href}
+                    href={href}
+                    title={label}
+                    className={active ? "" : "nav-link"}
+                    style={linkStyle}
+                  >
+                    {inner}
                   </Link>
                 );
               })}
@@ -534,29 +555,37 @@ export default function Sidebar() {
                   {group.label}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                  {group.items.map(({ href, label, icon: Icon }) => {
-                    const active = pathname === href;
-                    return (
-                      <Link
-                        key={href}
-                        href={href}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          padding: "12px 14px",
-                          borderRadius: 14,
-                          fontSize: 13,
-                          fontWeight: active ? 700 : 500,
-                          color: active ? "var(--text)" : "var(--text-2)",
-                          background: active ? "var(--nav-active)" : "rgba(255,255,255,0.03)",
-                          border: active ? "1px solid var(--border-strong)" : "1px solid var(--border)",
-                          textDecoration: "none",
-                          minHeight: 44,
-                        }}
-                      >
+                  {group.items.map((item) => {
+                    const { href, label, icon: Icon } = item;
+                    const isExternal = "external" in item && item.external;
+                    const active = !isExternal && pathname === href;
+                    const tileStyle = {
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "12px 14px",
+                      borderRadius: 14,
+                      fontSize: 13,
+                      fontWeight: active ? 700 : 500,
+                      color: active ? "var(--text)" : "var(--text-2)",
+                      background: active ? "var(--nav-active)" : "rgba(255,255,255,0.03)",
+                      border: active ? "1px solid var(--border-strong)" : "1px solid var(--border)",
+                      textDecoration: "none",
+                      minHeight: 44,
+                    } as const;
+                    const inner = (
+                      <>
                         <Icon size={13} color={active ? T.gold : "var(--text-3)"} />
                         {label}
+                      </>
+                    );
+                    return isExternal ? (
+                      <a key={href} href={href} target="_blank" rel="noopener noreferrer" style={tileStyle}>
+                        {inner}
+                      </a>
+                    ) : (
+                      <Link key={href} href={href} style={tileStyle}>
+                        {inner}
                       </Link>
                     );
                   })}
