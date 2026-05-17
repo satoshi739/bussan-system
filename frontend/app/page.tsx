@@ -47,7 +47,7 @@ const card = (extra?: React.CSSProperties): React.CSSProperties => ({
   border: `1px solid ${C.bd}`,
   borderRadius: 28,
   padding: "20px 20px",
-  boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06)",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.10)",
   ...extra,
 });
 
@@ -112,7 +112,7 @@ function Stars({ n }: { n: number }) {
 // ── おすすめ仕入れカード ──────────────────────────────────
 function ProfitCandidateCard({ name, buy, sell, profit, rate, stars }: typeof SAMPLE_PROFIT_CANDIDATES[0]) {
   return (
-    <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24, padding: "16px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+    <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24, padding: "16px 18px", boxShadow: "0 2px 6px rgba(0,0,0,0.08), 0 10px 24px rgba(0,0,0,0.10)" }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, marginBottom: 14, lineHeight: 1.5, minHeight: 36 }}>{name}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {([
@@ -169,7 +169,7 @@ function FeatureCard({ item }: { item: FeatureItem }) {
       height: "100%",
       cursor: "pointer",
       transition: "transform .15s, border-color .2s, box-shadow .2s",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.10)",
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ width: 40, height: 40, borderRadius: 12, background: `${accent}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -414,7 +414,7 @@ export default function DashboardPage() {
           .chart-meta{display:none!important}
         }
         .action-expand{display:none}
-        .feature-card:hover { transform: translateY(-2px); border-color: ${C.bdSt} !important; box-shadow: 0 6px 22px rgba(0,0,0,0.08) !important; }
+        .feature-card:hover { transform: translateY(-3px); border-color: ${C.bdSt} !important; box-shadow: 0 6px 14px rgba(0,0,0,0.12), 0 20px 40px rgba(0,0,0,0.14) !important; }
         .arow:hover  { border-color: ${C.bdSt} !important; background: rgba(0,122,255,0.04) !important; }
         .abtn:hover  { opacity: 0.82 !important; }
         .abtn { min-height: 36px; }
