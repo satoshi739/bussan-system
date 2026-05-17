@@ -53,25 +53,26 @@ const card = (extra?: React.CSSProperties): React.CSSProperties => ({
 
 // ── サンプルデータ（ゲスト・空データ時の見映え用） ──────────
 const SAMPLE: Dashboard = {
-  stats: { total_purchases: 47, total_invested: 312000, total_sold: 39, total_profit: 98400, roi: 31.5, avg_holding_days: 12.4, active_inventory_count: 8, active_inventory_value: 52000 },
+  stats: { total_purchases: 142, total_invested: 4000000, total_sold: 118, total_profit: 1250000, roi: 31.3, avg_holding_days: 13.6, active_inventory_count: 24, active_inventory_value: 880000 },
   monthly_profit: [
-    { month: "04月", profit: 98400, sales_count: 12 },
-    { month: "03月", profit: 83100, sales_count: 10 },
-    { month: "02月", profit: 71200, sales_count: 9 },
-    { month: "01月", profit: 58900, sales_count: 7 },
-    { month: "12月", profit: 92000, sales_count: 14 },
-    { month: "11月", profit: 64300, sales_count: 8 },
+    { month: "04月", profit: 1250000, sales_count: 22 },
+    { month: "03月", profit: 1080000, sales_count: 19 },
+    { month: "02月", profit:  930000, sales_count: 18 },
+    { month: "01月", profit:  720000, sales_count: 14 },
+    { month: "12月", profit: 1150000, sales_count: 21 },
+    { month: "11月", profit:  860000, sales_count: 16 },
   ],
   status_breakdown: [
     { status: "purchased", count: 8 },
-    { status: "listed",    count: 12 },
-    { status: "sold",      count: 39 },
-    { status: "cancelled", count: 2 },
+    { status: "listed",    count: 16 },
+    { status: "sold",      count: 118 },
+    { status: "cancelled", count: 0 },
   ],
   platform_breakdown: [
-    { platform: "Amazon",  count: 22 },
-    { platform: "メルカリ", count: 17 },
-    { platform: "eBay",    count: 8 },
+    { platform: "Amazon",  count: 62 },
+    { platform: "メルカリ", count: 48 },
+    { platform: "eBay",    count: 22 },
+    { platform: "ヤフオク", count: 10 },
   ],
 };
 const SAMPLE_STALE: Purchase[] = [
