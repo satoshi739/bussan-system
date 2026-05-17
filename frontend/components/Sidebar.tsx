@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Settings, Radar, LogOut, CreditCard, X, MoreHorizontal, HelpCircle, ChevronDown, Crown, Sparkles, Wand2, Megaphone } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Tag, TrendingUp, Settings, Radar, LogOut, CreditCard, X, MoreHorizontal, HelpCircle, ChevronDown, Crown, Sparkles, Wand2, Megaphone, Truck } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePlan } from "@/lib/usePlan";
 import { T } from "@/lib/tokens";
@@ -28,6 +28,7 @@ const navGroups = [
       { href: "/purchases",      label: "買った商品の記録",    icon: ShoppingCart },
       { href: "/listings",       label: "出品中の商品",        icon: Tag },
       { href: "/sales",          label: "売れた商品",          icon: TrendingUp },
+      { href: "/shipping",       label: "配送管理",            icon: Truck },
       { href: "https://upj-auto-marketing.vercel.app/", label: "AI自動マーケ", icon: Megaphone, external: true },
     ],
   },
