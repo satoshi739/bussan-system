@@ -6,7 +6,7 @@ import { getDashboard, getStalePurchases, getPurchases, getGoal, setGoal, type D
 import {
   TrendingUp, ShoppingCart, Package, Banknote, Target, Pencil, Check,
   AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, ChevronRight,
-  Award, Tag, ExternalLink, Search, Sparkles, Wand2, Megaphone, LayoutDashboard, Radar,
+  Award, Tag, ExternalLink, Search, Sparkles, Wand2, Megaphone, LayoutDashboard, Radar, Truck,
 } from "lucide-react";
 import Link from "next/link";
 import { OnboardingChecklist } from "@/components/OnboardingModal";
@@ -47,7 +47,7 @@ const card = (extra?: React.CSSProperties): React.CSSProperties => ({
   border: `1px solid ${C.bd}`,
   borderRadius: 28,
   padding: "20px 20px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.10)",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.10), 0 14px 32px rgba(0,0,0,0.14)",
   ...extra,
 });
 
@@ -112,7 +112,7 @@ function Stars({ n }: { n: number }) {
 // ── おすすめ仕入れカード ──────────────────────────────────
 function ProfitCandidateCard({ name, buy, sell, profit, rate, stars }: typeof SAMPLE_PROFIT_CANDIDATES[0]) {
   return (
-    <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24, padding: "16px 18px", boxShadow: "0 2px 6px rgba(0,0,0,0.08), 0 10px 24px rgba(0,0,0,0.10)" }}>
+    <div style={{ background: C.bg1, border: `1px solid ${C.bd}`, borderRadius: 24, padding: "16px 18px", boxShadow: "0 3px 8px rgba(0,0,0,0.10), 0 12px 28px rgba(0,0,0,0.14)" }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, marginBottom: 14, lineHeight: 1.5, minHeight: 36 }}>{name}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {([
@@ -151,8 +151,9 @@ const FEATURES: FeatureItem[] = [
   { href: "/listings/quick", label: "AIで出品文を作る",   desc: "商品情報を入れるだけ。売れるタイトル・説明文・タグをAIが生成します。",     icon: Wand2,         accent: C.purple },
   { href: "/purchases",      label: "買った商品の記録",   desc: "仕入れ価格・送料を入力すると利益・在庫が自動で管理されます。",             icon: ShoppingCart,  accent: C.up },
   { href: "/listings",       label: "出品中の商品",       desc: "今出品している商品を一覧で管理。値下げ判断もここから。",                   icon: Tag,           accent: C.warn },
-  { href: "/sales",          label: "売れた商品",         desc: "売却済み商品と利益を月別で確認できます。",                                 icon: TrendingUp,    accent: C.teal },
   { href: "https://upj-auto-marketing.vercel.app/", label: "AI自動マーケ", desc: "SNS集客・コンテンツ生成をAIが自動化します（外部ツール）。", icon: Megaphone, accent: C.pink, external: true },
+  { href: "/sales",          label: "売れた商品",         desc: "売却済み商品と利益を月別で確認できます。",                                 icon: TrendingUp,    accent: C.teal },
+  { href: "/shipping",       label: "配送管理",           desc: "売れた商品の発送状況・追跡番号・配送業者をひとつの画面で管理できます。",   icon: Truck,         accent: "#3B8EEA" },
 ];
 
 function FeatureCard({ item }: { item: FeatureItem }) {
@@ -169,7 +170,7 @@ function FeatureCard({ item }: { item: FeatureItem }) {
       height: "100%",
       cursor: "pointer",
       transition: "transform .15s, border-color .2s, box-shadow .2s",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.10)",
+      boxShadow: "0 3px 8px rgba(0,0,0,0.10), 0 14px 32px rgba(0,0,0,0.14)",
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ width: 40, height: 40, borderRadius: 12, background: `${accent}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -414,7 +415,7 @@ export default function DashboardPage() {
           .chart-meta{display:none!important}
         }
         .action-expand{display:none}
-        .feature-card:hover { transform: translateY(-3px); border-color: ${C.bdSt} !important; box-shadow: 0 6px 14px rgba(0,0,0,0.12), 0 20px 40px rgba(0,0,0,0.14) !important; }
+        .feature-card:hover { transform: translateY(-3px); border-color: ${C.bdSt} !important; box-shadow: 0 8px 18px rgba(0,0,0,0.16), 0 24px 48px rgba(0,0,0,0.20) !important; }
         .arow:hover  { border-color: ${C.bdSt} !important; background: rgba(0,122,255,0.04) !important; }
         .abtn:hover  { opacity: 0.82 !important; }
         .abtn { min-height: 36px; }
