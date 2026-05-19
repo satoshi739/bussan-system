@@ -80,12 +80,12 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.7.0
- * Query Engine version: 75cbdc1eb7150937890ad5465d861175c6624711
+ * Prisma Client JS version: 7.8.0
+ * Query Engine version: 3c6e192761c0362d496ed980de936e2f3cebcd3a
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.7.0",
-  engine: "75cbdc1eb7150937890ad5465d861175c6624711"
+  client: "7.8.0",
+  engine: "3c6e192761c0362d496ed980de936e2f3cebcd3a"
 }
 
 /**
@@ -402,7 +402,8 @@ export const ModelName = {
   GenerationHistory: 'GenerationHistory',
   QuickListing: 'QuickListing',
   OnboardingEmailLog: 'OnboardingEmailLog',
-  AppSetting: 'AppSetting'
+  AppSetting: 'AppSetting',
+  ShippingLabel: 'ShippingLabel'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent" | "ebayAccount" | "contentItem" | "monetizeProject" | "generationResult" | "generationHistory" | "quickListing" | "onboardingEmailLog" | "appSetting"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "subscription" | "activeSession" | "purchaseRecord" | "saleRecord" | "scanHistory" | "profitCalcHistory" | "stripeEvent" | "ebayAccount" | "contentItem" | "monetizeProject" | "generationResult" | "generationHistory" | "quickListing" | "onboardingEmailLog" | "appSetting" | "shippingLabel"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1828,6 +1829,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ShippingLabel: {
+      payload: Prisma.$ShippingLabelPayload<ExtArgs>
+      fields: Prisma.ShippingLabelFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShippingLabelFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShippingLabelFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload>
+        }
+        findFirst: {
+          args: Prisma.ShippingLabelFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShippingLabelFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload>
+        }
+        findMany: {
+          args: Prisma.ShippingLabelFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload>[]
+        }
+        create: {
+          args: Prisma.ShippingLabelCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload>
+        }
+        createMany: {
+          args: Prisma.ShippingLabelCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShippingLabelCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload>[]
+        }
+        delete: {
+          args: Prisma.ShippingLabelDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload>
+        }
+        update: {
+          args: Prisma.ShippingLabelUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShippingLabelDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShippingLabelUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShippingLabelUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShippingLabelUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShippingLabelPayload>
+        }
+        aggregate: {
+          args: Prisma.ShippingLabelAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShippingLabel>
+        }
+        groupBy: {
+          args: Prisma.ShippingLabelGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShippingLabelGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShippingLabelCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShippingLabelCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2159,6 +2234,29 @@ export const AppSettingScalarFieldEnum = {
 export type AppSettingScalarFieldEnum = (typeof AppSettingScalarFieldEnum)[keyof typeof AppSettingScalarFieldEnum]
 
 
+export const ShippingLabelScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  externalOrderId: 'externalOrderId',
+  carrier: 'carrier',
+  status: 'status',
+  recipientName: 'recipientName',
+  recipientPostalCode: 'recipientPostalCode',
+  recipientAddress: 'recipientAddress',
+  recipientPhone: 'recipientPhone',
+  packageName: 'packageName',
+  trackingNumber: 'trackingNumber',
+  trackingUrl: 'trackingUrl',
+  labelIssueId: 'labelIssueId',
+  labelPdfUrl: 'labelPdfUrl',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShippingLabelScalarFieldEnum = (typeof ShippingLabelScalarFieldEnum)[keyof typeof ShippingLabelScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2458,6 +2556,21 @@ export type PrismaClientOptions = ({
    * ```
    */
   comments?: runtime.SqlCommenterPlugin[]
+  /**
+   * Optional maximum size for the query plan cache. If not provided, a default size will be used.
+   * A value of `0` can be used to disable the cache entirely. A higher cache size can improve
+   * performance for applications that execute a large number of unique queries, while a smaller
+   * cache size can reduce memory usage.
+   * 
+   * @example
+   * ```
+   * const prisma = new PrismaClient({
+   *   adapter,
+   *   queryPlanCacheMaxSize: 100,
+   * })
+   * ```
+   */
+  queryPlanCacheMaxSize?: number
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
@@ -2479,6 +2592,7 @@ export type GlobalOmitConfig = {
   quickListing?: Prisma.QuickListingOmit
   onboardingEmailLog?: Prisma.OnboardingEmailLogOmit
   appSetting?: Prisma.AppSettingOmit
+  shippingLabel?: Prisma.ShippingLabelOmit
 }
 
 /* Types for Logging */

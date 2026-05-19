@@ -225,6 +225,7 @@ export type UserWhereInput = {
   ebayAccount?: Prisma.XOR<Prisma.EbayAccountNullableScalarRelationFilter, Prisma.EbayAccountWhereInput> | null
   monetizeProjects?: Prisma.MonetizeProjectListRelationFilter
   quickListings?: Prisma.QuickListingListRelationFilter
+  shippingLabels?: Prisma.ShippingLabelListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -248,6 +249,7 @@ export type UserOrderByWithRelationInput = {
   ebayAccount?: Prisma.EbayAccountOrderByWithRelationInput
   monetizeProjects?: Prisma.MonetizeProjectOrderByRelationAggregateInput
   quickListings?: Prisma.QuickListingOrderByRelationAggregateInput
+  shippingLabels?: Prisma.ShippingLabelOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -274,6 +276,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   ebayAccount?: Prisma.XOR<Prisma.EbayAccountNullableScalarRelationFilter, Prisma.EbayAccountWhereInput> | null
   monetizeProjects?: Prisma.MonetizeProjectListRelationFilter
   quickListings?: Prisma.QuickListingListRelationFilter
+  shippingLabels?: Prisma.ShippingLabelListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -327,6 +330,7 @@ export type UserCreateInput = {
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -350,6 +354,7 @@ export type UserUncheckedCreateInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -373,6 +378,7 @@ export type UserUpdateInput = {
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -396,6 +402,7 @@ export type UserUncheckedUpdateInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -649,6 +656,20 @@ export type UserUpdateOneRequiredWithoutQuickListingsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutQuickListingsInput, Prisma.UserUpdateWithoutQuickListingsInput>, Prisma.UserUncheckedUpdateWithoutQuickListingsInput>
 }
 
+export type UserCreateNestedOneWithoutShippingLabelsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutShippingLabelsInput, Prisma.UserUncheckedCreateWithoutShippingLabelsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutShippingLabelsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutShippingLabelsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutShippingLabelsInput, Prisma.UserUncheckedCreateWithoutShippingLabelsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutShippingLabelsInput
+  upsert?: Prisma.UserUpsertWithoutShippingLabelsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutShippingLabelsInput, Prisma.UserUpdateWithoutShippingLabelsInput>, Prisma.UserUncheckedUpdateWithoutShippingLabelsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   name?: string | null
@@ -669,6 +690,7 @@ export type UserCreateWithoutAccountsInput = {
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -691,6 +713,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -729,6 +752,7 @@ export type UserUpdateWithoutAccountsInput = {
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -751,6 +775,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -773,6 +798,7 @@ export type UserCreateWithoutSessionsInput = {
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -795,6 +821,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -833,6 +860,7 @@ export type UserUpdateWithoutSessionsInput = {
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -855,6 +883,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSubscriptionInput = {
@@ -877,6 +906,7 @@ export type UserCreateWithoutSubscriptionInput = {
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSubscriptionInput = {
@@ -899,6 +929,7 @@ export type UserUncheckedCreateWithoutSubscriptionInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSubscriptionInput = {
@@ -937,6 +968,7 @@ export type UserUpdateWithoutSubscriptionInput = {
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubscriptionInput = {
@@ -959,6 +991,7 @@ export type UserUncheckedUpdateWithoutSubscriptionInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutActiveSessionsInput = {
@@ -981,6 +1014,7 @@ export type UserCreateWithoutActiveSessionsInput = {
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutActiveSessionsInput = {
@@ -1003,6 +1037,7 @@ export type UserUncheckedCreateWithoutActiveSessionsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutActiveSessionsInput = {
@@ -1041,6 +1076,7 @@ export type UserUpdateWithoutActiveSessionsInput = {
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActiveSessionsInput = {
@@ -1063,6 +1099,7 @@ export type UserUncheckedUpdateWithoutActiveSessionsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPurchaseRecordsInput = {
@@ -1085,6 +1122,7 @@ export type UserCreateWithoutPurchaseRecordsInput = {
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPurchaseRecordsInput = {
@@ -1107,6 +1145,7 @@ export type UserUncheckedCreateWithoutPurchaseRecordsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPurchaseRecordsInput = {
@@ -1145,6 +1184,7 @@ export type UserUpdateWithoutPurchaseRecordsInput = {
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPurchaseRecordsInput = {
@@ -1167,6 +1207,7 @@ export type UserUncheckedUpdateWithoutPurchaseRecordsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSaleRecordsInput = {
@@ -1189,6 +1230,7 @@ export type UserCreateWithoutSaleRecordsInput = {
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSaleRecordsInput = {
@@ -1211,6 +1253,7 @@ export type UserUncheckedCreateWithoutSaleRecordsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSaleRecordsInput = {
@@ -1249,6 +1292,7 @@ export type UserUpdateWithoutSaleRecordsInput = {
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSaleRecordsInput = {
@@ -1271,6 +1315,7 @@ export type UserUncheckedUpdateWithoutSaleRecordsInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutScanHistoriesInput = {
@@ -1293,6 +1338,7 @@ export type UserCreateWithoutScanHistoriesInput = {
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutScanHistoriesInput = {
@@ -1315,6 +1361,7 @@ export type UserUncheckedCreateWithoutScanHistoriesInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutScanHistoriesInput = {
@@ -1353,6 +1400,7 @@ export type UserUpdateWithoutScanHistoriesInput = {
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutScanHistoriesInput = {
@@ -1375,6 +1423,7 @@ export type UserUncheckedUpdateWithoutScanHistoriesInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutProfitCalcHistoriesInput = {
@@ -1397,6 +1446,7 @@ export type UserCreateWithoutProfitCalcHistoriesInput = {
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProfitCalcHistoriesInput = {
@@ -1419,6 +1469,7 @@ export type UserUncheckedCreateWithoutProfitCalcHistoriesInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProfitCalcHistoriesInput = {
@@ -1457,6 +1508,7 @@ export type UserUpdateWithoutProfitCalcHistoriesInput = {
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProfitCalcHistoriesInput = {
@@ -1479,6 +1531,7 @@ export type UserUncheckedUpdateWithoutProfitCalcHistoriesInput = {
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEbayAccountInput = {
@@ -1501,6 +1554,7 @@ export type UserCreateWithoutEbayAccountInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEbayAccountInput = {
@@ -1523,6 +1577,7 @@ export type UserUncheckedCreateWithoutEbayAccountInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEbayAccountInput = {
@@ -1561,6 +1616,7 @@ export type UserUpdateWithoutEbayAccountInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEbayAccountInput = {
@@ -1583,6 +1639,7 @@ export type UserUncheckedUpdateWithoutEbayAccountInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMonetizeProjectsInput = {
@@ -1605,6 +1662,7 @@ export type UserCreateWithoutMonetizeProjectsInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMonetizeProjectsInput = {
@@ -1627,6 +1685,7 @@ export type UserUncheckedCreateWithoutMonetizeProjectsInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMonetizeProjectsInput = {
@@ -1665,6 +1724,7 @@ export type UserUpdateWithoutMonetizeProjectsInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMonetizeProjectsInput = {
@@ -1687,6 +1747,7 @@ export type UserUncheckedUpdateWithoutMonetizeProjectsInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutQuickListingsInput = {
@@ -1709,6 +1770,7 @@ export type UserCreateWithoutQuickListingsInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
   ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutQuickListingsInput = {
@@ -1731,6 +1793,7 @@ export type UserUncheckedCreateWithoutQuickListingsInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
   ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutQuickListingsInput = {
@@ -1769,6 +1832,7 @@ export type UserUpdateWithoutQuickListingsInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
   ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutQuickListingsInput = {
@@ -1791,6 +1855,115 @@ export type UserUncheckedUpdateWithoutQuickListingsInput = {
   profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
   ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
   monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
+  shippingLabels?: Prisma.ShippingLabelUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutShippingLabelsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  role?: $Enums.UserRole
+  passwordHash?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  activeSessions?: Prisma.ActiveSessionCreateNestedManyWithoutUserInput
+  purchaseRecords?: Prisma.PurchaseRecordCreateNestedManyWithoutUserInput
+  saleRecords?: Prisma.SaleRecordCreateNestedManyWithoutUserInput
+  scanHistories?: Prisma.ScanHistoryCreateNestedManyWithoutUserInput
+  profitCalcHistories?: Prisma.ProfitCalcHistoryCreateNestedManyWithoutUserInput
+  ebayAccount?: Prisma.EbayAccountCreateNestedOneWithoutUserInput
+  monetizeProjects?: Prisma.MonetizeProjectCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutShippingLabelsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  role?: $Enums.UserRole
+  passwordHash?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  activeSessions?: Prisma.ActiveSessionUncheckedCreateNestedManyWithoutUserInput
+  purchaseRecords?: Prisma.PurchaseRecordUncheckedCreateNestedManyWithoutUserInput
+  saleRecords?: Prisma.SaleRecordUncheckedCreateNestedManyWithoutUserInput
+  scanHistories?: Prisma.ScanHistoryUncheckedCreateNestedManyWithoutUserInput
+  profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedCreateNestedManyWithoutUserInput
+  ebayAccount?: Prisma.EbayAccountUncheckedCreateNestedOneWithoutUserInput
+  monetizeProjects?: Prisma.MonetizeProjectUncheckedCreateNestedManyWithoutUserInput
+  quickListings?: Prisma.QuickListingUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutShippingLabelsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutShippingLabelsInput, Prisma.UserUncheckedCreateWithoutShippingLabelsInput>
+}
+
+export type UserUpsertWithoutShippingLabelsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutShippingLabelsInput, Prisma.UserUncheckedUpdateWithoutShippingLabelsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutShippingLabelsInput, Prisma.UserUncheckedCreateWithoutShippingLabelsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutShippingLabelsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutShippingLabelsInput, Prisma.UserUncheckedUpdateWithoutShippingLabelsInput>
+}
+
+export type UserUpdateWithoutShippingLabelsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  activeSessions?: Prisma.ActiveSessionUpdateManyWithoutUserNestedInput
+  purchaseRecords?: Prisma.PurchaseRecordUpdateManyWithoutUserNestedInput
+  saleRecords?: Prisma.SaleRecordUpdateManyWithoutUserNestedInput
+  scanHistories?: Prisma.ScanHistoryUpdateManyWithoutUserNestedInput
+  profitCalcHistories?: Prisma.ProfitCalcHistoryUpdateManyWithoutUserNestedInput
+  ebayAccount?: Prisma.EbayAccountUpdateOneWithoutUserNestedInput
+  monetizeProjects?: Prisma.MonetizeProjectUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutShippingLabelsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  activeSessions?: Prisma.ActiveSessionUncheckedUpdateManyWithoutUserNestedInput
+  purchaseRecords?: Prisma.PurchaseRecordUncheckedUpdateManyWithoutUserNestedInput
+  saleRecords?: Prisma.SaleRecordUncheckedUpdateManyWithoutUserNestedInput
+  scanHistories?: Prisma.ScanHistoryUncheckedUpdateManyWithoutUserNestedInput
+  profitCalcHistories?: Prisma.ProfitCalcHistoryUncheckedUpdateManyWithoutUserNestedInput
+  ebayAccount?: Prisma.EbayAccountUncheckedUpdateOneWithoutUserNestedInput
+  monetizeProjects?: Prisma.MonetizeProjectUncheckedUpdateManyWithoutUserNestedInput
+  quickListings?: Prisma.QuickListingUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1808,6 +1981,7 @@ export type UserCountOutputType = {
   profitCalcHistories: number
   monetizeProjects: number
   quickListings: number
+  shippingLabels: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1820,6 +1994,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   profitCalcHistories?: boolean | UserCountOutputTypeCountProfitCalcHistoriesArgs
   monetizeProjects?: boolean | UserCountOutputTypeCountMonetizeProjectsArgs
   quickListings?: boolean | UserCountOutputTypeCountQuickListingsArgs
+  shippingLabels?: boolean | UserCountOutputTypeCountShippingLabelsArgs
 }
 
 /**
@@ -1895,6 +2070,13 @@ export type UserCountOutputTypeCountQuickListingsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.QuickListingWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountShippingLabelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShippingLabelWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1917,6 +2099,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   ebayAccount?: boolean | Prisma.User$ebayAccountArgs<ExtArgs>
   monetizeProjects?: boolean | Prisma.User$monetizeProjectsArgs<ExtArgs>
   quickListings?: boolean | Prisma.User$quickListingsArgs<ExtArgs>
+  shippingLabels?: boolean | Prisma.User$shippingLabelsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1969,6 +2152,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   ebayAccount?: boolean | Prisma.User$ebayAccountArgs<ExtArgs>
   monetizeProjects?: boolean | Prisma.User$monetizeProjectsArgs<ExtArgs>
   quickListings?: boolean | Prisma.User$quickListingsArgs<ExtArgs>
+  shippingLabels?: boolean | Prisma.User$shippingLabelsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1988,6 +2172,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     ebayAccount: Prisma.$EbayAccountPayload<ExtArgs> | null
     monetizeProjects: Prisma.$MonetizeProjectPayload<ExtArgs>[]
     quickListings: Prisma.$QuickListingPayload<ExtArgs>[]
+    shippingLabels: Prisma.$ShippingLabelPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2404,6 +2589,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   ebayAccount<T extends Prisma.User$ebayAccountArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ebayAccountArgs<ExtArgs>>): Prisma.Prisma__EbayAccountClient<runtime.Types.Result.GetResult<Prisma.$EbayAccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   monetizeProjects<T extends Prisma.User$monetizeProjectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$monetizeProjectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MonetizeProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   quickListings<T extends Prisma.User$quickListingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$quickListingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuickListingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  shippingLabels<T extends Prisma.User$shippingLabelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$shippingLabelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShippingLabelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3086,6 +3272,30 @@ export type User$quickListingsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.QuickListingScalarFieldEnum | Prisma.QuickListingScalarFieldEnum[]
+}
+
+/**
+ * User.shippingLabels
+ */
+export type User$shippingLabelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ShippingLabel
+   */
+  select?: Prisma.ShippingLabelSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ShippingLabel
+   */
+  omit?: Prisma.ShippingLabelOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShippingLabelInclude<ExtArgs> | null
+  where?: Prisma.ShippingLabelWhereInput
+  orderBy?: Prisma.ShippingLabelOrderByWithRelationInput | Prisma.ShippingLabelOrderByWithRelationInput[]
+  cursor?: Prisma.ShippingLabelWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShippingLabelScalarFieldEnum | Prisma.ShippingLabelScalarFieldEnum[]
 }
 
 /**

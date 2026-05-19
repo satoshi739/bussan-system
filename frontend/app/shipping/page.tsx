@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Truck, Package, Search, Plus, ExternalLink, Settings, X, Trash2, RefreshCw } from "lucide-react";
+import { Truck, Package, Search, Plus, ExternalLink, Settings, X, Trash2, RefreshCw, Lock } from "lucide-react";
 import { toast } from "@/components/Toast";
 import {
   useShipments,
@@ -18,6 +18,7 @@ import {
   type ShipmentStatus,
   type Carrier,
 } from "@/types/shipping";
+import { usePlan } from "@/lib/usePlan";
 
 const C = {
   bd:   "var(--border)",
@@ -117,10 +118,13 @@ function StatusPill({ status }: { status: ShipmentStatus }) {
 export default function ShippingPage() {
   const shipments = useShipments();
   const carriers  = useCarriers();
+  const { plan, loading: planLoading } = usePlan();
+  const canUseShipping = plan === "STANDARD" || plan === "PRO";
   const [search, setSearch]     = useState("");
   const [tab, setTab]           = useState<"all" | ShipmentStatus>("all");
   const [editing, setEditing]   = useState<Shipment | null>(null);
   const [creating, setCreating] = useState(false);
+  const [issuing, setIssuing]   = useState<string | null>(null);
   const loading = false;
 
   const stats = useMemo(() => summarize(shipments), [shipments]);
@@ -159,6 +163,68 @@ export default function ShippingPage() {
     deleteShipment(id);
     setEditing(null);
     toast("削除しました", "info");
+  };
+
+  // ヤマトで送り状を発行 (モック動作: YAMATO_API_MOCK=true 時)
+  // 既存shipment の buyer 情報から recipient 情報を組み立てて POST する。
+  // 郵便番号/電話番号は既存UIに無いため、住所から正規表現で抽出 or プレースホルダ。
+  const handleIssueYamatoLabel = async (s: Shipment) => {
+    if (!canUseShipping) {
+      toast("Standard以上のプランで利用できます", "error");
+      return;
+    }
+    const postalMatch = s.buyerAddress.match(/(\d{3}-?\d{4})/);
+    const recipientPostalCode = postalMatch?.[1] ?? "100-0001";
+    const recipientAddress =
+      s.buyerAddress.replace(/^〒?\s*\d{3}-?\d{4}\s*/, "") || s.buyerAddress || "東京都千代田区1-1-1";
+    const recipientPhone = "03-0000-0000"; // モック用プレースホルダ（実運用ではフォームで取得）
+
+    setIssuing(s.id);
+    try {
+      const res = await fetch("/api/shipping-labels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          externalOrderId: s.orderId || s.id,
+          carrier: "yamato",
+          recipientName: s.buyerName || "—",
+          recipientPostalCode,
+          recipientAddress,
+          recipientPhone,
+          packageName: s.productName,
+        }),
+      });
+      const data = await res.json().catch(() => ({} as { error?: string; code?: string }));
+      if (!res.ok) {
+        if (res.status === 403 && data.code === "FORBIDDEN_TIER") {
+          toast("Standard以上のプランで利用できます", "error");
+        } else if (res.status === 401) {
+          toast("ログインが必要です", "error");
+        } else {
+          toast(data.error ?? "送り状の発行に失敗しました", "error");
+        }
+        return;
+      }
+      const label = data.shippingLabel as {
+        id: string;
+        trackingNumber: string;
+        trackingUrl: string;
+        labelIssueId: string | null;
+      };
+      // 既存shipment(localStorage)に追跡番号を反映
+      upsertShipment({
+        ...s,
+        trackingNumber: label.trackingNumber,
+        trackingUrl: label.trackingUrl,
+        status: "shipped",
+        shippedAt: new Date().toISOString(),
+      });
+      toast(`ヤマト送り状を発行しました: ${label.trackingNumber}`);
+    } catch {
+      toast("送り状の発行に失敗しました（ネットワークエラー）", "error");
+    } finally {
+      setIssuing(null);
+    }
   };
 
   return (
@@ -276,7 +342,7 @@ export default function ShippingPage() {
                   <th style={{ padding: "10px 8px", borderBottom: `1px solid ${C.bd}` }}>追跡番号</th>
                   <th style={{ padding: "10px 8px", borderBottom: `1px solid ${C.bd}` }}>状態</th>
                   <th style={{ padding: "10px 8px", borderBottom: `1px solid ${C.bd}` }}>発送予定</th>
-                  <th style={{ padding: "10px 8px", borderBottom: `1px solid ${C.bd}`, width: 80 }}></th>
+                  <th style={{ padding: "10px 8px", borderBottom: `1px solid ${C.bd}`, width: 220 }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -304,7 +370,44 @@ export default function ShippingPage() {
                     <td style={{ padding: "12px 8px" }}><StatusPill status={s.status} /></td>
                     <td style={{ padding: "12px 8px", color: C.t3, fontSize: 12 }}>{fmtDate(s.scheduledShipDate)}</td>
                     <td style={{ padding: "12px 8px", textAlign: "right" }}>
-                      <button onClick={() => setEditing(s)} style={{ ...btnGhost, padding: "6px 10px", fontSize: 12 }}>編集</button>
+                      <div style={{ display: "inline-flex", gap: 6, justifyContent: "flex-end", alignItems: "center" }}>
+                        {s.carrierId === "yamato" && !s.trackingNumber && (
+                          <button
+                            onClick={() => handleIssueYamatoLabel(s)}
+                            disabled={planLoading || issuing === s.id}
+                            title={canUseShipping ? "ヤマトで送り状発行（モック）" : "Standard以上のプランで利用できます"}
+                            style={{
+                              ...btnGhost,
+                              padding: "6px 10px",
+                              fontSize: 12,
+                              cursor: planLoading || issuing === s.id ? "not-allowed" : "pointer",
+                              ...(canUseShipping
+                                ? { borderColor: "rgba(0,111,230,0.4)", color: C.gold }
+                                : { color: C.t3, opacity: 0.7 }),
+                            }}
+                          >
+                            {canUseShipping ? (
+                              issuing === s.id ? "発行中..." : "ヤマト発行"
+                            ) : (
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                <Lock size={11} /> Standard以上
+                              </span>
+                            )}
+                          </button>
+                        )}
+                        {s.carrierId === "yamato" && s.trackingNumber && (
+                          <span style={{
+                            fontSize: 11,
+                            color: "#1E9C3C",
+                            fontWeight: 700,
+                            padding: "6px 10px",
+                            background: "rgba(30,156,60,0.10)",
+                            borderRadius: 8,
+                            whiteSpace: "nowrap",
+                          }}>発行済</span>
+                        )}
+                        <button onClick={() => setEditing(s)} style={{ ...btnGhost, padding: "6px 10px", fontSize: 12 }}>編集</button>
+                      </div>
                     </td>
                   </tr>
                 ))}

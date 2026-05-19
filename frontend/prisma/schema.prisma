@@ -35,6 +35,7 @@ model User {
   ebayAccount         EbayAccount?
   monetizeProjects    MonetizeProject[]
   quickListings       QuickListing[]
+  shippingLabels      ShippingLabel[]
 }
 
 model Account {
@@ -375,4 +376,31 @@ model AppSetting {
   description String?
   updatedBy   String?
   updatedAt   DateTime @updatedAt
+}
+
+// 配送ラベル発行履歴 (ヤマトB2クラウド等の配送業者APIで発行した伝票の記録)
+// 既存の types/shipping.Shipment (クライアントUI型) とは別概念
+model ShippingLabel {
+  id                  String   @id @default(cuid())
+  userId              String
+  externalOrderId     String
+  carrier             String   @default("yamato")
+  status              String   @default("pending")
+  recipientName       String
+  recipientPostalCode String
+  recipientAddress    String
+  recipientPhone      String
+  packageName         String
+  trackingNumber      String?
+  trackingUrl         String?
+  labelIssueId        String?
+  labelPdfUrl         String?
+  errorMessage        String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([externalOrderId])
 }

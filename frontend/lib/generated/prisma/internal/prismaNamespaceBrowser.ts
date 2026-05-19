@@ -69,7 +69,8 @@ export const ModelName = {
   GenerationHistory: 'GenerationHistory',
   QuickListing: 'QuickListing',
   OnboardingEmailLog: 'OnboardingEmailLog',
-  AppSetting: 'AppSetting'
+  AppSetting: 'AppSetting',
+  ShippingLabel: 'ShippingLabel'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -378,6 +379,29 @@ export const AppSettingScalarFieldEnum = {
 } as const
 
 export type AppSettingScalarFieldEnum = (typeof AppSettingScalarFieldEnum)[keyof typeof AppSettingScalarFieldEnum]
+
+
+export const ShippingLabelScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  externalOrderId: 'externalOrderId',
+  carrier: 'carrier',
+  status: 'status',
+  recipientName: 'recipientName',
+  recipientPostalCode: 'recipientPostalCode',
+  recipientAddress: 'recipientAddress',
+  recipientPhone: 'recipientPhone',
+  packageName: 'packageName',
+  trackingNumber: 'trackingNumber',
+  trackingUrl: 'trackingUrl',
+  labelIssueId: 'labelIssueId',
+  labelPdfUrl: 'labelPdfUrl',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShippingLabelScalarFieldEnum = (typeof ShippingLabelScalarFieldEnum)[keyof typeof ShippingLabelScalarFieldEnum]
 
 
 export const SortOrder = {

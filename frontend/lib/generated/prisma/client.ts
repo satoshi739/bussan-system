@@ -136,3 +136,8 @@ export type OnboardingEmailLog = Prisma.OnboardingEmailLogModel
  * 
  */
 export type AppSetting = Prisma.AppSettingModel
+/**
+ * Model ShippingLabel
+ * 
+ */
+export type ShippingLabel = Prisma.ShippingLabelModel
